@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Pacientes</title>
+    <style>
+        form {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 10px;
+            max-width: 400px;
+        }
+
+        .dni-container {
+            display: flex;
+            align-items: center;
+            gap: 15px; 
+        }
+
+        .mensaje {
+            margin-top: 10px;
+            font-weight: bold;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h2>Registro de Pacientes</h2>
+    <form id="formPaciente">
+        <label for="dni">DNI:</label>
+        <div class="dni-container">
+            <input type="text" id="dni" required>
+            <button type="button" id="btnBuscar">Buscar</button>
+        </div>
+
+        <label for="apellidoNombres">Apellido y Nombres:</label>
+        <input type="text" id="apellidoNombres" required>
+
+        <label for="fechaNacimiento">Fecha de Nacimiento:</label>
+        <input type="date" id="fechaNacimiento" required>
+
+        <label for="sexo">Sexo:</label>
+        <select id="sexo">
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+        </select>
+
+        <label for="direccion">Dirección:</label>
+        <input type="text" id="direccion">
+
+        <label for="telefono">Teléfono:</label>
+        <input type="text" id="telefono">
+
+        <label for="email">Email:</label>
+        <input type="email" id="email">
+
+        <label for="idCobertura">Cobertura:</label>
+        <select id="idCobertura"></select>
+
+        <label for="contactoEmergencia">Contacto de Emergencia:</label>
+        <input type="text" id="contactoEmergencia">
+
+        <button type="submit">Registrar</button>
+    </form>
+
+    <!-- Mensajes para el resultado de la búsqueda -->
+    <div id="mensajes" class="mensajes"></div>
+
+    <script src="pacientes.js"></script>
+</body>
+</html>
