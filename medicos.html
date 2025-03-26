@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Médicos</title>
+    <style>
+        form {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 10px;
+            max-width: 400px;
+        }
+
+        .dni-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mensaje {
+            margin-top: 10px;
+            font-weight: bold;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h2>Registro de Médicos</h2>
+    <form id="formMedico">
+        <label for="dni">DNI:</label>
+        <div class="dni-container">
+            <input type="text" id="dni" required>
+            <button type="button" id="btnBuscarMedico">Buscar</button>
+        </div>
+
+        <label for="apellidoNombres">Apellido y Nombres:</label>
+        <input type="text" id="apellidoNombres" required>
+
+        <label for="telefono">Teléfono:</label>
+        <input type="text" id="telefono">
+
+        <label for="email">Email:</label>
+        <input type="email" id="email">
+
+        <label for="idEspecialidad">Especialidad:</label>
+        <select id="idEspecialidad"></select>
+
+        <label for="matricula">Matricula:</label>
+        <input type="matricula" id="matricula">
+
+        <button type="submit">Registrar</button>
+    </form>
+
+    <div id="mensajes" class="mensaje"></div>
+
+    <script src="medicos.js"></script>
+</body>
+</html>
