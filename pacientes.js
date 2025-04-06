@@ -35,12 +35,15 @@ let pacientes = [];
 
 function validarDatos(form) {
 
-    let dni = form.dni.value.trim();
+    //let dni = document.getElementById("dni").value.trim();
+    let dni = form.dni.value.trim(); 
     let apellidoNombres = form.apellidoNombres.value.trim().toUpperCase();
     let fechaNacimiento = form.fechaNacimiento.value;
     let telefono = form.telefono.value.trim();
     let email = form.email.value.trim();
     let cobertura = form.idCobertura.value;
+
+
 
 
     if (dni === "" || dni === "0" || isNaN(dni) || !/^\d{1,9}$/.test(dni)) {
@@ -89,6 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const inputDni = document.getElementById("dni");
     const selectCobertura = document.getElementById("idCobertura");
     const btnBuscar = document.getElementById("btnBuscar");
+    const btnModificar = document.getElementById("btnModificar");
     const mensajeBusqueda = document.getElementById("mensajeBusqueda");
 
     coberturas.forEach(cobertura => {
@@ -155,6 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 contactoEmergencia: form.contactoEmergencia.value
             };
 
+            btnModificar.disabled = false;
             modificarPaciente(dni, nuevosDatos);
             mostrarMensaje('Paciente actualizado exitosamente.', 1);
 
@@ -179,6 +184,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         resetearBusqueda();
+        btnModificar.disabled = true;
 
     });
 
