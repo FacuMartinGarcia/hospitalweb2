@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const selectCobertura = document.getElementById("idCobertura");
     const btnBuscar = document.getElementById("btnBuscar");
     const btnModificar = document.getElementById("btnModificar");
-    const mensajeBusqueda = document.getElementById("mensajeBusqueda");
+    const mensajeBusqueda = document.getElementById("mensajes");
 
     coberturas.forEach(cobertura => {
         let option = document.createElement("option");
@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
             inputDni.disabled = false;
             limpiarCampos();
             btnBuscar.textContent = "Buscar";
-            mensajeBusqueda.textContent = "";
+            mensajeBusqueda.textContent = '';
             inputDni.focus();
             return;
         }
@@ -128,6 +128,8 @@ document.addEventListener("DOMContentLoaded", () => {
             mensajeBusqueda.textContent = '';
 
             bloquearDni();
+            bloquearCamposFormulario();
+            btnModificar.disabled = false;
 
         } else {
             limpiarCampos();
@@ -160,6 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             btnModificar.disabled = false;
+            console.log(btnModificar);
             modificarPaciente(dni, nuevosDatos);
             mostrarMensaje('Paciente actualizado exitosamente.', 1);
 
@@ -200,7 +203,7 @@ document.addEventListener("DOMContentLoaded", () => {
         inputDni.style.backgroundColor = ""; 
         limpiarCampos();
         btnBuscar.textContent = "Buscar";
-        mensajeBusqueda.textContent = "";
+        mensajeBusqueda.textContent = '';
         inputDni.focus();
     }
     
@@ -251,4 +254,34 @@ function mostrarMensaje(mensajes, tipo) {
     }
     setTimeout(() => { mensajeBusqueda.textContent = ''; }, 3000);
 
+}
+
+function bloquearCamposFormulario() {
+    
+
+    const campos = [
+        "apellidoNombres", "fechaNacimiento", "sexo",
+        "direccion", "telefono", "email", "idCobertura",
+        "contactoEmergencia"
+    ];
+
+
+    campos.forEach(id => {
+        const campo = document.getElementById(id);
+        if (campo) {
+            campo.disabled = true;       
+        }
+    });
+}
+
+function desbloquearCamposFormulario() {
+    const campos = [
+        "apellidoNombres", "fechaNacimiento", "sexo",
+        "direccion", "telefono", "email", "idCobertura",
+        "contactoEmergencia"
+    ];
+
+    campos.forEach(id => {
+        form[id].disabled = false;
+    });
 }
