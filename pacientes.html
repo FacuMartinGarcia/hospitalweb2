@@ -43,15 +43,28 @@
       grid-template-columns: 1fr;
     }
 
-    .dni-row {
+    .documento-row {
       display: grid;
       grid-template-columns: 2fr 1fr 1fr;
       gap: 15px;
       margin-bottom: 15px;
     }
 
-    #dni {
+    #documento {
       text-align: center;
+      font-size: 1.1rem;
+      font-weight: bold; 
+    }
+    
+    #documento::placeholder {
+      color: #888;
+      font-style: italic; 
+      text-align: center;
+      font-weight: normal;
+    }
+    
+    #apellidoNombres {
+      text-transform: uppercase;
       font-size: 1.1rem;
       font-weight: bold;
     }
@@ -91,6 +104,7 @@
       font-weight: bold;
       color: red;
       text-align: center;
+
     }
   </style>
 </head>
@@ -100,8 +114,8 @@
 
     <form id="formPaciente">
 
-      <div class="dni-row">
-        <input type="text" id="dni" placeholder="ingrese el  n° de documento" required />
+      <div class="documento-row">
+        <input type="text" id="documento" placeholder="Ingrese aquí el n° de documento" required autocomplete="off" />
         <button type="button" id="btnBuscar">Buscar</button>
         <button type="button" id="btnModificar" disabled>Modificar</button>
         <div></div> 
@@ -110,7 +124,7 @@
       <div class="form-row" style="grid-template-columns: 2fr 1fr 0.7fr;">
         <div>
           <label for="apellidoNombres">Apellido y Nombres:</label>
-          <input type="text" id="apellidoNombres" required />
+          <input type="text" id="apellidoNombres" required autocomplete="off" />
         </div>
         <div>
           <label for="fechaNacimiento">Fecha de Nacimiento:</label>
@@ -163,5 +177,6 @@
   </div>
 
   <script src="pacientes.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </body>
 </html>

@@ -1,8 +1,8 @@
 class Paciente {
-    constructor(idPaciente, apellidoNombres, dni, fechaNacimiento, sexo, direccion, telefono, email, fechaRegistro, idCobertura, contactoEmergencia) {
+    constructor(idPaciente, apellidoNombres, documento, fechaNacimiento, sexo, direccion, telefono, email, fechaRegistro, idCobertura, contactoEmergencia) {
         this.idPaciente = idPaciente;
         this.apellidoNombres = apellidoNombres.toUpperCase(); 
-        this.dni = dni;
+        this.documento = documento;
         this.fechaNacimiento = fechaNacimiento;
         this.sexo = sexo;
         this.direccion = direccion;
@@ -35,8 +35,8 @@ let pacientes = [];
 
 function validarDatos(form) {
 
-    //let dni = document.getElementById("dni").value.trim();
-    let dni = form.dni.value.trim(); 
+    //let documento = document.getElementById("documento").value.trim();
+    let documento = form.documento.value.trim(); 
     let apellidoNombres = form.apellidoNombres.value.trim().toUpperCase();
     let fechaNacimiento = form.fechaNacimiento.value;
     let telefono = form.telefono.value.trim();
@@ -44,11 +44,9 @@ function validarDatos(form) {
     let cobertura = form.idCobertura.value;
 
 
-
-
-    if (dni === "" || dni === "0" || isNaN(dni) || !/^\d{1,9}$/.test(dni)) {
-        mostrarMensaje('El DNI debe contener solo números y tener hasta 9 dígitos.',0);
-        inputDni.focus();
+    if (documento === "" || documento === "0" || isNaN(documento) || !/^\d{1,9}$/.test(documento)) {
+        mostrarMensaje('El documento debe contener solo números y tener hasta 9 dígitos.',0);
+        inputdocumento.focus();
         return false;
     }
     
@@ -89,7 +87,7 @@ function validarDatos(form) {
 document.addEventListener("DOMContentLoaded", () => {
     
     const form = document.getElementById("formPaciente");
-    const inputDni = document.getElementById("dni");
+    const inputdocumento = document.getElementById("documento");
     const selectCobertura = document.getElementById("idCobertura");
     const btnBuscar = document.getElementById("btnBuscar");
     const btnModificar = document.getElementById("btnModificar");
@@ -102,21 +100,33 @@ document.addEventListener("DOMContentLoaded", () => {
         selectCobertura.appendChild(option);
     });
 
+    bloquearCamposFormulario();
+
     btnBuscar.addEventListener("click", () => {
+
+        console.log(inputdocumento.value);
+        /* CONTINUAR CODEANDO POR ACA*/
+        if (inputdocumento.value === "" || inputdocumento.value === "0" || isNaN(inputdocumento) || !/^\d{1,9}$/.test(inputdocumento.value)) {
+            mostrarMensaje('El documento debe contener solo números y tener hasta 9 dígitos.',0);
+            inputdocumento.focus();
+            return false;
+        }
+
         if (btnBuscar.textContent === "Nueva Búsqueda") {
-            // Habilita el campo DNI y limpia los campos
-            inputDni.value = "";
-            inputDni.disabled = false;
+            // Habilita el campo documento y limpia los campos
+            inputdocumento.value = "";
+            inputdocumento.disabled = false;
             limpiarCampos();
             btnBuscar.textContent = "Buscar";
             mensajeBusqueda.textContent = '';
-            inputDni.focus();
+            inputdocumento.focus();
             return;
         }
 
-        let paciente = consultarPaciente(inputDni.value);
+        let paciente = consultarPaciente(inputdocumento.value);
 
         if (paciente) {
+            
             form.apellidoNombres.value = paciente.apellidoNombres;
             form.fechaNacimiento.value = paciente.fechaNacimiento;
             form.sexo.value = paciente.sexo;
@@ -127,84 +137,120 @@ document.addEventListener("DOMContentLoaded", () => {
             form.contactoEmergencia.value = paciente.contactoEmergencia;
             mensajeBusqueda.textContent = '';
 
-            bloquearDni();
+            bloqueardocumento();
             bloquearCamposFormulario();
             btnModificar.disabled = false;
 
         } else {
             limpiarCampos();
-            mostrarMensaje('Paciente no encontrado. Verifique el DNI, o registre los datos del nuevo paciente', 0);
-            bloquearDni();
+            /*mostrarMensaje('Paciente no encontrado. Verifique el documento, o registre los datos del nuevo paciente', 0);*/
+            bloqueardocumento();
+
+            Swal.fire({
+                title: 'No Registrado',
+                html: "El n° de documento ingresado no se encuentra registrado. <br>Verifique el documento, o registre los datos del nuevo paciente",
+                icon: 'info',
+                confirmButtonText: 'Entendido'
+            }).then(() => {
+                desbloquearCamposFormulario();
+                btnModificar.disabled = true;
+                setTimeout(() => {
+                    document.getElementById('apellidoNombres').focus();
+                }, 300);
+            });
         }
+    });
+
+    btnModificar.addEventListener("click", () => {
+        desbloquearCamposFormulario();
     });
 
     form.addEventListener("submit", (e) => {
         e.preventDefault();
 
-        if (!validarDatos(form)) {
-            return;
-        }
 
-        let dni = form.dni.value;  
-        let pacienteExistente = consultarPaciente(dni); 
+        Swal.fire({
 
-        // Modificación
-        if (pacienteExistente) {
-            let nuevosDatos = {
-                apellidoNombres: form.apellidoNombres.value,
-                fechaNacimiento: form.fechaNacimiento.value,
-                sexo: form.sexo.value,
-                direccion: form.direccion.value,
-                telefono: form.telefono.value,
-                email: form.email.value,
-                idCobertura: form.idCobertura.value,
-                contactoEmergencia: form.contactoEmergencia.value
-            };
+            title: '¿Estás seguro?',
+            text: "Va a grabar los datos ingresados",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, grabar',
+            cancelButtonText: 'Cancelar'
 
-            btnModificar.disabled = false;
-            console.log(btnModificar);
-            modificarPaciente(dni, nuevosDatos);
-            mostrarMensaje('Paciente actualizado exitosamente.', 1);
+          }).then((result) => {
 
-        } else {
-            // Alta
-            let nuevoPaciente = new Paciente(
-                pacientes.length + 1,
-                form.apellidoNombres.value,
-                dni,
-                form.fechaNacimiento.value,
-                form.sexo.value,
-                form.direccion.value,
-                form.telefono.value,
-                form.email.value,
-                new Date().toISOString().split("T")[0],
-                form.idCobertura.value,
-                form.contactoEmergencia.value
-            );
+            if (result.isConfirmed) {
+                if (!validarDatos(form)) {
+                    return;
+                }
+        
+                let documento = form.documento.value;  
+                let pacienteExistente = consultarPaciente(documento); 
+        
+                // Modificación
+                if (pacienteExistente) {
+                    let nuevosDatos = {
+                        apellidoNombres: form.apellidoNombres.value,
+                        fechaNacimiento: form.fechaNacimiento.value,
+                        sexo: form.sexo.value,
+                        direccion: form.direccion.value,
+                        telefono: form.telefono.value,
+                        email: form.email.value,
+                        idCobertura: form.idCobertura.value,
+                        contactoEmergencia: form.contactoEmergencia.value
+                    };
+        
+                    btnModificar.disabled = false;
+                    console.log(btnModificar);
+                    modificarPaciente(documento, nuevosDatos);
+                    mostrarMensaje('Paciente actualizado exitosamente.', 1);
+        
+                } else {
+                    // Alta
+                    let nuevoPaciente = new Paciente(
+                        pacientes.length + 1,
+                        form.apellidoNombres.value,
+                        documento,
+                        form.fechaNacimiento.value,
+                        form.sexo.value,
+                        form.direccion.value,
+                        form.telefono.value,
+                        form.email.value,
+                        new Date().toISOString().split("T")[0],
+                        form.idCobertura.value,
+                        form.contactoEmergencia.value
+                    );
+        
+                    agregarPaciente(nuevoPaciente);
+                    mostrarMensaje('Paciente registrado exitosamente.', 1);
+                }
+        
+                resetearBusqueda();
+                btnModificar.disabled = true;
+                desbloquearCamposFormulario();    
 
-            agregarPaciente(nuevoPaciente);
-            mostrarMensaje('Paciente registrado exitosamente.', 1);
-        }
-
-        resetearBusqueda();
-        btnModificar.disabled = true;
+            } else {
+              console.log("La grabación fue cancelada");
+            }
+          });
 
     });
 
-    function bloquearDni() {
-        inputDni.disabled = true;
-        inputDni.style.backgroundColor = "#f0f0f0"; 
+    function bloqueardocumento() {
+        inputdocumento.disabled = true;
+        inputdocumento.style.backgroundColor = "#f0f0f0"; 
         btnBuscar.textContent = "Nueva Búsqueda";
     }
 
     function resetearBusqueda() {
-        inputDni.value = "";
-        inputDni.disabled = false;
-        inputDni.style.backgroundColor = ""; 
+        inputdocumento.value = "";
+        inputdocumento.disabled = false;
+        inputdocumento.style.backgroundColor = ""; 
         limpiarCampos();
         btnBuscar.textContent = "Buscar";
         mensajeBusqueda.textContent = '';
-        inputDni.focus();
+        inputdocumento.focus();
     }
     
     function limpiarCampos() {
@@ -223,15 +269,15 @@ function agregarPaciente(paciente) {
     pacientes.push(paciente);
 }
 
-function modificarPaciente(dni, nuevosDatos) {
-    let paciente = pacientes.find(p => p.dni === dni);
+function modificarPaciente(documento, nuevosDatos) {
+    let paciente = pacientes.find(p => p.documento === documento);
     if (paciente) {
         Object.assign(paciente, nuevosDatos);  
     }
 }
 
-function consultarPaciente(dni) {
-    return pacientes.find(p => p.dni === dni) || null;
+function consultarPaciente(documento) {
+    return pacientes.find(p => p.documento === documento) || null;
 }
 
 function listarPacientes() {
@@ -282,6 +328,9 @@ function desbloquearCamposFormulario() {
     ];
 
     campos.forEach(id => {
-        form[id].disabled = false;
+        const campo = document.getElementById(id);
+        if (campo) {
+            campo.disabled = false;       
+        }
     });
 }
