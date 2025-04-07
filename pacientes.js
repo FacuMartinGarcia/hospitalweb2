@@ -35,9 +35,8 @@ let pacientes = [];
 
 function validarDatos(form) {
 
-    //let documento = document.getElementById("documento").value.trim();
     let documento = form.documento.value.trim(); 
-    let apellidoNombres = form.apellidoNombres.value.trim().toUpperCase();
+    let apellidoNombres = form.apellidoNombres.value.trim() //.toUpperCase();
     let fechaNacimiento = form.fechaNacimiento.value;
     let telefono = form.telefono.value.trim();
     let email = form.email.value.trim();
@@ -86,6 +85,7 @@ function validarDatos(form) {
 
 document.addEventListener("DOMContentLoaded", () => {
     
+
     const form = document.getElementById("formPaciente");
     const inputdocumento = document.getElementById("documento");
     const selectCobertura = document.getElementById("idCobertura");
@@ -105,12 +105,13 @@ document.addEventListener("DOMContentLoaded", () => {
     btnBuscar.addEventListener("click", () => {
 
         console.log(inputdocumento.value);
-        /* CONTINUAR CODEANDO POR ACA*/
-        if (inputdocumento.value === "" || inputdocumento.value === "0" || isNaN(inputdocumento) || !/^\d{1,9}$/.test(inputdocumento.value)) {
+    
+        if (inputdocumento.value === "" || inputdocumento.value === "0" || isNaN(inputdocumento.value) || !/^\d{1,9}$/.test(inputdocumento.value)) {
             mostrarMensaje('El documento debe contener solo números y tener hasta 9 dígitos.',0);
             inputdocumento.focus();
             return false;
         }
+
 
         if (btnBuscar.textContent === "Nueva Búsqueda") {
             // Habilita el campo documento y limpia los campos
