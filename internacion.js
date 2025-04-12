@@ -12,6 +12,22 @@ class Internacion {
     }
 }
 
+class Cobertura {
+    constructor(idCobertura, denominacion) {
+        this.idCobertura = idCobertura;
+        this.denominacion = denominacion;
+    }
+}
+
+let coberturas = [
+    new Cobertura(1, "Sin Datos"),
+    new Cobertura(2, "Swiss Medical"),
+    new Cobertura(3, "Galeno"),
+    new Cobertura(4, "Medife"),
+    new Cobertura(5, "OSDE"),
+    new Cobertura(6, "DOSEP"),
+];
+
 let Internaciones = [];
 
 let medicos = [
@@ -55,7 +71,7 @@ let medicos = [
 
 let pacientes = [
     {
-        dni: 111,
+        documento: 111,
         apellidoNombres: "Juárez, Ana",
         sexo: "F",
         fechaNacimiento: "1990-05-12",
@@ -63,7 +79,7 @@ let pacientes = [
         idCobertura: 1
     },
     {
-        dni: 222,
+        documento: 222,
         apellidoNombres: "Martínez, Pedro",
         sexo: "M",
         fechaNacimiento: "1985-10-30",
@@ -71,7 +87,7 @@ let pacientes = [
         idCobertura: 2
     },
     {
-        dni: 333,
+        documento: 333,
         apellidoNombres: "López, Camila",
         sexo: "F",
         fechaNacimiento: "2002-03-22",
@@ -80,15 +96,11 @@ let pacientes = [
     }
 ];
 
-
-
 document.addEventListener("DOMContentLoaded", () => {
-    const inputDni = document.getElementById("dni");
+    const inputDocumento = document.getElementById("documento");
     const btnBuscarPaciente = document.getElementById("btnBuscarPaciente");
-    const mensajePaciente = document.getElementById("mensajePaciente");
     const datosPaciente = document.getElementById("datosPaciente");
     const seccionInternacion = document.getElementById("seccionInternacion");
-    const seccionInternaciones = document.getElementById("seccionInternaciones");
     const formInternacion = document.getElementById("formInternacion");
     const selectMedico = document.getElementById("medico");
 
@@ -105,26 +117,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function buscarPaciente() {
         if (btnBuscarPaciente.textContent === "Nueva búsqueda") {
+            resetearBusqueda();
             return;
         }
 
-        const dni = inputDni.value.trim();
+        const documento = inputDocumento.value.trim();
 
-        if (!dni || isNaN(dni)) {
+        if (!documento || isNaN(documento)) {
             mostrarMensaje("Ingrese un número de documento válido", "error");
             return;
         }
 
-        const paciente = consultarPaciente(dni);
+        const paciente = consultarPaciente(inputDocumento.value);
 
         if (paciente) {
             pacienteSeleccionado = paciente;
             mostrarDatosPaciente(paciente);
-            bloquearDNI();
+            bloqueardocumento();
+            verificarInternaciones(paciente);
         } else {
             Swal.fire({
-                title: 'No Registrado',
-                html: "El n° de documento ingresado no se encuentra registrado. <br>Verifique el documento, o registre los datos del nuevo paciente",
+                title: 'Paciente No Registrado',
+                html: "El n° de documento ingresado no se encuentra registrado",
                 icon: 'info',
                 confirmButtonText: 'Entendido'
             }).then(() => {
@@ -132,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 desbloquearCamposFormulario();
                 btnModificar.disabled = true;*/
                 setTimeout(() => {
-                    document.getElementById('apellidoNombres').focus();
+                    document.getElementById('documento').focus();
                 }, 300);
             });
             limpiarDatosPaciente();
@@ -140,11 +154,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function consultarPaciente(documento) {
-        return pacientes.find(p => p.documento === documento) || null;
+        return pacientes.find(p => p.documento === Number(documento)) || null;
     }
 
     function mostrarDatosPaciente(paciente) {
         const fechaNac = new Date(paciente.fechaNacimiento);
+        alert('estoy entrando en mostrar')
         const hoy = new Date();
         let edad = hoy.getFullYear() - fechaNac.getFullYear();
         const mes = hoy.getMonth() - fechaNac.getMonth();
@@ -155,7 +170,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const cobertura = coberturas.find(c => c.idCobertura == paciente.idCobertura)?.denominacion || "Sin cobertura";
 
         datosPaciente.innerHTML = `
-            <p><strong>DNI:</strong> ${paciente.dni}</p>
             <p><strong>Apellido y Nombres:</strong> ${paciente.apellidoNombres}</p>
             <p><strong>Sexo:</strong> ${paciente.sexo === 'M' ? 'Masculino' : 'Femenino'}</p>
             <p><strong>Fecha Nacimiento:</strong> ${paciente.fechaNacimiento} (${edad} años)</p>
@@ -163,7 +177,27 @@ document.addEventListener("DOMContentLoaded", () => {
             <p><strong>Cobertura:</strong> ${cobertura}</p>
         `;
 
-        mostrarMensaje("Paciente encontrado", "success");
+    }
+    function verificarInternaciones(paciente) {
+        
+        
+        //ACA TENDRIAMOS QUE FIJARNOS SI TIENE ALGUNA INTERNACION ACTICA Y TRAERLA
+        //SINO, MOSTRAR LOS CAMPOS PARA COMPLETAR UNA NUEVA INTERNACION
+        seccionInternacion.style.display = "block";
+
+        inputDocumento.disabled = true;
+        btnBuscarPaciente.textContent = "Nueva búsqueda";
+
+            
+    }
+    
+    function resetearBusqueda() {
+        inputDocumento.value = "";
+        inputDocumento.disabled = false;
+        btnBuscarPaciente.textContent = "Buscar";
+        limpiarDatosPaciente();
+        seccionInternacion.style.display = "none";
+        inputDocumento.focus();
     }
 
 
@@ -172,8 +206,8 @@ document.addEventListener("DOMContentLoaded", () => {
         pacienteSeleccionado = null;
     }
 
-    function bloquearDNI() {
-        inputDni.disabled = true;
+    function bloqueardocumento() {
+        inputDocumento.disabled = true;
         btnBuscarPaciente.textContent = "Nueva búsqueda";
     }
 
@@ -186,5 +220,22 @@ document.addEventListener("DOMContentLoaded", () => {
             option.textContent = `${medico.apellido}, ${medico.nombre} (${medico.especialidad})`;
             selectMedico.appendChild(option);
         });
+    }
+
+    function mostrarMensaje(mensajes, tipo) {
+
+        const mensajeBusqueda = document.getElementById("mensajes");
+    
+        mensajeBusqueda.textContent = mensajes;
+    
+        if (tipo === 0) {
+            mensajeBusqueda.style.color = "red";
+            mensajeBusqueda.style.backgroundColor = "#f8d7da";  
+        } else if (tipo === 1) {
+            mensajeBusqueda.style.color = "#007bff";  
+            mensajeBusqueda.style.backgroundColor = "#cce5ff";  
+        }
+        setTimeout(() => { mensajeBusqueda.textContent = ''; }, 3000);
+    
     }
 });
