@@ -84,9 +84,9 @@
             </div>
         </div>
         
-        <div class="section" id="seccionAdmision" style="display: none;">
+        <div class="section" id="seccionInternacion" style="display: none;">
             <h2>Datos de Admisión</h2>
-            <form id="formAdmision">
+            <form id="formInternacion">
                 <label for="origen">Origen:</label>
                 <select id="origen" required>
                     <option value="">Seleccione...</option>
@@ -98,23 +98,23 @@
                 <label for="medico">Médico:</label>
                 <select id="medico" required></select>
                 
-                <label for="fechaAdmision">Fecha de admisión:</label>
-                <input type="date" id="fechaAdmision" required>
+                <label for="fechaInternacion">Fecha de admisión:</label>
+                <input type="date" id="fechaInternacion" required>
                 
-                <label for="horaAdmision">Hora de admisión:</label>
-                <input type="time" id="horaAdmision" required>
+                <label for="horaInternacion">Hora de admisión:</label>
+                <input type="time" id="horaInternacion" required>
                 
                 <label for="motivo">Motivo:</label>
                 <textarea id="motivo" rows="3" required></textarea>
                 
-                <button type="submit" id="btnRegistrarAdmision">Registrar Admisión</button>
+                <button type="submit" id="btnRegistrarInternacion">Registrar Admisión</button>
             </form>
         </div>
         
 
-        <div class="section" id="seccionAdmisiones" style="display: none;">
-            <h2>Admisiones Registradas</h2>
-            <div id="listaAdmisiones"></div>
+        <div class="section" id="seccionInternaciones" style="display: none;">
+            <h2>Internaciones Registradas</h2>
+            <div id="listaInternaciones"></div>
         </div>
 
         
@@ -122,7 +122,8 @@
 
     <div id="mensajes" class="mensajes"></div>
     
-    <script src="admision.js"></script>
+    <script src="Internacion.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 </body>
 </html>
