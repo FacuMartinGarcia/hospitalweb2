@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Registro de Pacientes</title>
+  <style>
+    body {
+      font-family: monospace;
+      background-color: #000;
+      color: #00FF00;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .ficha {
+      background-color: #000;
+      border-radius: 10px;
+      border: 1px solid #00FF00;
+      padding: 20px 25px;
+      max-width: 800px;
+      width: 100%;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+    }
+
+    h2 {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 80px;
+      margin-bottom: 20px;
+      background-color: rgba(0, 255, 0, 0.1); /* fondo verde claro difuso */
+      color: #00FF00;
+      border: 1px solid #00FF00;
+      border-radius: 8px;
+      font-size: 1.8rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px #00FF00;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .form-row.single {
+      grid-template-columns: 1fr;
+    }
+
+    .documento-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    input, select {
+      background-color: #000;
+      color: #00FF00;
+      border: 1px solid #00FF00;
+      padding: 8px;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+
+    input::placeholder {
+      color: #00aa00;
+      font-style: italic;
+    }
+
+    #apellidoNombres {
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    button {
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      background-color: #00aa00;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      text-transform: uppercase;
+    }
+
+    button:hover {
+      background-color: #00ff00;
+    }
+
+    #mensajes {
+      margin-top: 15px;
+      font-weight: bold;
+      color: red;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="ficha">
+    <h2>Registro de Pacientes</h2>
+
+    <form id="formPaciente">
+      <div class="documento-row">
+        <input type="text" id="documento" placeholder="Ingrese aquí el n° de documento" required autocomplete="off" />
+        <button type="button" id="btnBuscar">Buscar</button>
+        <button type="button" id="btnModificar" disabled>Modificar</button>
+      </div>
+
+      <div class="form-row" style="grid-template-columns: 2fr 1fr 0.7fr;">
+        <div>
+          <label for="apellidoNombres">Apellido y Nombres:</label>
+          <input type="text" id="apellidoNombres" required autocomplete="off" />
+        </div>
+        <div>
+          <label for="fechaNacimiento">Fecha de Nacimiento:</label>
+          <input type="date" id="fechaNacimiento" required />
+        </div>
+        <div>
+          <label for="sexo">Sexo:</label>
+          <select id="sexo">
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row" style="grid-template-columns: 2fr 1fr 2fr;">
+        <div>
+          <label for="direccion">Dirección:</label>
+          <input type="text" id="direccion" />
+        </div>
+        <div>
+          <label for="telefono">Teléfono:</label>
+          <input type="text" id="telefono" />
+        </div>
+        <div>
+          <label for="email">Email:</label>
+          <input type="email" id="email" />
+        </div>
+      </div>
+
+      <div class="form-row single">
+        <div>
+          <label for="idCobertura">Cobertura:</label>
+          <select id="idCobertura"></select>
+        </div>
+      </div>
+
+      <div class="form-row single">
+        <div>
+          <label for="contactoEmergencia">Contacto de Emergencia:</label>
+          <input type="text" id="contactoEmergencia" />
+        </div>
+      </div>
+
+      <button type="submit">Registrar</button>
+    </form>
+
+    <div id="mensajes" class="mensajes"></div>
+  </div>
+
+  <script src="pacientes.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+</html>
+

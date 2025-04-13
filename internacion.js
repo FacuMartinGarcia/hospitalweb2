@@ -76,7 +76,8 @@ let pacientes = [
         sexo: "F",
         fechaNacimiento: "1990-05-12",
         telefono: "3411234567",
-        idCobertura: 1
+        idCobertura: 1,
+        fechaFallecimiento: null
     },
     {
         documento: 222,
@@ -84,7 +85,8 @@ let pacientes = [
         sexo: "M",
         fechaNacimiento: "1985-10-30",
         telefono: "3417654321",
-        idCobertura: 2
+        idCobertura: 2,
+        fechaFallecimiento: null
     },
     {
         documento: 333,
@@ -92,7 +94,8 @@ let pacientes = [
         sexo: "F",
         fechaNacimiento: "2002-03-22",
         telefono: "25565221",
-        idCobertura: 3
+        idCobertura: 3,
+        fechaFallecimiento: "2024-10-02"
     }
 ];
 
@@ -103,6 +106,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const seccionInternacion = document.getElementById("seccionInternacion");
     const formInternacion = document.getElementById("formInternacion");
     const selectMedico = document.getElementById("medico");
+    const btnRegistrarInternacion = document.getElementById("btnRegistrarInternacion");
+
+    btnRegistrarInternacion.addEventListener("click", registrarInternacion);
 
     let pacienteSeleccionado = null;
 
@@ -132,9 +138,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (paciente) {
             pacienteSeleccionado = paciente;
+            const fechaFallecimiento = new Date(paciente.fechaFallecimiento);
+            if (paciente.fechaFallecimiento !== null && paciente.fechaFallecimiento !== "") {
+                mostrarMensaje("El paciente ha fallecido el " + paciente.fechaFallecimiento, "info");
+                btnRegistrarInternacion.disabled = true;
+                return;
+            }
+
             mostrarDatosPaciente(paciente);
             bloqueardocumento();
             verificarInternaciones(paciente);
+ 
         } else {
             Swal.fire({
                 title: 'Paciente No Registrado',
@@ -184,13 +198,76 @@ document.addEventListener("DOMContentLoaded", () => {
         //ACA TENDRIAMOS QUE FIJARNOS SI TIENE ALGUNA INTERNACION ACTICA Y TRAERLA
         //SINO, MOSTRAR LOS CAMPOS PARA COMPLETAR UNA NUEVA INTERNACION
         seccionInternacion.style.display = "block";
-
         inputDocumento.disabled = true;
         btnBuscarPaciente.textContent = "Nueva búsqueda";
+        btnRegistrarInternacion.disabled = false;
 
             
     }
-    
+    function validarDatos(form) {
+
+        let origen = form.origen.value; 
+        let medico = form.medico.value;
+        let fechaInternacion = form.fechaInternacion.value;
+        let horaInternacion = form.horaInternacion.value;
+        let motivo = form.motivo.value;
+
+   
+  
+        let fechaInter = new Date(fechaInternacion);
+        let hoy = new Date();
+        let hace1mes = new Date(hoy);
+        hace1mes.setMonth(hace1mes.getMonth() - 1);
+        
+        if (fechaInter > hoy || fechaInter < hace1mes) {
+            mostrarMensaje('La fecha de internación debe ser dentro del último mes y no puede estar en el futuro.', 0);
+            return false;
+        }
+
+        if (origen === "") {
+            mostrarMensaje('Debe seleccionar un origen.', 0);
+            return false;
+        }
+        if (medico === "") {
+            mostrarMensaje('Debe seleccionar un médico.', 0);
+            return false;   
+        }
+   
+        return true;
+    }
+
+    function registrarInternacion(e) {    
+        e.preventDefault(); 
+
+        if (!validarDatos(formInternacion)) return;
+
+        // Creamos nueva internación
+        const nuevaInternacion = new Internacion(
+            Internaciones.length + 1, // ID autoincremental simple
+            pacienteSeleccionado.documento,
+            formInternacion.origen.value,
+            Number(formInternacion.medico.value),
+            formInternacion.fechaInternacion.value,
+            formInternacion.horaInternacion.value,
+            formInternacion.motivo.value
+        );
+
+        Internaciones.push(nuevaInternacion);
+
+        mostrarMensaje("Internación registrada con éxito.", 1);
+        console.log("Nueva internación:", nuevaInternacion);
+
+        formInternacion.reset();
+        seccionInternacion.style.display = "none";
+        limpiarDatosPaciente();
+        inputDocumento.disabled = false;
+        inputDocumento.value = "";
+        inputDocumento.focus();
+        btnBuscarPaciente.textContent = "Buscar";
+        pacienteSeleccionado = null;
+
+    }
+
     function resetearBusqueda() {
         inputDocumento.value = "";
         inputDocumento.disabled = false;
