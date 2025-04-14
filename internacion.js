@@ -33,44 +33,39 @@ let Internaciones = [];
 let medicos = [
     {
         idMedico: 1,
-        nombre: "Laura",
-        apellido: "González",
+        apellidoNombres: "Gonzales Laura",
         especialidad: "Clínica Médica"
     },
     {
         idMedico: 2,
-        nombre: "Carlos",
-        apellido: "Perez",
+        apellidoNombres: "Corbalan Carlos",
         especialidad: "Pediatría"
     },
     {
         idMedico: 3,
-        nombre: "Marcela",
-        apellido: "Ramírez",
+        apellidoNombres: "Estrugo Marcela",
         especialidad: "Cardiología"
     },
     {
         idMedico: 4,
-        nombre: "Javier",
-        apellido: "Martínez",
+        apellidoNombres: "Montiveros Javier",
         especialidad: "Traumatología"
     },
     {
         idMedico: 5,
-        nombre: "Verónica",
-        apellido: "Quiroga",
+        apellidoNombres: "Ruiz Verónica",
         especialidad: "Neurología"
     },
     {
         idMedico: 6,
-        nombre: "Esteban",
-        apellido: "Fernández",
+        apellidoNombres: "Urrutia Esteban",
         especialidad: "Ginecología"
     }
 ];
 
 let pacientes = [
     {
+        idPaciente: 1,
         documento: 111,
         apellidoNombres: "Juárez, Ana",
         sexo: "F",
@@ -80,6 +75,7 @@ let pacientes = [
         fechaFallecimiento: null
     },
     {
+        idPaciente: 2,
         documento: 222,
         apellidoNombres: "Martínez, Pedro",
         sexo: "M",
@@ -89,6 +85,7 @@ let pacientes = [
         fechaFallecimiento: null
     },
     {
+        idPaciente: 3,
         documento: 333,
         apellidoNombres: "López, Camila",
         sexo: "F",
@@ -105,6 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const datosPaciente = document.getElementById("datosPaciente");
     const seccionInternacion = document.getElementById("seccionInternacion");
     const formInternacion = document.getElementById("formInternacion");
+    const datosInternacion = document.getElementById("datosInternacion");
     const selectMedico = document.getElementById("medico");
     const btnRegistrarInternacion = document.getElementById("btnRegistrarInternacion");
 
@@ -173,7 +171,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function mostrarDatosPaciente(paciente) {
         const fechaNac = new Date(paciente.fechaNacimiento);
-        alert('estoy entrando en mostrar')
         const hoy = new Date();
         let edad = hoy.getFullYear() - fechaNac.getFullYear();
         const mes = hoy.getMonth() - fechaNac.getMonth();
@@ -192,18 +189,38 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
 
     }
-    function verificarInternaciones(paciente) {
-        
-        
-        //ACA TENDRIAMOS QUE FIJARNOS SI TIENE ALGUNA INTERNACION ACTICA Y TRAERLA
-        //SINO, MOSTRAR LOS CAMPOS PARA COMPLETAR UNA NUEVA INTERNACION
-        seccionInternacion.style.display = "block";
-        inputDocumento.disabled = true;
-        btnBuscarPaciente.textContent = "Nueva búsqueda";
-        btnRegistrarInternacion.disabled = false;
 
-            
+    function mostrarAdmision(internacion) {
+
+        alert('estoy entrando en mostrar admision')     
+        const medico = medicos.find(m => m.idMedico == internacion.idMedico); 
+
+        datosInternacion.innerHTML = `
+            <p><strong>Origen:</strong> ${internacion.origen}</p>
+            <p><strong>Médico:</strong> ${medico.apellidoNombres}</p>
+            <p><strong>Fecha Internación:</strong> ${internacion.fechaInternacion}</p>
+            <p><strong>Hora Internación:</strong> ${internacion.horaInternacion}</p>
+            <p><strong>Motivo:</strong> ${internacion.motivo}</p>            
+        `;
+
+  
     }
+
+    function verificarInternaciones(paciente) {
+        for (const internacion of Internaciones) {
+            if (internacion.idPaciente === paciente.idPaciente && internacion.fechaAlta === null) {
+                alert('acá deberia mostrar la recuperada');
+                mostrarAdmision(internacion);    
+                inputDocumento.disabled = true;
+                btnBuscarPaciente.textContent = "Nueva búsqueda";
+                btnRegistrarInternacion.disabled = true;
+                seccionInternacion.style.display = "none";
+                break;
+            }
+        }
+    }
+    
+    
     function validarDatos(form) {
 
         let origen = form.origen.value; 
@@ -244,7 +261,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Creamos nueva internación
         const nuevaInternacion = new Internacion(
             Internaciones.length + 1, // ID autoincremental simple
-            pacienteSeleccionado.documento,
+            pacienteSeleccionado.idPaciente,
             formInternacion.origen.value,
             Number(formInternacion.medico.value),
             formInternacion.fechaInternacion.value,
@@ -294,7 +311,7 @@ document.addEventListener("DOMContentLoaded", () => {
         medicos.forEach(medico => {
             const option = document.createElement("option");
             option.value = medico.idMedico;
-            option.textContent = `${medico.apellido}, ${medico.nombre} (${medico.especialidad})`;
+            option.textContent = `${medico.apellidoNombres}, (${medico.especialidad})`;
             selectMedico.appendChild(option);
         });
     }
