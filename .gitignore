@@ -1,0 +1,27 @@
+# Carpetas de dependencias
+node_modules/
+vendor/
+
+# Archivos de configuración sensibles
+.env
+.env.local
+
+# Archivos de compilación o distribución
+dist/
+build/
+
+# Archivos de logs
+*.log
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de bases de datos locales o backups
+*.sql
+*.bak
+*.zip
+
+# Cachés
+.cache/
+tmp/
