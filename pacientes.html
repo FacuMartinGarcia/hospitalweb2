@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Registro de Pacientes</title>
+
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -55,14 +56,14 @@
       font-size: 1.1rem;
       font-weight: bold; 
     }
-    
+
     #documento::placeholder {
       color: #888;
       font-style: italic; 
       text-align: center;
       font-weight: normal;
     }
-    
+
     #apellidoNombres {
       text-transform: uppercase;
       font-size: 1.1rem;
@@ -82,11 +83,11 @@
       border: 1px solid #ccc;
       box-sizing: border-box;
     }
-  
+
     button[type="submit"] {
       width: 100%;
       padding: 10px;
-      background-color: #0078d4;;
+      background-color: #0078d4;
       color: white;
       border: none;
       border-radius: 5px;
@@ -96,7 +97,7 @@
     }
 
     button[type="submit"]:hover {
-      background-color: #005cd4f6;;
+      background-color: #005cd4f6;
     }
 
     #mensajes {
@@ -104,23 +105,49 @@
       font-weight: bold;
       color: red;
       text-align: center;
+    }
 
+    .tipo-persona-section {
+      margin-bottom: 25px;
+    }
+
+    .form-row.cobertura-contacto {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .form-row.especialidad-matricula {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 15px;
+      margin-bottom: 15px;
     }
   </style>
+
 </head>
 <body>
   <div class="ficha">
-    <h2>Registro de Pacientes</h2>
+    <h2>Registro de Personas</h2>
 
     <form id="formPaciente">
+
+      <div class="tipo-persona-section">
+        <label for="tipoPersona">Tipo de Persona:</label>
+        <select id="tipoPersona" name="tipoPersona">
+          <option value="Paciente">Paciente</option>
+          <option value="Medico">Médico</option>
+          <option value="Enfermero">Enfermero</option>
+        </select>
+      </div>
 
       <div class="documento-row">
         <input type="text" id="documento" placeholder="Ingrese aquí el n° de documento" required autocomplete="off" />
         <button type="button" id="btnBuscar">Buscar</button>
         <button type="button" id="btnModificar" disabled>Modificar</button>
-        <div></div> 
       </div>
-      
+
       <div class="form-row" style="grid-template-columns: 2fr 1fr 0.7fr;">
         <div>
           <label for="apellidoNombres">Apellido y Nombres:</label>
@@ -150,27 +177,46 @@
         </div>
         <div>
           <label for="email">Email:</label>
-          <input type="email" id="email" />
+          <input type="email" id="email" autocomplete="off"/>
         </div>
       </div>
 
-
-      <div class="form-row single">
-        <div>
-          <label for="idCobertura">Cobertura:</label>
-          <select id="idCobertura"></select>
+      <div class="campos-especificos" id="camposPaciente">
+        <div class="form-row cobertura-contacto">
+          <div>
+            <label for="idCobertura">Cobertura:</label>
+            <select id="idCobertura"></select>
+          </div>
+          <div>
+            <label for="contactoEmergencia">Contacto de Emergencia:</label>
+            <input type="text" id="contactoEmergencia" />
+          </div>
         </div>
       </div>
 
-      <div class="form-row single">
-        <div>
-          <label for="contactoEmergencia">Contacto de Emergencia:</label>
-          <input type="text" id="contactoEmergencia" />
+      <div class="campos-especificos" id="camposMedico">
+        <div class="form-row especialidad-matricula">
+          <div>
+            <label for="idEspecialidad">Especialidad:</label>
+            <select id="idEspecialidad"></select>
+          </div>
+          <div>
+            <label for="matricula">Matrícula:</label>
+            <input type="text" id="matricula" />
+          </div>
+        </div>
+      </div>    
+
+      <div class="campos-especificos" id="camposEnfermero">
+        <div class="form-row single">
+          <div>
+            <label for="idturno">Turno:</label>
+            <select id="idTurno"></select> 
+          </div>
         </div>
       </div>
 
-
-      <button type="submit">Registrar</button>
+      <button type="submit">Registrar Persona</button>
     </form>
 
     <div id="mensajes" class="mensajes"></div>
