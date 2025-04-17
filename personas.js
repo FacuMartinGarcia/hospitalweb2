@@ -50,10 +50,9 @@ class Persona {
   }
 
   class EnfermeroDetalles {
-    constructor(idPersona, cobertura, contactoEmergencia) {
+    constructor(idPersona, turno) {
       this.idPersona = idPersona;
-      this.cobertura = cobertura;
-      this.contactoEmergencia = contactoEmergencia;
+      this.turno = turno;
     }
   }
 
@@ -136,11 +135,10 @@ let turnos = [
     new Turno(3, "Noche")
 ];
 
-const pacientes = [];
-const medicos = [];
-const enfermeros = [];
 const personas = [];
+
 const personaRoles = [];
+
 const medicoDetalles = [];
 const pacienteDetalles = [];
 const enfermeroDetalles = [];
@@ -235,17 +233,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const camposMedico = document.getElementById("camposMedico");
     const camposEnfermero = document.getElementById("camposEnfermero");
 
-    const form = document.getElementById("formPaciente");
+    const form = document.getElementById("formPersona");
     const inputdocumento = document.getElementById("documento");
 
     const btnBuscar = document.getElementById("btnBuscar");
     const btnModificar = document.getElementById("btnModificar");
+    const btnRegistrar = document.getElementById("btnRegistrar");
     
     const mensajeBusqueda = document.getElementById("mensajes");
     
     const selectCobertura = document.getElementById("idCobertura");
     const selectEspecialidad = document.getElementById("idEspecialidad");
     const selectTurno = document.getElementById("idTurno");
+    const tituloRegistro = document.getElementById("tituloRegistro");   
+
+    //de acuerdo de que indice del menu hizo el llamado, nombrar el registro
+    //además, deberiamos seleccionar el tipo correspondiente y bloquearlo
 
     especialidades.forEach(especialidad => {
       let option = document.createElement("option");
@@ -267,6 +270,9 @@ document.addEventListener("DOMContentLoaded", () => {
         option.textContent = cobertura.denominacion;
         selectCobertura.appendChild(option);
     });
+
+
+    //este metodo deberia adaptarse para mostrar los campos correspondientes
 
     tipoPersona.addEventListener("change", () => {
         const valor = tipoPersona.value;
@@ -339,9 +345,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 } 
                 else if (tipo === "Medico") {
                     const medicoDetalle = medicoDetalles.find(md => md.idPersona === persona.idPersona);
-                    if (medicoDetalle) {
-                        form.idEspecialidad.value = medicoDetalle.idEspecialidad;
-                        form.matricula.value = medicoDetalle.matricula;
+                    if (medicoDetalles) {
+                        form.idEspecialidad.value = medicoDetalles.idEspecialidad;
+                        form.matricula.value = medicoDetalles.matricula;
                     }
                 } 
                 else if (tipo === "Enfermero") {
@@ -358,9 +364,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (tieneRolEspecifico) {
                     bloquearCamposFormulario();
                     btnModificar.disabled = false;
+                    btnRegistrar.disabled = true;
                 } else {
                     desbloquearCamposFormulario();
                     btnModificar.disabled = true;
+                    btnRegistrar.disabled = false;
                 }
     
             } else {
@@ -390,8 +398,8 @@ document.addEventListener("DOMContentLoaded", () => {
     
     function confirmarBusquedaSinRol(tipo) {
         return Swal.fire({
-            title: 'Persona encontrada pero sin rol',
-            html: `La persona existe pero no está registrada como ${tipo.toLowerCase()}.<br>¿Desea continuar y asignarle este rol?`,
+            title: `Persona Registrada sin Rol de ${tipo.toUpperCase()} `,
+            html: `La persona ingresada no está registrada como ${tipo.toUpperCase()}.<br>¿Desea continuar y asignarle este rol?`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonText: 'Sí, continuar',
@@ -482,7 +490,7 @@ document.addEventListener("DOMContentLoaded", () => {
                                 form.idEspecialidad.value,
                                 form.matricula.value
                             );
-                            medicoDetalle.push(nuevoMedico);
+                            medicoDetalles.push(nuevoMedico);
                             console.log(nuevoMedico);
 
                             if (!personaRoles.some(pr => pr.idPersona === personaExistente.idPersona && pr.idRol === 2)) {
@@ -502,9 +510,9 @@ document.addEventListener("DOMContentLoaded", () => {
                         } else {
                             const nuevoEnfermero = new EnfermeroDetalles(
                                 personaExistente.idPersona,
-                                form.idTurno.value
+                                form.idTurno.values
                             );
-                            enfermeroDetalle.push(nuevoEnfermero);
+                            enfermeroDetalles.push(nuevoEnfermero);
                             console.log(nuevoEnfermero);    
                             
                             if (!personaRoles.some(pr => pr.idPersona === personaExistente.idPersona && pr.idRol === 3)) {
@@ -518,7 +526,13 @@ document.addEventListener("DOMContentLoaded", () => {
                         }
                     }
     
-                    mostrarMensaje(`${tipo} actualizado exitosamente.`, 1);
+                    Swal.fire({
+                        title: '¡Registro exitoso!',
+                        text: 'Se ha registrado exitosamente.',
+                        icon: 'success',
+                        confirmButtonText: 'Entendido'
+                      });
+                      
 
                 } else {
                     // Alta nueva
@@ -536,9 +550,14 @@ document.addEventListener("DOMContentLoaded", () => {
                     
                     altaPersona(tipo, datosPersona, datosEspecificos);
                     
-                    mostrarMensaje(`${tipo} registrado exitosamente.`, 1);
+                    Swal.fire({
+                        title: '¡Registro exitoso!',
+                        text: 'Se ha registrado exitosamente.',
+                        icon: 'success',
+                        confirmButtonText: 'Entendido'
+                      });
                 }
-    
+   
                 resetearBusqueda();
                 btnModificar.disabled = true;
                 desbloquearCamposFormulario();
@@ -626,6 +645,7 @@ function altaPersona(tipoPersona, datosPersona, datosEspecificos) {
     );
     
     personaRoles.push(nuevoRol);
+    console.log(nuevoRol);
     
     let detallesCreados;
     switch(tipoPersona.toLowerCase()) {
