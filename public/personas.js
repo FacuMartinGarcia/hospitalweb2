@@ -1,144 +1,17 @@
-class Persona {
-    static ultimoId = 0;
-    constructor(apellidoNombres, documento, fechaNacimiento, sexo, direccion, telefono, email, fechaFallecimiento, actaDefuncion) {
-      this.idPersona = ++Persona.ultimoId;
-      this.apellidoNombres = apellidoNombres;
-      this.documento = documento;
-      this.fechaNacimiento = fechaNacimiento;
-      this.sexo = sexo;
-      this.direccion = direccion;
-      this.telefono = telefono;
-      this.email = email;
-      this.fechaFallecimiento = fechaFallecimiento;
-      this.actaDefuncion = actaDefuncion;
-    }
-  }
-  class Rol {
-    constructor(idRol, nombre) {
-      this.idRol = idRol;
-      this.nombre = nombre;
-    }
-  }
+import Persona from '/controllers/Persona.js';
 
-  let roles = [
-    new Rol(1, "Paciente"),
-    new Rol(2, "Medico"),
-    new Rol(3, "Enfermero"),
-  ];
-  
-  class PersonaRol {
-    static ultimoId = 0;
-    constructor(idPersona, idRol) {
-      this.idPersonaRol = ++PersonaRol.ultimoId;
-      this.idPersona = idPersona;
-      this.idRol = idRol;
-    }
-  }
-  class MedicoDetalles {
-    constructor(idPersona, idEspecialidad, matricula)  {
-      this.idPersona = idPersona;
-      this.idEspecialidad = idEspecialidad;
-      this.matricula = matricula;
-    }
-  }
-  class PacienteDetalles {
-    constructor(idPersona, cobertura, contactoEmergencia) {
-      this.idPersona = idPersona;
-      this.cobertura = cobertura;
-      this.contactoEmergencia = contactoEmergencia;
-    }
-  }
+const PersonaRol = require('./models/PersonaRol');
+const MedicoDetalles = require('./models/MedicoDetalles');
+const EnfermeroDetalles = require('./models/EnfermeroDetalles');
+const PacienteDetalles = require('./models/PacienteDetalles');
 
-  class EnfermeroDetalles {
-    constructor(idPersona, turno) {
-      this.idPersona = idPersona;
-      this.turno = turno;
-    }
-  }
-
-class Especialidad {
-    constructor(idEspecialidad, nombre) {
-        this.idEspecialidad = idEspecialidad;
-        this.nombre = nombre;
-    }
-}
-
-class Turno {
-    constructor(idTurno, denominacionTurno) {
-        this.idTurno = idTurno;
-        this.denominacionTurno = denominacionTurno; 
-    }
-}
-
-class Cobertura {
-    constructor(idCobertura, denominacion) {
-        this.idCobertura = idCobertura;
-        this.denominacion = denominacion;
-    }
-}
-
-
-let coberturas = [
-    new Cobertura(1, "Sin Datos"),
-    new Cobertura(2, "Swiss Medical"),
-    new Cobertura(3, "Galeno"),
-    new Cobertura(4, "Medife"),
-    new Cobertura(5, "OSDE"),
-    new Cobertura(6, "DOSEP"),
-];
-
-let especialidades = [
-    new Especialidad(1, "Anestesiología"),
-    new Especialidad(2, "Alergología"),
-    new Especialidad(3, "Angiología"),
-    new Especialidad(4, "Cardiología"),
-    new Especialidad(5, "Cirugía General"),
-    new Especialidad(6, "Cirugía Plástica y Estética"),
-    new Especialidad(7, "Cirugía Vascular"),
-    new Especialidad(8, "Dermatología"),
-    new Especialidad(9, "Endocrinología"),
-    new Especialidad(10, "Gastroenterología"),
-    new Especialidad(11, "Ginecología y Obstetricia"),
-    new Especialidad(12, "Hematología"),
-    new Especialidad(13, "Infectología"),
-    new Especialidad(14, "Medicina Interna"),
-    new Especialidad(15, "Medicina de Urgencias"),
-    new Especialidad(16, "Medicina Familiar y General"),
-    new Especialidad(17, "Medicina Laboral"),
-    new Especialidad(18, "Medicina Preventiva y Salud Pública"),
-    new Especialidad(19, "Nefrología"),
-    new Especialidad(20, "Neumonología"),
-    new Especialidad(21, "Neurología"),
-    new Especialidad(22, "Nutrición"),
-    new Especialidad(23, "Odontología"),
-    new Especialidad(24, "Oncología"),
-    new Especialidad(25, "Oftalmología"),
-    new Especialidad(26, "Otorrinolaringología"),
-    new Especialidad(27, "Pediatría"),
-    new Especialidad(28, "Psiquiatría"),
-    new Especialidad(29, "Reumatología"),
-    new Especialidad(30, "Traumatología y Ortopedia"),
-    new Especialidad(31, "Urología"),
-    new Especialidad(32, "Radiología"),
-    new Especialidad(33, "Tocoginecología"),
-    new Especialidad(34, "Fisiatría"),
-    new Especialidad(35, "Medicina Física y Rehabilitación"),
-    new Especialidad(36, "Flebología"),
-    new Especialidad(37, "Gerontología"),
-    new Especialidad(38, "Psicología"),
-    new Especialidad(39, "Bioquímica Clínica")
-];
-
-let turnos = [
-    new Turno(1, "Mañana"),
-    new Turno(2, "Tarde"),
-    new Turno(3, "Noche")
-];
+const { Turno, turnos } = require('./models/Turno');
+const { Especialidad, especialidades } = require('./models/Especialidad');
+const { Cobertura, coberturas } = require('./models/Cobertura');
+const { Rol, roles } = require('./models/Rol');
 
 const personas = [];
-
 const personaRoles = [];
-
 const medicoDetalles = [];
 const pacienteDetalles = [];
 const enfermeroDetalles = [];
@@ -253,7 +126,7 @@ document.addEventListener("DOMContentLoaded", () => {
     especialidades.forEach(especialidad => {
       let option = document.createElement("option");
       option.value = especialidad.idEspecialidad;
-      option.textContent = especialidad.nombre;
+      option.textContent = especialidad.denominacionEspecialidad;
       selectEspecialidad.appendChild(option);
     });
 
@@ -324,7 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const tieneRolEspecifico = personaRoles.some(pr => 
                 pr.idPersona === persona.idPersona && 
-                roles.find(r => r.idRol === pr.idRol).nombre.toLowerCase() === tipo.toLowerCase()
+                roles.find(r => r.idRol === pr.idRol).nombreRol.toLowerCase() === tipo.toLowerCase()
             );
     
             if (tieneRolEspecifico || confirmarBusquedaSinRol(tipo)) {
@@ -510,7 +383,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         } else {
                             const nuevoEnfermero = new EnfermeroDetalles(
                                 personaExistente.idPersona,
-                                form.idTurno.values
+                                form.idTurno.value
                             );
                             enfermeroDetalles.push(nuevoEnfermero);
                             console.log(nuevoEnfermero);    
@@ -701,6 +574,10 @@ function altaPersona(tipoPersona, datosPersona, datosEspecificos) {
         detalles: detallesCreados,
         tipo: tipoPersona.toLowerCase()
     };
+
+
+    
+
 }
 
 /*
@@ -723,7 +600,7 @@ function obtenerRolesDePersona(idPersona) {
         .map(pr => roles.find(r => r.idRol === pr.idRol));
 }
 
-
+/*
 function obtenerDetallesPersona(idPersona) {
     const rolesPersona = obtenerRolesDePersona(idPersona);
     
@@ -752,6 +629,7 @@ function obtenerInformacionCompleta(documento) {
     };
 }
 
+*/
 
 function mostrarMensaje(mensajes, tipo) {
 

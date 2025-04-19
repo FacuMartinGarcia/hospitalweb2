@@ -1,7 +1,8 @@
 // 1. Instalación de Express
 const express = require('express');
-const fs = require('fs');
+//const fs = require('fs');
 const app = express();
+app.use(express.static('public'))
 
 
 app.use(express.static('public'));  
@@ -12,16 +13,7 @@ app.get('/', function (req, res) {
     res.send('Hola mundo desde Express');
 })
 
-// Ruta con parámetro
-app.get('/persona/:name', (req, res) => {
-    res.send(`<h2>Hola ${req.params.name}</h2>`);
-});
-//Productos 
-app.get('/productos', (req, res) => {
-    res.sendFile(__dirname + '/productos.html');
-});
 
-const path = 'productos.json';
 /*
 app.post('/productos', (req, res) => {
     console.log(req.body);
@@ -38,6 +30,8 @@ app.post('/productos', (req, res) => {
     });
 });
 */
+
+/*
 app.post('/productos', (req, res) => {
     const { nombre, cantidad, precio } = req.body;
     const nuevoProducto = { nombre, cantidad, precio };
@@ -68,7 +62,17 @@ app.post('/productos', (req, res) => {
 
     });
 });
+// Ruta con parámetro
+app.get('/persona/:name', (req, res) => {
+    res.send(`<h2>Hola ${req.params.name}</h2>`);
+});
+//Productos 
+app.get('/productos', (req, res) => {
+    res.sendFile(__dirname + '/productos.html');
+});
 
+const path = 'productos.json';
+*/
 
 
 
@@ -84,8 +88,8 @@ app.get('/index', (req, res) => {
 // Ruta con query string
 
 //enrutamiento
-app.get('/pacientes', function (req, res) {
-    res.send('Hola pacientes desde Express');
+app.get('/personas.html', function (req, res) {
+    res.sendFile(__dirname + '/personas.html');
 })
 /*
 app.get('/', function (req, res) {
