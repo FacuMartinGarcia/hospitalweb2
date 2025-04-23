@@ -1,81 +1,68 @@
-const Persona = require('../models/Persona');
-const PersonaRol = require('../models/PersonaRol');
-const MedicoDetalles = require('../models/MedicoDetalles');
-const EnfermeroDetalles = require('../models/EnfermeroDetalles');
-const PacienteDetalles = require('../models/PacienteDetalles');
+//const fs = require('fs').promises;
+//const path = require('path');
+const { leerJSON, guardarJSON } = require('../utils/dataUtils');
 
 const personasController = {
   crearPersona: async (req, res) => {
     try {
       const { tipoPersona, datosPersona, datosEspecificos } = req.body;
-      
-      // Validaciones básicas
+
       if (!tipoPersona || !datosPersona || !datosEspecificos) {
         return res.status(400).json({ error: 'Faltan parámetros requeridos' });
       }
 
-      // Verificar si la persona ya existe
-      const personaExistente = await Persona.findOne({ documento: datosPersona.documento });
-      
-      if (personaExistente) {
+      const personas = await leerJSON('personas');
+      console.log(personas);
+      const yaExiste = personas.find(p => p.documento === datosPersona.documento);
+
+      if (yaExiste) {
         return res.status(400).json({ error: 'Ya existe una persona con este documento' });
       }
 
-      // Crear nueva persona
-      const nuevaPersona = new Persona(datosPersona);
-      await nuevaPersona.save();
+      datosPersona.id = Date.now(); // ID único
+      personas.push(datosPersona);
+      await guardarJSON('personas', personas);
 
-      // Asignar rol según el tipo
-      let idRol;
-      switch(tipoPersona.toLowerCase()) {
-        case 'medico': idRol = 2; break;
-        case 'enfermero': idRol = 3; break;
-        case 'paciente': idRol = 1; break;
-        default: 
-          await Persona.deleteOne({ _id: nuevaPersona._id });
-          return res.status(400).json({ error: 'Tipo de persona no válido' });
+      const personaRol = {
+        idPersona: datosPersona.id,
+        idRol:
+          tipoPersona.toLowerCase() === 'paciente' ? 1 :
+          tipoPersona.toLowerCase() === 'medico' ? 2 :
+          tipoPersona.toLowerCase() === 'enfermero' ? 3 : null
+      };
+
+      if (!personaRol.idRol) {
+        return res.status(400).json({ error: 'Tipo de persona no válido' });
       }
 
-      const nuevoRol = new PersonaRol({
-        idPersona: nuevaPersona._id,
-        idRol
-      });
-      await nuevoRol.save();
+      const roles = await leerJSON('personasRoles');
+      roles.push(personaRol);
+      await guardarJSON('personasRoles', roles);
 
-      // Crear detalles específicos
-      let detalles;
-      switch(tipoPersona.toLowerCase()) {
-        case 'medico':
-          detalles = new MedicoDetalles({
-            idPersona: nuevaPersona._id,
-            idEspecialidad: datosEspecificos.idEspecialidad,
-            matricula: datosEspecificos.matricula
-          });
-          break;
-        case 'enfermero':
-          detalles = new EnfermeroDetalles({
-            idPersona: nuevaPersona._id,
-            turno: datosEspecificos.turno
-          });
-          break;
-        case 'paciente':
-          detalles = new PacienteDetalles({
-            idPersona: nuevaPersona._id,
-            cobertura: datosEspecificos.cobertura,
-            contactoEmergencia: datosEspecificos.contactoEmergencia
-          });
-          break;
+      let detalles = { idPersona: datosPersona.id, ...datosEspecificos };
+
+      if (tipoPersona === 'medico') {
+        const medicos = await leerJSON('medicosDetalles');
+        medicos.push(detalles);
+        await guardarJSON('medicosDetalles', medicos);
+      } else if (tipoPersona === 'enfermero') {
+        const enfermeros = await leerJSON('enfermerosDetalles');
+        enfermeros.push(detalles);
+        await guardarJSON('enfermerosDetalles', enfermeros);
+      } else if (tipoPersona === 'paciente') {
+        const pacientes = await leerJSON('pacientesDetalles');
+        pacientes.push(detalles);
+        await guardarJSON('pacientesDetalles', pacientes);
       }
-
-      await detalles.save();
 
       res.status(201).json({
-        persona: nuevaPersona,
-        rol: nuevoRol,
+        persona: datosPersona,
+        rol: personaRol,
         detalles
       });
 
     } catch (error) {
+      console.log(error);
       res.status(500).json({ error: error.message });
     }
   },
@@ -83,38 +70,83 @@ const personasController = {
   buscarPorDocumento: async (req, res) => {
     try {
       const { documento } = req.params;
-      
-      const persona = await Persona.findOne({ documento });
+      console.log("documento que llega al controller" + documento);
+      const personas = await leerJSON('personas.json');
+      console.log("Contenido de personas.json:", personas);
+      console.log("Tipo del documento recibido:", typeof documento);
+      const documentoNumero = parseInt(documento);
+      const persona = personas.find(p => p.documento === documentoNumero);
+
+      console.log("Persona encontrada:", persona);
+      if (!persona) {
+        return res.status(404).json({ error: 'Persona no encontrada' });
+      }
+  
+      const roles = await leerJSON('roles.json');
+      const rolesPersona = roles.filter(r => r.idPersona === persona.id);
+  
+      let detalles = null;
+      for (const rol of rolesPersona) {
+        let archivoDetalles = '';
+        if (rol.idRol === 1) archivoDetalles = 'pacientes.json';
+        else if (rol.idRol === 2) archivoDetalles = 'medicos.json';
+        else if (rol.idRol === 3) archivoDetalles = 'enfermeros.json';
+        if (archivoDetalles) {
+          const detallesAll = await leerJSON(archivoDetalles);
+          detalles = detallesAll.find(d => d.idPersona === persona.id);
+          break;
+        }
+      }
+  
+      res.json({
+        persona,
+        roles: rolesPersona,
+        detalles
+      });
+  
+    } catch (error) {
+      console.log('Error en buscarPorDocumento:', error);
+      res.status(500).json({ error: error.message });
+    }
+  }
+/*
+  buscarPorDocumento: async (req, res) => {
+    try {
+      const { documento } = req.params;
+      const personas = await leerJSON('personas');
+      const persona = personas.find(p => p.documento.toString() === documento.toString());
+
       if (!persona) {
         return res.status(404).json({ error: 'Persona no encontrada' });
       }
 
-      
-      const roles = await PersonaRol.find({ idPersona: persona._id });
-      
-      let detalles = null;
-      const tieneRolMedico = roles.some(r => r.idRol === 2);
-      const tieneRolEnfermero = roles.some(r => r.idRol === 3);
-      const tieneRolPaciente = roles.some(r => r.idRol === 1);
+      const roles = await leerJSON('personasRoles');
+      const rolPersona = roles.filter(r => r.idPersona === persona.id);
 
-      if (tieneRolMedico) {
-        detalles = await MedicoDetalles.findOne({ idPersona: persona._id });
-      } else if (tieneRolEnfermero) {
-        detalles = await EnfermeroDetalles.findOne({ idPersona: persona._id });
-      } else if (tieneRolPaciente) {
-        detalles = await PacienteDetalles.findOne({ idPersona: persona._id });
+      let detalles = null;
+      const esMedico = rolPersona.some(r => r.idRol === 2);
+      const esEnfermero = rolPersona.some(r => r.idRol === 3);
+      const esPaciente = rolPersona.some(r => r.idRol === 1);
+
+      if (esMedico) {
+        const medicos = await leerJSON('medicosDetalles');
+        detalles = medicos.find(d => d.idPersona === persona.id);
+      } else if (esEnfermero) {
+        const enfermeros = await leerJSON('enfermerosDetalles');
+        detalles = enfermeros.find(d => d.idPersona === persona.id);
+      } else if (esPaciente) {
+        const pacientes = await leerJSON('pacientesDetalles');
+        detalles = pacientes.find(d => d.idPersona === persona.id);
       }
 
-      res.json({
-        persona,
-        roles,
-        detalles
-      });
+      res.json({ persona, roles: rolPersona, detalles });
 
     } catch (error) {
+      console.error('Error en buscarPorDocumento:', error);
       res.status(500).json({ error: error.message });
     }
-  }
-};
+  }/
+  */
+  };
 
 module.exports = personasController;

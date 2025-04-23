@@ -5,7 +5,7 @@ const API_URL = '/api/personas';
 // Elementos del DOM
 const tipoPersona = document.getElementById("tipoPersona");
 const form = document.getElementById("formPersona");
-const inputdocumento = document.getElementById("documento");
+const inputDocumento = document.getElementById("documento");
 const btnBuscar = document.getElementById("btnBuscar");
 const btnModificar = document.getElementById("btnModificar");
 const btnRegistrar = document.getElementById("btnRegistrar");
@@ -25,7 +25,7 @@ const selectTurno = document.getElementById("idTurno");
 function validarDocumento(documento) {
     if (documento === "" || documento === "0" || isNaN(documento) || !/^\d{1,9}$/.test(documento)) {
         mostrarMensaje('El documento debe contener solo números y tener hasta 9 dígitos.', 0);
-        inputdocumento.focus();
+        inputDocumento.focus();
         return false;
     }
     return true;
@@ -34,6 +34,8 @@ function validarDocumento(documento) {
 // Función para buscar persona en el servidor
 async function buscarPersona(documento, tipo) {
     try {
+        if (!validarDocumento(documento)) return null;
+        console.log(`Buscando persona con documento: ${documento}`);
         const response = await fetch(`${API_URL}/${documento}`);
         if (!response.ok) {
             if (response.status === 404) {
@@ -54,7 +56,7 @@ async function buscarPersona(documento, tipo) {
         
         return { ...data, tieneRolEspecifico };
     } catch (error) {
-        console.error('Error:', error);
+        console.log('Error al buscar persona:', error);
         mostrarMensaje('Error al buscar la persona', 0);
         return null;
     }
@@ -85,7 +87,7 @@ async function guardarPersona(tipo, datosPersona, datosEspecificos, esActualizac
         
         return await response.json();
     } catch (error) {
-        console.error('Error:', error);
+        console.log('Error al guardar persona:', error);
         mostrarMensaje(error.message, 0);
         throw error;
     }
@@ -94,7 +96,7 @@ async function guardarPersona(tipo, datosPersona, datosEspecificos, esActualizac
 // Mostrar datos de persona en el formulario
 function mostrarDatosPersona(persona, detalles, tipo) {
     form.apellidoNombres.value = persona.apellidoNombres;
-    form.fechaNacimiento.value = persona.fechaNacimiento.split('T')[0]; // Formatear fecha
+    form.fechaNacimiento.value = persona.fechaNacimiento.split('T')[0]; 
     form.sexo.value = persona.sexo;
     form.direccion.value = persona.direccion || '';
     form.telefono.value = persona.telefono || '';
@@ -115,7 +117,7 @@ function mostrarDatosPersona(persona, detalles, tipo) {
 
 // Manejador del botón Buscar
 btnBuscar.addEventListener("click", async () => {
-    const documento = inputdocumento.value;
+    const documento = inputDocumento.value;
     const tipo = tipoPersona.value;
     
     if (!validarDocumento(documento)) return;
@@ -159,7 +161,7 @@ btnBuscar.addEventListener("click", async () => {
             
             if (!confirmar.isConfirmed) {
                 limpiarCampos();
-                inputdocumento.focus();
+                inputDocumento.focus();
                 return;
             }
         }
@@ -255,19 +257,19 @@ form.addEventListener("submit", async (e) => {
 
 // Funciones auxiliares
 function bloqueardocumento() {
-    inputdocumento.disabled = true;
-    inputdocumento.style.backgroundColor = "#f0f0f0"; 
+    inputDocumento.disabled = true;
+    inputDocumento.style.backgroundColor = "#f0f0f0"; 
     btnBuscar.textContent = "Nueva Búsqueda";
 }
 
 function resetearBusqueda() {
-    inputdocumento.value = "";
-    inputdocumento.disabled = false;
-    inputdocumento.style.backgroundColor = ""; 
+    inputDocumento.value = "";
+    inputDocumento.disabled = false;
+    inputDocumento.style.backgroundColor = ""; 
     limpiarCampos();
     btnBuscar.textContent = "Buscar";
     mensajeBusqueda.textContent = '';
-    inputdocumento.focus();
+    inputDocumento.focus();
     bloquearCamposFormulario();
     btnModificar.disabled = true;
     btnRegistrar.disabled = true;
