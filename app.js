@@ -1,18 +1,31 @@
-// 1. Instalación de Express
 const express = require('express');
-//const fs = require('fs');
+const path = require('path');
 const app = express();
-app.use(express.static('public'))
+
+// Middlewares
+app.use(express.static(path.join(__dirname, 'public'))); // Sirve archivos estáticos
+app.use(express.urlencoded({ extended: true })); // Para formularios
+app.use(express.json()); // Para JSON
+
+// API Routes
+const personasRouter = require('./routes/personasRoutes');
+app.use('/api/personas', personasRouter);
+
+/*
+// Rutas estaticas para los HTML
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/personas', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'personas.html'));
+});
 
 
-app.use(express.static('public'));  
-app.use(express.urlencoded({ extended: true })); // Para poder recibir datos de formularios 
-app.use(express.json()); // Para poder recibir datos en formato JSON
-
-app.get('/', function (req, res) {
-    res.send('Hola mundo desde Express');
-})
-
+*/
+app.listen(3000, function () {
+    console.log('App de ejemplo escuchando en puerto 3000!');
+});
 
 /*
 app.post('/productos', (req, res) => {
@@ -73,31 +86,3 @@ app.get('/productos', (req, res) => {
 
 const path = 'productos.json';
 */
-
-
-
-
-
-
-
-
-// Ruta con query string
-app.get('/index', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
-});
-// Ruta con query string
-
-//enrutamiento
-app.get('/personas.html', function (req, res) {
-    res.sendFile(__dirname + '/personas.html');
-})
-/*
-app.get('/', function (req, res) {
-    res.send('Hola mundo');
-});/*/
-
-
-
-app.listen(3000, function () {
-    console.log('App de ejemplo escuchando en puerto 3000!');
-});

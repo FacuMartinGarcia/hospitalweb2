@@ -1,22 +1,3 @@
-import Persona from '/controllers/Persona.js';
-
-const PersonaRol = require('./models/PersonaRol');
-const MedicoDetalles = require('./models/MedicoDetalles');
-const EnfermeroDetalles = require('./models/EnfermeroDetalles');
-const PacienteDetalles = require('./models/PacienteDetalles');
-
-const { Turno, turnos } = require('./models/Turno');
-const { Especialidad, especialidades } = require('./models/Especialidad');
-const { Cobertura, coberturas } = require('./models/Cobertura');
-const { Rol, roles } = require('./models/Rol');
-
-const personas = [];
-const personaRoles = [];
-const medicoDetalles = [];
-const pacienteDetalles = [];
-const enfermeroDetalles = [];
-
-
 function validarDatos(form) {
     const tipo = document.getElementById("tipoPersona").value;
 
@@ -97,586 +78,102 @@ function validarDatos(form) {
     return true;
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('form-persona');
+    const selectEspecialidad = document.getElementById('especialidad');
+    const selectTurno = document.getElementById('turno');
+    const selectCobertura = document.getElementById('cobertura');
+    const tipoPersona = document.getElementById('tipo-persona');
+    const camposPaciente = document.getElementById('camposPaciente');
+    const camposMedico = document.getElementById('camposMedico');
+    const camposEnfermero = document.getElementById('camposEnfermero');
 
-document.addEventListener("DOMContentLoaded", () => {
+    // Función para cargar combos
+    async function cargarCombo(url, selectElement) {
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            data.forEach(item => {
+                let option = document.createElement("option");
+                option.value = item.id;
+                option.textContent = item.denominacion;
+                selectElement.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error cargando datos:', error);
+        }
+    }
+
+    //cargarCombo('/api/especialidades', selectEspecialidad);
+    //cargarCombo('/api/turnos', selectTurno);
+    //cargarCombo('/api/coberturas', selectCobertura);
     
-    const tipoPersona = document.getElementById("tipoPersona");
-    
-    const camposPaciente = document.getElementById("camposPaciente");
-    const camposMedico = document.getElementById("camposMedico");
-    const camposEnfermero = document.getElementById("camposEnfermero");
-
-    const form = document.getElementById("formPersona");
-    const inputdocumento = document.getElementById("documento");
-
-    const btnBuscar = document.getElementById("btnBuscar");
-    const btnModificar = document.getElementById("btnModificar");
-    const btnRegistrar = document.getElementById("btnRegistrar");
-    
-    const mensajeBusqueda = document.getElementById("mensajes");
-    
-    const selectCobertura = document.getElementById("idCobertura");
-    const selectEspecialidad = document.getElementById("idEspecialidad");
-    const selectTurno = document.getElementById("idTurno");
-    const tituloRegistro = document.getElementById("tituloRegistro");   
-
-    //de acuerdo de que indice del menu hizo el llamado, nombrar el registro
-    //además, deberiamos seleccionar el tipo correspondiente y bloquearlo
-
-    especialidades.forEach(especialidad => {
-      let option = document.createElement("option");
-      option.value = especialidad.idEspecialidad;
-      option.textContent = especialidad.denominacionEspecialidad;
-      selectEspecialidad.appendChild(option);
-    });
-
-    turnos.forEach(turno => {
-        let option = document.createElement("option");
-        option.value = turno.idTurno;
-        option.textContent = turno.denominacionTurno;
-        selectTurno.appendChild(option);
-      });
-
-    coberturas.forEach(cobertura => {
-        let option = document.createElement("option");
-        option.value = cobertura.idCobertura;
-        option.textContent = cobertura.denominacion;
-        selectCobertura.appendChild(option);
-    });
-
-
-    //este metodo deberia adaptarse para mostrar los campos correspondientes
-
     tipoPersona.addEventListener("change", () => {
         const valor = tipoPersona.value;
     
-        camposPaciente.style.display = (valor === "Paciente") ? "block" : "none";
-        camposMedico.style.display = (valor === "Medico") ? "block" : "none";
-        camposEnfermero.style.display = (valor === "Enfermero") ? "block" : "none";
-
-        if (valor === "Paciente") {
-            document.getElementById("camposPaciente").style.display = "grid";
-          } else if (valor === "Medico") {
-            document.getElementById("camposMedico").style.display = "grid";
-          } else if (valor === "Enfermero") {
-            document.getElementById("camposEnfermero").style.display = "grid";
-          }
-
+        camposPaciente.style.display = (valor === "Paciente") ? "grid" : "none";
+        camposMedico.style.display = (valor === "Medico") ? "grid" : "none";
+        camposEnfermero.style.display = (valor === "Enfermero") ? "grid" : "none";
     });
 
     tipoPersona.dispatchEvent(new Event("change"));
 
-
-    bloquearCamposFormulario();
-
-    btnBuscar.addEventListener("click", () => {
-        const documento = inputdocumento.value;
-        const tipo = tipoPersona.value;
-    
-        console.log(documento);
-    
-        if (documento === "" || documento === "0" || isNaN(documento) || !/^\d{1,9}$/.test(documento)) {
-            mostrarMensaje('El documento debe contener solo números y tener hasta 9 dígitos.', 0);
-            inputdocumento.focus();
-            return false;
-        }
-    
-        if (btnBuscar.textContent === "Nueva Búsqueda") {
-            inputdocumento.value = "";
-            inputdocumento.disabled = false;
-            limpiarCampos();
-            btnBuscar.textContent = "Buscar";
-            mensajeBusqueda.textContent = '';
-            inputdocumento.focus();
-            return;
-        }
-    
-        const persona = personas.find(p => p.documento === documento);
-        
-        if (persona) {
-
-            const tieneRolEspecifico = personaRoles.some(pr => 
-                pr.idPersona === persona.idPersona && 
-                roles.find(r => r.idRol === pr.idRol).nombreRol.toLowerCase() === tipo.toLowerCase()
-            );
-    
-            if (tieneRolEspecifico || confirmarBusquedaSinRol(tipo)) {
-
-                form.apellidoNombres.value = persona.apellidoNombres;
-                form.fechaNacimiento.value = persona.fechaNacimiento;
-                form.sexo.value = persona.sexo;
-                form.direccion.value = persona.direccion;
-                form.telefono.value = persona.telefono;
-                form.email.value = persona.email;
-    
-                if (tipo === "Paciente") {
-                    const pacienteDetalle = pacienteDetalles.find(pd => pd.idPersona === persona.idPersona);
-                    if (pacienteDetalle) {
-                        form.idCobertura.value = pacienteDetalle.cobertura;
-                        form.contactoEmergencia.value = pacienteDetalle.contactoEmergencia;
-                    }
-                } 
-                else if (tipo === "Medico") {
-                    const medicoDetalle = medicoDetalles.find(md => md.idPersona === persona.idPersona);
-                    if (medicoDetalles) {
-                        form.idEspecialidad.value = medicoDetalles.idEspecialidad;
-                        form.matricula.value = medicoDetalles.matricula;
-                    }
-                } 
-                else if (tipo === "Enfermero") {
-                    const enfermeroDetalle = enfermeroDetalles.find(ed => ed.idPersona === persona.idPersona);
-                    if (enfermeroDetalle) {
-                        form.idTurno.value = enfermeroDetalle.idTurno;
-                    }
-                }
-    
-                mensajeBusqueda.textContent = '';
-                bloqueardocumento();
-                
-
-                if (tieneRolEspecifico) {
-                    bloquearCamposFormulario();
-                    btnModificar.disabled = false;
-                    btnRegistrar.disabled = true;
-                } else {
-                    desbloquearCamposFormulario();
-                    btnModificar.disabled = true;
-                    btnRegistrar.disabled = false;
-                }
-    
-            } else {
-
-                limpiarCampos();
-                inputdocumento.focus();
-            }
-        } else {
-
-            limpiarCampos();
-            bloqueardocumento();
-    
-            Swal.fire({
-                title: 'No Registrado',
-                html: `El n° de documento ingresado no se encuentra registrado en el sistema.<br>Puede proceder a registrar los datos.`,
-                icon: 'info',
-                confirmButtonText: 'Entendido'
-            }).then(() => {
-                desbloquearCamposFormulario();
-                btnModificar.disabled = true;
-                setTimeout(() => {
-                    document.getElementById('apellidoNombres').focus();
-                }, 300);
-            });
-        }
-    });
-    
-    function confirmarBusquedaSinRol(tipo) {
-        return Swal.fire({
-            title: `Persona Registrada sin Rol de ${tipo.toUpperCase()} `,
-            html: `La persona ingresada no está registrada como ${tipo.toUpperCase()}.<br>¿Desea continuar y asignarle este rol?`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, continuar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            return result.isConfirmed;
-        });
-    }
-    
-
-    btnModificar.addEventListener("click", () => {
-        desbloquearCamposFormulario();
-    });
-
-    form.addEventListener("submit", (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
-    
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: "Va a grabar los datos ingresados",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, grabar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                if (!validarDatos(form)) {
-                    return;
-                }
-    
-                const tipo = tipoPersona.value;
-                const documento = form.documento.value;
-                
-                const datosPersona = {
-                    apellidoNombres: form.apellidoNombres.value,
-                    documento: documento,
-                    fechaNacimiento: form.fechaNacimiento.value,
-                    sexo: form.sexo.value,
-                    direccion: form.direccion.value,
-                    telefono: form.telefono.value,
-                    email: form.email.value,
-                    fechaFallecimiento: null,
-                    actaDefuncion: null
-                };
-    
-                const personaExistente = personas.find(p => p.documento === documento);
-                
-                if (personaExistente) {
 
-                    
-                    Object.assign(personaExistente, datosPersona);
-                    
-                    // 2. Actualizar detalles específicos según el tipo
-                    if (tipo === "Paciente") {
-                        const pacienteDetalle = pacienteDetalles.find(pd => pd.idPersona === personaExistente.idPersona);
-                        if (pacienteDetalle) {
-                            pacienteDetalle.cobertura = form.idCobertura.value;
-                            pacienteDetalle.contactoEmergencia = form.contactoEmergencia.value;
-                        } else {
-                            // Si no tenía detalles de paciente pero ahora es paciente, crearlos
-                            const nuevoPaciente = new PacienteDetalles(
-                                personaExistente.idPersona,
-                                form.idCobertura.value,
-                                form.contactoEmergencia.value
-                            );
-                            pacienteDetalles.push(nuevoPaciente);
-                            console.log(nuevoPaciente);
-                            
-                            if (!personaRoles.some(pr => pr.idPersona === personaExistente.idPersona && pr.idRol === 1)) {
-                                const nuevoRol = new PersonaRol(
-                                    personaExistente.idPersona,
-                                    1 
-                                );
-                                personaRoles.push(nuevoRol);
-                                console.log(nuevoRol);
-                            }
-                        }
-                    } 
-                    else if (tipo === "Medico") {
-                        const medicoDetalle = medicoDetalles.find(md => md.idPersona === personaExistente.idPersona);
-                        if (medicoDetalle) {
-                            medicoDetalle.idEspecialidad = form.idEspecialidad.value;
-                            medicoDetalle.matricula = form.matricula.value;
-                        } else {
+        if (!validarDatos(e.target)) {
+            return; 
+        }
+
+        const tipoPersonaValue = tipoPersona.value;
+        const datosPersona = {
+            apellidoNombres: document.getElementById('apellido-nombres').value,
+            documento: document.getElementById('documento').value,
+            fechaNacimiento: document.getElementById('fecha-nacimiento').value,
+            sexo: document.getElementById('sexo').value,
+            direccion: document.getElementById('direccion').value,
+            telefono: document.getElementById('telefono').value,
+            email: document.getElementById('email').value,
+        };
+        
+        const datosEspecificos = {};
+        if (tipoPersonaValue === 'Paciente') {
+            datosEspecificos.idCobertura = document.getElementById('cobertura').value;
+            datosEspecificos.contactoEmergencia = document.getElementById('contacto-emergencia').value;
+        } 
+        if (tipoPersonaValue === 'Medico') {
+            datosEspecificos.idEspecialidad = document.getElementById('especialidad').value;
+            datosEspecificos.matricula = document.getElementById('matricula').value;
+        } 
+        if (tipoPersonaValue === 'Enfermero') {
+            datosEspecificos.idTurno = document.getElementById('turno').value;
+        }   
+        
+        try {
+            const response = await fetch('/api/personas', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    tipoPersona: tipoPersonaValue,
+                    datosPersona,
+                    datosEspecificos
+                })
+            });
             
-                            const nuevoMedico = new MedicoDetalles(
-                                personaExistente.idPersona,
-                                form.idEspecialidad.value,
-                                form.matricula.value
-                            );
-                            medicoDetalles.push(nuevoMedico);
-                            console.log(nuevoMedico);
-
-                            if (!personaRoles.some(pr => pr.idPersona === personaExistente.idPersona && pr.idRol === 2)) {
-                                const nuevoRol = new PersonaRol(
-                                    personaExistente.idPersona,
-                                    2 
-                                );
-                                personaRoles.push(nuevoRol);
-                                console.log(nuevoRol);
-                            }
-                        }
-                    } 
-                    else if (tipo === "Enfermero") {
-                        const enfermeroDetalle = enfermeroDetalles.find(ed => ed.idPersona === personaExistente.idPersona);
-                        if (enfermeroDetalle) {
-                            enfermeroDetalle.idTurno = form.idTurno.value;
-                        } else {
-                            const nuevoEnfermero = new EnfermeroDetalles(
-                                personaExistente.idPersona,
-                                form.idTurno.value
-                            );
-                            enfermeroDetalles.push(nuevoEnfermero);
-                            console.log(nuevoEnfermero);    
-                            
-                            if (!personaRoles.some(pr => pr.idPersona === personaExistente.idPersona && pr.idRol === 3)) {
-                                const nuevoRol = new PersonaRol(
-                                    personaExistente.idPersona,
-                                    3 
-                                                                );
-                                personaRoles.push(nuevoRol);
-                                console.log(nuevoRol);
-                            }
-                        }
-                    }
-    
-                    Swal.fire({
-                        title: '¡Registro exitoso!',
-                        text: 'Se ha registrado exitosamente.',
-                        icon: 'success',
-                        confirmButtonText: 'Entendido'
-                      });
-                      
-
-                } else {
-                    // Alta nueva
-                    const datosEspecificos = {};
-                    
-                    if (tipo === "Paciente") {
-                        datosEspecificos.cobertura = form.idCobertura.value;
-                        datosEspecificos.contactoEmergencia = form.contactoEmergencia.value;
-                    } else if (tipo === "Medico") {
-                        datosEspecificos.idEspecialidad = form.idEspecialidad.value;
-                        datosEspecificos.matricula = form.matricula.value;
-                    } else if (tipo === "Enfermero") {
-                        datosEspecificos.idTurno = form.idTurno.value;
-                    }
-                    
-                    altaPersona(tipo, datosPersona, datosEspecificos);
-                    
-                    Swal.fire({
-                        title: '¡Registro exitoso!',
-                        text: 'Se ha registrado exitosamente.',
-                        icon: 'success',
-                        confirmButtonText: 'Entendido'
-                      });
-                }
-   
-                resetearBusqueda();
-                btnModificar.disabled = true;
-                desbloquearCamposFormulario();
+            const data = await response.json();
+            
+            if (response.ok) {
+                alert('Persona registrada con éxito');
+                form.reset();
             } else {
-                console.log("La grabación fue cancelada");
+                throw new Error(data.error || 'Error al registrar persona');
             }
-        });
+        } catch (error) {
+            alert(error.message);
+            console.error('Error:', error);
+        }
     });
-    
-    function bloqueardocumento() {
-        inputdocumento.disabled = true;
-        inputdocumento.style.backgroundColor = "#f0f0f0"; 
-        btnBuscar.textContent = "Nueva Búsqueda";
-    }
-
-    function resetearBusqueda() {
-        inputdocumento.value = "";
-        inputdocumento.disabled = false;
-        inputdocumento.style.backgroundColor = ""; 
-        limpiarCampos();
-        btnBuscar.textContent = "Buscar";
-        mensajeBusqueda.textContent = '';
-        inputdocumento.focus();
-    }
-    
-    function limpiarCampos() {
-        form.apellidoNombres.value = "";
-        form.fechaNacimiento.value = "";
-        form.sexo.value = "";
-        form.direccion.value = "";
-        form.telefono.value = "";
-        form.email.value = "";
-        form.idCobertura.value = "";
-        form.contactoEmergencia.value = "";
-        form.idEspecialidad.value = "";
-        form.matricula.value = "";
-        form.idTurno.value = "";
-    }
 });
-
-function altaPersona(tipoPersona, datosPersona, datosEspecificos) {
-
-    if (!tipoPersona || !datosPersona || !datosEspecificos) {
-        throw new Error("Faltan parámetros requeridos");
-    }
-
-    const existePersona = personas.some(p => p.documento === datosPersona.documento);
-    if (existePersona) {
-        throw new Error("Ya existe una persona con este documento");
-    }
-
-    const nuevaPersona = new Persona(
-        datosPersona.apellidoNombres,
-        datosPersona.documento,
-        datosPersona.fechaNacimiento,
-        datosPersona.sexo,
-        datosPersona.direccion,
-        datosPersona.telefono,
-        datosPersona.email,
-        datosPersona.fechaFallecimiento || null,
-        datosPersona.actaDefuncion || null
-    );
-    
-    personas.push(nuevaPersona);
-    console.log(nuevaPersona);
-
-    let idRol;
-    switch(tipoPersona.toLowerCase()) {
-        case "medico":
-            idRol = 2; 
-            break;
-        case "enfermero":
-            idRol = 3; 
-            break;
-        case "paciente":
-            idRol = 1; 
-            break;
-        default:
-            throw new Error("Tipo de persona no válido");
-    }
-    
-    const nuevoRol = new PersonaRol(
-        nuevaPersona.idPersona,
-        idRol
-    );
-    
-    personaRoles.push(nuevoRol);
-    console.log(nuevoRol);
-    
-    let detallesCreados;
-    switch(tipoPersona.toLowerCase()) {
-        case "medico":
-            if (!datosEspecificos.idEspecialidad || !datosEspecificos.matricula) {
-                throw new Error("Faltan datos específicos para médico");
-            }
-            const nuevoMedico = new MedicoDetalles(
-                nuevaPersona.idPersona,
-                datosEspecificos.idEspecialidad,
-                datosEspecificos.matricula
-            );
-            medicoDetalles.push(nuevoMedico);
-            console.log(nuevoMedico);   
-            detallesCreados = nuevoMedico;
-            break;
-            
-        case "enfermero":
-            if (!datosEspecificos.idTurno) {
-                throw new Error("Falta el turno para enfermero");
-            }
-            const nuevoEnfermero = new EnfermeroDetalles(
-                nuevaPersona.idPersona,
-                datosEspecificos.idTurno
-            );
-            enfermeroDetalles.push(nuevoEnfermero);
-            console.log(nuevoEnfermero);
-            detallesCreados = nuevoEnfermero;
-            break;
-            
-        case "paciente":
-            if (!datosEspecificos.cobertura) {
-                throw new Error("Falta la cobertura para paciente");
-            }
-            const nuevoPaciente = new PacienteDetalles(
-                nuevaPersona.idPersona,
-                datosEspecificos.cobertura,
-                datosEspecificos.contactoEmergencia || ""
-            );
-            pacienteDetalles.push(nuevoPaciente);
-            console.log(nuevoPaciente);
-            detallesCreados = nuevoPaciente;
-            break;
-            
-        default:
-            console.log("Tipo de persona no soportado");
-            throw new Error("Tipo de persona no soportado");
-    }
-    
-    return {
-        persona: nuevaPersona,
-        rol: nuevoRol,
-        detalles: detallesCreados,
-        tipo: tipoPersona.toLowerCase()
-    };
-
-
-    
-
-}
-
-/*
-function obtenerNuevoIdPersona() {
-    if (personas.length === 0) {
-        return 1;
-    }
-    return Math.max(...personas.map(p => p.idPersona)) + 1;
-}
-*/
-
-function obtenerPersonaPorDocumento(documento) {
-    return personas.find(p => p.documento === documento);
-}
-
-
-function obtenerRolesDePersona(idPersona) {
-    return personaRoles
-        .filter(pr => pr.idPersona === idPersona)
-        .map(pr => roles.find(r => r.idRol === pr.idRol));
-}
-
-/*
-function obtenerDetallesPersona(idPersona) {
-    const rolesPersona = obtenerRolesDePersona(idPersona);
-    
-    if (rolesPersona.some(r => r.nombre === "Medico")) {
-        return medicoDetalles.find(md => md.idPersona === idPersona);
-    } else if (rolesPersona.some(r => r.nombre === "Enfermero")) {
-        return enfermeroDetalles.find(ed => ed.idPersona === idPersona);
-    } else if (rolesPersona.some(r => r.nombre === "Paciente")) {
-        return pacienteDetalles.find(pd => pd.idPersona === idPersona);
-    }
-    
-    return null;
-}
-
-function obtenerInformacionCompleta(documento) {
-    const persona = obtenerPersonaPorDocumento(documento);
-    if (!persona) return null;
-    
-    const roles = obtenerRolesDePersona(persona.idPersona);
-    const detalles = obtenerDetallesPersona(persona.idPersona);
-    
-    return {
-        persona,
-        roles,
-        detalles
-    };
-}
-
-*/
-
-function mostrarMensaje(mensajes, tipo) {
-
-    const mensajeBusqueda = document.getElementById("mensajes");
-
-    mensajeBusqueda.textContent = mensajes;
-
-    if (tipo === 0) {
-        mensajeBusqueda.style.color = "red";
-        mensajeBusqueda.style.backgroundColor = "#f8d7da";  
-    } else if (tipo === 1) {
-        mensajeBusqueda.style.color = "#007bff";  
-        mensajeBusqueda.style.backgroundColor = "#cce5ff";  
-    }
-    setTimeout(() => { mensajeBusqueda.textContent = ''; }, 3000);
-
-}
-
-function bloquearCamposFormulario() {
-    
-
-    const campos = [
-        "apellidoNombres", "fechaNacimiento", "sexo",
-        "direccion", "telefono", "email", "idCobertura",
-        "contactoEmergencia", "idEspecialidad","matricula","idTurno"
-    ];
-
-
-    campos.forEach(id => {
-        const campo = document.getElementById(id);
-        if (campo) {
-            campo.disabled = true;       
-        }
-    });
-}
-
-function desbloquearCamposFormulario() {
-    const campos = [
-        "apellidoNombres", "fechaNacimiento", "sexo",
-        "direccion", "telefono", "email", "idCobertura",
-        "contactoEmergencia", "idEspecialidad","matricula","idTurno"
-    ];
-
-    campos.forEach(id => {
-        const campo = document.getElementById(id);
-        if (campo) {
-            campo.disabled = false;       
-        }
-    });
-}
