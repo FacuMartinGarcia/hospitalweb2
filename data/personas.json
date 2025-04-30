@@ -1,1 +1,99 @@
-[]
+[
+    {
+      "idPersona": 1,
+      "apellidoNombres": "González María",
+      "documento": 11,
+      "fechaNacimiento": "1985-04-12",
+      "sexo": "F",
+      "direccion": "Calle Falsa 123",
+      "telefono": "123456789",
+      "email": "maria.gonzalez@example.com",
+      "fechaFallecimiento": null,
+      "actaDefuncion": null
+    },
+    {
+      "idPersona": 2,
+      "apellidoNombres": "Pérez Juan",
+      "documento": 22,
+      "fechaNacimiento": "1990-08-30",
+      "sexo": "M",
+      "direccion": "Av. Libertador 456",
+      "telefono": "234567890",
+      "email": "juan.perez@example.com",
+      "fechaFallecimiento": null,
+      "actaDefuncion": null
+    },
+    {
+      "idPersona": 3,
+      "apellidoNombres": "López Ana",
+      "documento": 33,
+      "fechaNacimiento": "1978-02-15",
+      "sexo": "F",
+      "direccion": "San Martín 789",
+      "telefono": "345678901",
+      "email": "ana.lopez@example.com",
+      "fechaFallecimiento": null,
+      "actaDefuncion": null
+    },
+    {
+      "idPersona": 4,
+      "apellidoNombres": "Martínez Carlos",
+      "documento": 44,
+      "fechaNacimiento": "1980-11-25",
+      "sexo": "M",
+      "direccion": "Belgrano 321",
+      "telefono": "456789012",
+      "email": "carlos.martinez@example.com",
+      "fechaFallecimiento": null,
+      "actaDefuncion": null
+    },
+    {
+      "idPersona": 5,
+      "apellidoNombres": "Ramírez Julia",
+      "documento": 55,
+      "fechaNacimiento": "1995-06-10",
+      "sexo": "F",
+      "direccion": "Mitre 654",
+      "telefono": "567890123",
+      "email": "julia.ramirez@example.com",
+      "fechaFallecimiento": null,
+      "actaDefuncion": null
+    },
+    {
+      "idPersona": 6,
+      "apellidoNombres": "Fernández Diego",
+      "documento": 66,
+      "fechaNacimiento": "1987-09-05",
+      "sexo": "M",
+      "direccion": "Rivadavia 987",
+      "telefono": "678901234",
+      "email": "diego.fernandez@example.com",
+      "fechaFallecimiento": null,
+      "actaDefuncion": null
+    },
+    {
+      "idPersona": 7,
+      "apellidoNombres": "Sánchez Laura",
+      "documento": 77,
+      "fechaNacimiento": "1992-01-18",
+      "sexo": "F",
+      "direccion": "Laprida 159",
+      "telefono": "789012345",
+      "email": "laura.sanchez@example.com",
+      "fechaFallecimiento": null,
+      "actaDefuncion": null
+    },
+    {
+      "idPersona": 8,
+      "apellidoNombres": "Torres Mateo",
+      "documento": 88,
+      "fechaNacimiento": "1983-12-03",
+      "sexo": "M",
+      "direccion": "Buenos Aires 753",
+      "telefono": "890123456",
+      "email": "mateo.torres@example.com",
+      "fechaFallecimiento": null,
+      "actaDefuncion": null
+    }
+  ]
+  

@@ -1,0 +1,158 @@
+[
+  {
+    "idEspecialidad": 1,
+    "denominacionEspecialidad": "Anestesiología"
+  },
+  {
+    "idEspecialidad": 2,
+    "denominacionEspecialidad": "Alergología"
+  },
+  {
+    "idEspecialidad": 3,
+    "denominacionEspecialidad": "Angiología"
+  },
+  {
+    "idEspecialidad": 4,
+    "denominacionEspecialidad": "Cardiología"
+  },
+  {
+    "idEspecialidad": 5,
+    "denominacionEspecialidad": "Cirugía General"
+  },
+  {
+    "idEspecialidad": 6,
+    "denominacionEspecialidad": "Cirugía Plástica y Estética"
+  },
+  {
+    "idEspecialidad": 7,
+    "denominacionEspecialidad": "Cirugía Vascular"
+  },
+  {
+    "idEspecialidad": 8,
+    "denominacionEspecialidad": "Dermatología"
+  },
+  {
+    "idEspecialidad": 9,
+    "denominacionEspecialidad": "Endocrinología"
+  },
+  {
+    "idEspecialidad": 10,
+    "denominacionEspecialidad": "Gastroenterología"
+  },
+  {
+    "idEspecialidad": 11,
+    "denominacionEspecialidad": "Ginecología y Obstetricia"
+  },
+  {
+    "idEspecialidad": 12,
+    "denominacionEspecialidad": "Hematología"
+  },
+  {
+    "idEspecialidad": 13,
+    "denominacionEspecialidad": "Infectología"
+  },
+  {
+    "idEspecialidad": 14,
+    "denominacionEspecialidad": "Medicina Interna"
+  },
+  {
+    "idEspecialidad": 15,
+    "denominacionEspecialidad": "Medicina de Urgencias"
+  },
+  {
+    "idEspecialidad": 16,
+    "denominacionEspecialidad": "Medicina Familiar y General"
+  },
+  {
+    "idEspecialidad": 17,
+    "denominacionEspecialidad": "Medicina Laboral"
+  },
+  {
+    "idEspecialidad": 18,
+    "denominacionEspecialidad": "Medicina Preventiva y Salud Pública"
+  },
+  {
+    "idEspecialidad": 19,
+    "denominacionEspecialidad": "Nefrología"
+  },
+  {
+    "idEspecialidad": 20,
+    "denominacionEspecialidad": "Neumonología"
+  },
+  {
+    "idEspecialidad": 21,
+    "denominacionEspecialidad": "Neurología"
+  },
+  {
+    "idEspecialidad": 22,
+    "denominacionEspecialidad": "Nutrición"
+  },
+  {
+    "idEspecialidad": 23,
+    "denominacionEspecialidad": "Odontología"
+  },
+  {
+    "idEspecialidad": 24,
+    "denominacionEspecialidad": "Oncología"
+  },
+  {
+    "idEspecialidad": 25,
+    "denominacionEspecialidad": "Oftalmología"
+  },
+  {
+    "idEspecialidad": 26,
+    "denominacionEspecialidad": "Otorrinolaringología"
+  },
+  {
+    "idEspecialidad": 27,
+    "denominacionEspecialidad": "Pediatría"
+  },
+  {
+    "idEspecialidad": 28,
+    "denominacionEspecialidad": "Psiquiatría"
+  },
+  {
+    "idEspecialidad": 29,
+    "denominacionEspecialidad": "Reumatología"
+  },
+  {
+    "idEspecialidad": 30,
+    "denominacionEspecialidad": "Traumatología y Ortopedia"
+  },
+  {
+    "idEspecialidad": 31,
+    "denominacionEspecialidad": "Urología"
+  },
+  {
+    "idEspecialidad": 32,
+    "denominacionEspecialidad": "Radiología"
+  },
+  {
+    "idEspecialidad": 33,
+    "denominacionEspecialidad": "Tocoginecología"
+  },
+  {
+    "idEspecialidad": 34,
+    "denominacionEspecialidad": "Fisiatría"
+  },
+  {
+    "idEspecialidad": 35,
+    "denominacionEspecialidad": "Medicina Física y Rehabilitación"
+  },
+  {
+    "idEspecialidad": 36,
+    "denominacionEspecialidad": "Flebología"
+  },
+  {
+    "idEspecialidad": 37,
+    "denominacionEspecialidad": "Gerontología"
+  },
+  {
+    "idEspecialidad": 38,
+    "denominacionEspecialidad": "Psicología"
+  },
+  {
+    "idEspecialidad": 39,
+    "denominacionEspecialidad": "Bioquímica Clínica"
+  }
+]

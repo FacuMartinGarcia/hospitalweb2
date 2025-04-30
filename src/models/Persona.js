@@ -13,7 +13,7 @@ class Persona {
       this.actaDefuncion = actaDefuncion;
     }
   }
-
- export default Persona;
+ 
+module.exports = Persona;
 
 console.log("persona cargada");
