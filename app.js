@@ -2,6 +2,8 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const personasRouter = require('./src/routes/personasRoutes');
+const rolesRouter = require('./src/routes/rolesRoutes');
+const personasRolesRouter = require('./src/routes/personasRolesRoutes');
 
 const pacientesRouter = require('./src/routes/pacientesRoutes');
 const coberturasRouter = require('./src/routes/coberturasRoutes');
@@ -14,6 +16,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/api/personas', personasRouter);
+app.use('/api/roles', rolesRouter);
+app.use('/api/personasRoles', personasRolesRouter);
 
 app.use('/api/pacientes', pacientesRouter);
 app.use('/api/coberturas', coberturasRouter);

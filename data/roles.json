@@ -1,0 +1,15 @@
+[
+    {
+      "idRol": 1,
+      "nombreRol": "Paciente"
+    },
+    {
+      "idRol": 2,
+      "nombreRol": "Medico"
+    },
+    {
+      "idRol": 3,
+      "nombreRol": "Enfermero"
+    }
+  ]
+  

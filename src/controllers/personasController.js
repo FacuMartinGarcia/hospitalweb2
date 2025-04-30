@@ -13,6 +13,8 @@ const personasController = {
 
       const personas = await leerJSON('personas');
       console.log(personas);
+
+      
       const yaExiste = personas.find(p => p.documento === datosPersona.documento);
 
       if (yaExiste) {
@@ -35,24 +37,24 @@ const personasController = {
         return res.status(400).json({ error: 'Tipo de persona no válido' });
       }
 
-      const roles = await leerJSON('personasRoles');
+      const roles = await leerJSON('personasRoles.json');
       roles.push(personaRol);
-      await guardarJSON('personasRoles', roles);
+      await guardarJSON('personasRoles.json', roles);
 
       let detalles = { idPersona: datosPersona.id, ...datosEspecificos };
 
       if (tipoPersona === 'medico') {
-        const medicos = await leerJSON('medicosDetalles');
+        const medicos = await leerJSON('medicosDetalles.json');
         medicos.push(detalles);
-        await guardarJSON('medicosDetalles', medicos);
+        await guardarJSON('medicosDetalles.json', medicos);
       } else if (tipoPersona === 'enfermero') {
-        const enfermeros = await leerJSON('enfermerosDetalles');
+        const enfermeros = await leerJSON('enfermerosDetalles.json');
         enfermeros.push(detalles);
-        await guardarJSON('enfermerosDetalles', enfermeros);
+        await guardarJSON('enfermerosDetalles.json', enfermeros);
       } else if (tipoPersona === 'paciente') {
-        const pacientes = await leerJSON('pacientesDetalles');
+        const pacientes = await leerJSON('pacientesDetalles.json');
         pacientes.push(detalles);
-        await guardarJSON('pacientesDetalles', pacientes);
+        await guardarJSON('pacientesDetalles.json', pacientes);
       }
 
       res.status(201).json({
@@ -73,6 +75,9 @@ const personasController = {
       console.log("documento que llega al controller" + documento);
       const personas = await leerJSON('personas.json');
       console.log("Contenido de personas.json:", personas);
+      const coberturas = await leerJSON('coberturas.json');  
+      console.log("Contenido de coberturas.json:", coberturas);
+      
       console.log("Tipo del documento recibido:", typeof documento);
       const documentoNumero = parseInt(documento);
       const persona = personas.find(p => p.documento === documentoNumero);
@@ -82,15 +87,17 @@ const personasController = {
         return res.status(404).json({ error: 'Persona no encontrada' });
       }
   
-      const roles = await leerJSON('roles.json');
+      const roles = await leerJSON('personasRoles.json');
       const rolesPersona = roles.filter(r => r.idPersona === persona.id);
-  
+      console.log("Roles de la persona:", rolesPersona);
+
+      
       let detalles = null;
       for (const rol of rolesPersona) {
         let archivoDetalles = '';
-        if (rol.idRol === 1) archivoDetalles = 'pacientes.json';
-        else if (rol.idRol === 2) archivoDetalles = 'medicos.json';
-        else if (rol.idRol === 3) archivoDetalles = 'enfermeros.json';
+        if (rol.idRol === 1) archivoDetalles = 'pacienteDetalles.json';
+        else if (rol.idRol === 2) archivoDetalles = 'medicoDetalles.json';
+        else if (rol.idRol === 3) archivoDetalles = 'enfermeroDetalle.json';
         if (archivoDetalles) {
           const detallesAll = await leerJSON(archivoDetalles);
           detalles = detallesAll.find(d => d.idPersona === persona.id);
@@ -109,6 +116,8 @@ const personasController = {
       res.status(500).json({ error: error.message });
     }
   }
+};
+
 /*
   buscarPorDocumento: async (req, res) => {
     try {
@@ -147,6 +156,5 @@ const personasController = {
     }
   }/
   */
-  };
 
 module.exports = personasController;

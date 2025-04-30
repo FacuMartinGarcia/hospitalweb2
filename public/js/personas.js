@@ -1,8 +1,5 @@
-//import Persona from '../models/Persona.js';
-// Configuración de endpoints
 const API_URL = '/api/personas';
 
-// Elementos del DOM
 const tipoPersona = document.getElementById("tipoPersona");
 const form = document.getElementById("formPersona");
 const inputDocumento = document.getElementById("documento");
@@ -11,17 +8,17 @@ const btnModificar = document.getElementById("btnModificar");
 const btnRegistrar = document.getElementById("btnRegistrar");
 const mensajeBusqueda = document.getElementById("mensajes");
 
-// Campos específicos por tipo
 const camposPaciente = document.getElementById("camposPaciente");
 const camposMedico = document.getElementById("camposMedico");
 const camposEnfermero = document.getElementById("camposEnfermero");
 
-// Selectores
 const selectCobertura = document.getElementById("idCobertura");
 const selectEspecialidad = document.getElementById("idEspecialidad");
 const selectTurno = document.getElementById("idTurno");
 
-// Función para validar documento
+let datosCoberturas = [] 
+
+
 function validarDocumento(documento) {
     if (documento === "" || documento === "0" || isNaN(documento) || !/^\d{1,9}$/.test(documento)) {
         mostrarMensaje('El documento debe contener solo números y tener hasta 9 dígitos.', 0);
@@ -31,7 +28,6 @@ function validarDocumento(documento) {
     return true;
 }
 
-// Función para buscar persona en el servidor
 async function buscarPersona(documento, tipo) {
     try {
         if (!validarDocumento(documento)) return null;
@@ -103,7 +99,7 @@ function mostrarDatosPersona(persona, detalles, tipo) {
     form.email.value = persona.email || '';
 
     if (tipo === "Paciente") {
-        form.idCobertura.value = detalles?.cobertura || '';
+        form.idCobertura.value = detalles?.idCobertura || '';
         form.contactoEmergencia.value = detalles?.contactoEmergencia || '';
     } 
     else if (tipo === "Medico") {
@@ -115,7 +111,6 @@ function mostrarDatosPersona(persona, detalles, tipo) {
     }
 }
 
-// Manejador del botón Buscar
 btnBuscar.addEventListener("click", async () => {
     const documento = inputDocumento.value;
     const tipo = tipoPersona.value;
@@ -185,14 +180,13 @@ btnBuscar.addEventListener("click", async () => {
     }
 });
 
-// Manejador del botón Modificar
 btnModificar.addEventListener("click", () => {
     desbloquearCamposFormulario();
     btnModificar.disabled = true;
     btnRegistrar.disabled = false;
 });
 
-// Manejador del formulario
+
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
     
@@ -319,18 +313,59 @@ function desbloquearCamposFormulario() {
         if (campo) campo.disabled = false;
     });
 }
+async function cargarCoberturas() {
+    try {
+        const response = await fetch('/api/coberturas');
+        if (!response.ok) throw new Error("Error al cargar coberturas");
+        datosCoberturas = await response.json();
 
-// Inicialización
+        console.log("Coberturas cargadas en CARGAR COBERTURAS:", datosCoberturas);
+
+        /*
+        selectCobertura.innerHTML = '<option value="">Seleccione...</option>';
+        datosCoberturas.forEach(cob => {
+            const option = document.createElement('option');
+            option.value = cob.idCobertura; 
+            option.textContent = cob.denominacion;
+            selectCobertura.appendChild(option);
+        });
+        */
+
+    } catch (error) {
+        console.error("Error al cargar coberturas:", error);
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-    // Configuración inicial de los campos según el tipo
+
     tipoPersona.addEventListener("change", () => {
         const valor = tipoPersona.value;
         
         camposPaciente.style.display = valor === "Paciente" ? "grid" : "none";
+        selectCobertura.disabled = false;
+        contactoEmergencia.disabled = false;
+        
         camposMedico.style.display = valor === "Medico" ? "grid" : "none";
+        selectEspecialidad.disabled = false;
+        matricula.disabled = false;
+
         camposEnfermero.style.display = valor === "Enfermero" ? "grid" : "none";
+        selectTurno.disabled = false;   
+
     });
     
     tipoPersona.dispatchEvent(new Event("change"));
+    
+    
+    
     bloquearCamposFormulario();
+    
+    cargarCoberturas();
+
 });
+
+
+
+
+
+
