@@ -1,3 +1,4 @@
+let coberturas = [];
 function validarDatos(form) {
     const tipo = document.getElementById("tipoPersona").value;
 
@@ -82,21 +83,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('form-persona');
     const selectEspecialidad = document.getElementById('especialidad');
     const selectTurno = document.getElementById('turno');
-    const selectCobertura = document.getElementById('cobertura');
+    const selectCobertura = document.getElementById('idCobertura');
     const tipoPersona = document.getElementById('tipo-persona');
     const camposPaciente = document.getElementById('camposPaciente');
     const camposMedico = document.getElementById('camposMedico');
     const camposEnfermero = document.getElementById('camposEnfermero');
 
     // Función para cargar combos
-    async function cargarCombo(url, selectElement) {
+    async function cargarCombo(url, selectElement, almacenamiento = null) {
         try {
             const response = await fetch(url);
             const data = await response.json();
-            
+    
+            if (almacenamiento !== null) {
+                almacenamiento.splice(0, almacenamiento.length, ...data);
+            }
+            console.log("estoy adentro de cargar combo", data); 
             data.forEach(item => {
                 let option = document.createElement("option");
-                option.value = item.id;
+                option.value = item.idCobertura || item.id || item.idEspecialidad || item.idTurno;
                 option.textContent = item.denominacion;
                 selectElement.appendChild(option);
             });
@@ -107,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     //cargarCombo('/api/especialidades', selectEspecialidad);
     //cargarCombo('/api/turnos', selectTurno);
-    //cargarCombo('/api/coberturas', selectCobertura);
+    cargarCombo('/api/coberturas', selectCobertura, coberturas);
     
     tipoPersona.addEventListener("change", () => {
         const valor = tipoPersona.value;
