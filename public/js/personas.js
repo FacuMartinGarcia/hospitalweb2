@@ -17,6 +17,9 @@ const selectEspecialidad = document.getElementById("idEspecialidad");
 const selectTurno = document.getElementById("idTurno");
 
 let datosCoberturas = [] 
+let datosEspecialidades = []
+let datosTurnos = []
+
 
 
 function validarDocumento(documento) {
@@ -25,6 +28,85 @@ function validarDocumento(documento) {
         inputDocumento.focus();
         return false;
     }
+    return true;
+}
+function validarDatos(form) {
+    const tipo = document.getElementById("tipoPersona").value;
+
+    let documento = form.documento.value.trim();
+    let apellidoNombres = form.apellidoNombres.value.trim();
+    let fechaNacimiento = form.fechaNacimiento.value;
+    let telefono = form.telefono.value.trim();
+    let email = form.email.value.trim();
+
+    if (documento === "" || documento === "0" || isNaN(documento) || !/^\d{1,9}$/.test(documento)) {
+        mostrarMensaje('El documento debe contener solo números y tener hasta 9 dígitos.', 0);
+        form.documento.focus();
+        return false;
+    }
+
+    if (apellidoNombres === "") {
+        mostrarMensaje('El Apellido y Nombres es obligatorio.', 0);
+        return false;
+    }
+
+    if (telefono !== "" && !/^\d{1,20}$/.test(telefono)) {
+        mostrarMensaje('El Teléfono debe contener solo números.', 0);
+        return false;
+    }
+
+    let fechaNac = new Date(fechaNacimiento);
+    let hoy = new Date();
+    let hace150años = new Date();
+    hace150años.setFullYear(hoy.getFullYear() - 150);
+
+    if (fechaNac < hace150años || fechaNac > hoy) {
+        mostrarMensaje('La fecha de nacimiento no puede ser mayor a 150 años atrás ni estar en el futuro.', 0);
+        return false;
+    }
+
+    let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email !== "" && !emailRegex.test(email)) {
+        mostrarMensaje('El correo electrónico no tiene un formato válido.', 0);
+        return false;
+    }
+
+    // Validaciones específicas por tipo
+    if (tipo === "paciente") {
+        let cobertura = form.idCobertura.value;
+        if (!cobertura || coberturas.find(c => c.idCobertura == cobertura) === undefined) {
+            mostrarMensaje('Debe seleccionar una cobertura válida.', 0);
+            return false;
+        }
+
+        let contacto = form.contactoEmergencia.value.trim();
+        if (contacto === "") {
+            mostrarMensaje('Debe ingresar un contacto de emergencia.', 0);
+            return false;
+        }
+
+    } else if (tipo === "medico") {
+        let idEspecialidad = form.idEspecialidad.value;
+        let matricula = form.matricula.value.trim();
+
+        if (!idEspecialidad || especialidades.find(e => e.idEspecialidad == idEspecialidad) === undefined) {
+            mostrarMensaje('Debe seleccionar una especialidad válida.', 0);
+            return false;
+        }
+
+        if (matricula === "") {
+            mostrarMensaje('Debe ingresar la matrícula del médico.', 0);
+            return false;
+        }
+
+    } else if (tipo === "enfermero") {
+        let idTurno = form.idTurno.value;
+        if (!idTurno || turnos.find(t => t.idTurno == idTurno) === undefined) {
+            mostrarMensaje('Debe seleccionar un turno válido.', 0);
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -321,18 +403,57 @@ async function cargarCoberturas() {
 
         console.log("Coberturas cargadas en CARGAR COBERTURAS:", datosCoberturas);
 
-        /*
-        selectCobertura.innerHTML = '<option value="">Seleccione...</option>';
         datosCoberturas.forEach(cob => {
             const option = document.createElement('option');
             option.value = cob.idCobertura; 
             option.textContent = cob.denominacion;
             selectCobertura.appendChild(option);
         });
-        */
+      
 
     } catch (error) {
         console.error("Error al cargar coberturas:", error);
+    }
+}
+async function cargarEspecialidades() {
+    try {
+        const response = await fetch('/api/especialidades');
+        if (!response.ok) throw new Error("Error al cargar especialidades");
+        datosEspecialidades = await response.json();
+
+        console.log("Coberturas cargadas en CARGAR ESPECIALIDADES:", datosEspecialidades);
+
+        datosEspecialidades.forEach(cob => {
+            const option = document.createElement('option');
+            option.value = cob.idEspecialidad; 
+            option.textContent = cob.denominacionEspecialidad;
+            selectEspecialidad.appendChild(option);
+        });
+      
+
+    } catch (error) {
+        console.error("Error al cargar especialidades:", error);
+    }
+}
+
+async function cargarTurnos() {
+    try {
+        const response = await fetch('/api/turnos');
+        if (!response.ok) throw new Error("Error al cargar turnos");
+        datosTurnos = await response.json();
+
+        console.log("Coberturas cargadas en CARGAR TURNOS:", datosTurnos);
+
+        datosTurnos.forEach(cob => {
+            const option = document.createElement('option');
+            option.value = cob.idTurno; 
+            option.textContent = cob.denominacionTurno;
+            selectTurno.appendChild(option);
+        });
+      
+
+    } catch (error) {
+        console.error("Error al cargar turnos:", error);
     }
 }
 
@@ -355,12 +476,14 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     
     tipoPersona.dispatchEvent(new Event("change"));
-    
-    
+
     
     bloquearCamposFormulario();
     
     cargarCoberturas();
+    cargarEspecialidades();
+    cargarTurnos();
+
 
 });
 

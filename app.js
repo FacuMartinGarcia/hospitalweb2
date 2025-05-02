@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const app = express();
+
 const personasRouter = require('./src/routes/personasRoutes');
 const rolesRouter = require('./src/routes/rolesRoutes');
 const personasRolesRouter = require('./src/routes/personasRolesRoutes');
@@ -9,6 +10,10 @@ const pacientesRouter = require('./src/routes/pacientesRoutes');
 const coberturasRouter = require('./src/routes/coberturasRoutes');
 
 const medicosRouter = require('./src/routes/medicosRoutes');
+const especialidadesRouter = require('./src/routes/especialidadesRoutes');
+
+const enfermerosRouter = require('./src/routes/enfermerosRoutes');
+const turnosRouter = require('./src/routes/turnosRoutes');
 
 
 app.use(express.json());
@@ -23,6 +28,10 @@ app.use('/api/pacientes', pacientesRouter);
 app.use('/api/coberturas', coberturasRouter);
 
 app.use('/api/medicos', medicosRouter);
+app.use('/api/especialidades', especialidadesRouter);
+
+app.use('/api/enfermeros', enfermerosRouter);
+app.use('/api/turnos', turnosRouter);
 
 
 
