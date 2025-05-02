@@ -4,7 +4,6 @@ const especialidadesController = {
   listar: async (req, res) => {
     try {
       const especialidades = await leerJSON('especialidades.json');
-      console.log("Especialidades: " + especialidades);
       res.json(especialidades);
     } catch (error) {
       res.status(500).json({ error: 'Error al obtener especialidades: ' + error.message });

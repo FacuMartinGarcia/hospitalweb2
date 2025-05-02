@@ -4,7 +4,6 @@ const turnosController = {
   listar: async (req, res) => {
     try {
       const turnos = await leerJSON('turnos.json');
-      console.log("Turnos: " + turnos);
       res.json(turnos);
     } catch (error) {
       res.status(500).json({ error: 'Error al obtener turnos: ' + error.message });

@@ -1,52 +1,76 @@
 const { leerJSON, guardarJSON } = require('../utils/dataUtils');
 
+
+
 const pacientesController = {
-  listar: async (req, res) => {
+  crearPaciente: async (req, res) => {
     try {
-      const pacientes = await leerJSON('pacientesDetalles.json');
-      res.json(pacientes);
+      const { datosPaciente } = req.body;
+
+      if (!datosPaciente) {
+        return res.status(400).json({ error: 'Faltan parámetros requeridos' });
+      }
+
+      const pacientes = await leerJSON('pacientes.json');
+      
+      datosPaciente.documento = parseInt(datosPaciente.documento); 
+
+      console.log("Entré por nueva paciente");
+      
+      if (isNaN(datosPaciente.documento)) {  
+        return res.status(400).json({ error: 'El documento debe ser un número' });
+      } 
+
+      const yaExiste = pacientes.find(p => p.documento === datosPaciente.documento);
+
+      if (yaExiste) {
+        return res.status(400).json({ error: 'Ya existe un paciente con este documento' });
+      }
+
+      datosPacientes.id = Date.now(); // ID único
+      personas.push(datosPersona);
+
+      await guardarJSON('pacientes.json', pacientes);
+
+
+      res.status(201).json({
+        paciente: datosPaciente,
+      });
+
     } catch (error) {
+      console.log(error);
       res.status(500).json({ error: error.message });
     }
   },
-
-  buscarPorId: async (req, res) => {
+  buscarPorDocumento: async (req, res) => {
     try {
-      const { id } = req.params;
-      const pacientes = await leerJSON('pacientesDetalles.json');
-      const paciente = pacientes.find(p => p.idPersona == id);
+
+      console.log(req.url);
+      const { documento } = req.params;
+      console.log("documento que llega al controller" + documento);
+      const pacientes = await leerJSON('pacientes.json');
+      console.log("Contenido de pacientes.json:", pacientes);
+      console.log("Tipo del documento recibido:", typeof documento);
+
+      //const persona = personas.find(p => p.documento.toString() === documento.toString());
+           
+      const documentoNumero = parseInt(documento);
+      const paciente = pacientes.find(p => p.documento === documentoNumero);
+      
+      console.log("Paciente encontrado:", paciente);
       if (!paciente) {
-        return res.status(404).json({ error: 'Paciente no encontrado' });
+        return res.status(404).json({ error: 'paciente no encontrada' });
       }
-      res.json(paciente);
+      
+      res.json({
+        paciente
+      });
+  
     } catch (error) {
-      res.status(500).json({ error: error.message });
-    }
-  },
-
-  crear: async (req, res) => {
-    try {
-      const nuevoPaciente = req.body;
-
-      if (!nuevoPaciente || !nuevoPaciente.idPersona) {
-        return res.status(400).json({ error: 'Faltan datos del paciente' });
-      }
-
-      const pacientes = await leerJSON('pacientesDetalles.json');
-      const existe = pacientes.find(p => p.idPersona === nuevoPaciente.idPersona);
-
-      if (existe) {
-        return res.status(400).json({ error: 'El paciente ya existe' });
-      }
-
-      pacientes.push(nuevoPaciente);
-      await guardarJSON('pacientesDetalles.json', pacientes);
-
-      res.status(201).json(nuevoPaciente);
-    } catch (error) {
+      console.log('Error en buscarPorDocumento:', error);
       res.status(500).json({ error: error.message });
     }
   }
-};
+};  
 
 module.exports = pacientesController;

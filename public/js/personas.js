@@ -271,12 +271,12 @@ btnModificar.addEventListener("click", () => {
 
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    
+
     if (!validarDatos(form)) return;
-    
+
     const tipo = tipoPersona.value;
     const documento = form.documento.value;
-    
+
     const datosPersona = {
         apellidoNombres: form.apellidoNombres.value,
         documento: documento,
@@ -288,7 +288,7 @@ form.addEventListener("submit", async (e) => {
         fechaFallecimiento: null,
         actaDefuncion: null
     };
-    
+
     const datosEspecificos = {};
     if (tipo === "Paciente") {
         datosEspecificos.cobertura = form.idCobertura.value;
@@ -299,7 +299,7 @@ form.addEventListener("submit", async (e) => {
     } else if (tipo === "Enfermero") {
         datosEspecificos.idTurno = form.idTurno.value;
     }
-    
+
     try {
         const confirmacion = await Swal.fire({
             title: '¿Estás seguro?',
@@ -309,27 +309,78 @@ form.addEventListener("submit", async (e) => {
             confirmButtonText: 'Sí, grabar',
             cancelButtonText: 'Cancelar'
         });
-        
+
         if (!confirmacion.isConfirmed) return;
-        
-        // Determinar si es una actualización o nuevo registro
+
         const esActualizacion = btnRegistrar.disabled;
-        
-        await guardarPersona(tipo, datosPersona, datosEspecificos, esActualizacion);
-        
+
+        if (esActualizacion) {
+            // Actualizar persona
+            await fetch(`/api/personas/${persona.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datosPersona)
+            });
+
+            // Actualizar rol y datos específicos
+            await fetch(`/api/personas/actualizarRol/${persona.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    tipoPersona: tipo,
+                    datosEspecificos
+                })
+            });
+
+        } else {
+            // Crear persona
+            const response = await fetch('/api/personas', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datosPersona)
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text(); 
+                console.error("Respuesta del servidor:", errorText);
+                throw new Error('Error al registrar persona');
+            }
+            if (!response.ok) throw new Error('Error al registrar persona');
+
+            const personaGuardada = await response.json();
+
+            // Asignar rol y datos específicos
+            await fetch('/api/personas/asignarRol', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    idPersona: personaGuardada.id,
+                    tipoPersona: tipo,
+                    datosEspecificos
+                })
+            });
+        }
+
         await Swal.fire({
             title: '¡Registro exitoso!',
             text: 'Se ha registrado exitosamente.',
             icon: 'success',
             confirmButtonText: 'Entendido'
         });
-        
+
         resetearBusqueda();
-        
+
     } catch (error) {
         console.error('Error al guardar:', error);
+        Swal.fire({
+            title: 'Error',
+            text: 'Ocurrió un error al guardar los datos.',
+            icon: 'error',
+            confirmButtonText: 'Cerrar'
+        });
     }
 });
+
 
 // Funciones auxiliares
 function bloqueardocumento() {
@@ -400,9 +451,6 @@ async function cargarCoberturas() {
         const response = await fetch('/api/coberturas');
         if (!response.ok) throw new Error("Error al cargar coberturas");
         datosCoberturas = await response.json();
-
-        console.log("Coberturas cargadas en CARGAR COBERTURAS:", datosCoberturas);
-
         datosCoberturas.forEach(cob => {
             const option = document.createElement('option');
             option.value = cob.idCobertura; 
@@ -420,9 +468,6 @@ async function cargarEspecialidades() {
         const response = await fetch('/api/especialidades');
         if (!response.ok) throw new Error("Error al cargar especialidades");
         datosEspecialidades = await response.json();
-
-        console.log("Coberturas cargadas en CARGAR ESPECIALIDADES:", datosEspecialidades);
-
         datosEspecialidades.forEach(cob => {
             const option = document.createElement('option');
             option.value = cob.idEspecialidad; 
@@ -441,9 +486,6 @@ async function cargarTurnos() {
         const response = await fetch('/api/turnos');
         if (!response.ok) throw new Error("Error al cargar turnos");
         datosTurnos = await response.json();
-
-        console.log("Coberturas cargadas en CARGAR TURNOS:", datosTurnos);
-
         datosTurnos.forEach(cob => {
             const option = document.createElement('option');
             option.value = cob.idTurno; 
