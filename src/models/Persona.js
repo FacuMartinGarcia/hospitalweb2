@@ -1,7 +1,6 @@
 class Persona {
-    static ultimoId = 0;
-    constructor(apellidoNombres, documento, fechaNacimiento, sexo, direccion, telefono, email, fechaFallecimiento, actaDefuncion) {
-      this.idPersona = ++Persona.ultimoId;
+    constructor(idPersona, apellidoNombres, documento, fechaNacimiento, sexo, direccion, telefono, email, fechaFallecimiento, actaDefuncion) {
+      this.idPersona = idPersona;
       this.apellidoNombres = apellidoNombres;
       this.documento = documento;
       this.fechaNacimiento = fechaNacimiento;

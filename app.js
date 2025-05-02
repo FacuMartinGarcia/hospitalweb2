@@ -20,7 +20,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/api/personas', personasRouter);
+//app.use('/api/personas', personasRouter);
+app.use('/api/personas', (req, res, next) => {
+  console.log("¡Ruta /api/personas activada!");
+  next();
+}, personasRouter);
 app.use('/api/roles', rolesRouter);
 app.use('/api/personasRoles', personasRolesRouter);
 

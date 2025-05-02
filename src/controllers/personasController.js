@@ -11,7 +11,7 @@ const personasController = {
         return res.status(400).json({ error: 'Faltan parámetros requeridos' });
       }
 
-      const personas = await leerJSON('personas');
+      const personas = await leerJSON('personas.json');
       console.log(personas);
 
       
@@ -23,7 +23,7 @@ const personasController = {
 
       datosPersona.id = Date.now(); // ID único
       personas.push(datosPersona);
-      await guardarJSON('personas', personas);
+      await guardarJSON('personas.json', personas);
 
       const personaRol = {
         idPersona: datosPersona.id,

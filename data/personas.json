@@ -94,17 +94,5 @@
     "email": "mateo.torres@example.com",
     "fechaFallecimiento": null,
     "actaDefuncion": null
-  },
-  {
-    "apellidoNombres": "garcia manuel",
-    "documento": 28399283,
-    "fechaNacimiento": "1980-12-14",
-    "sexo": "M",
-    "direccion": "pepe",
-    "telefono": "2664484134",
-    "email": "",
-    "fechaFallecimiento": null,
-    "actaDefuncion": null,
-    "id": 1746143236488
   }
 ]
