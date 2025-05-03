@@ -8,7 +8,7 @@ const btnRegistrar = document.getElementById("btnRegistrar");
 const mensajeBusqueda = document.getElementById("mensajes");
 const selectCobertura = document.getElementById("idCobertura");
 
- 
+let modoEdicion = false;
 
 let datosCoberturas = [];
 
@@ -86,6 +86,7 @@ btnBuscar.addEventListener("click", async () => {
     }
 
     try {
+
         const resultado = await buscarpaciente(documento);
         console.log("Aqui el resultado");
         console.log(resultado);
@@ -114,6 +115,7 @@ btnBuscar.addEventListener("click", async () => {
         bloquearCamposFormulario();
         btnModificar.disabled = false;
         btnRegistrar.disabled = true;
+        
 
     } catch (error) {
         console.error('Error en búsqueda:', error);
@@ -126,69 +128,49 @@ btnBuscar.addEventListener("click", async () => {
     }
 });
 
-btnModificar.addEventListener("click", async () => {
-    if (!validarDatos(form)) return;
-
-    const documento = form.documento.value;
-    const paciente = {
-        documento,
-        apellidoNombres: form.apellidoNombres.value,
-        fechaNacimiento: form.fechaNacimiento.value,
-        sexo: form.sexo.value,
-        direccion: form.direccion.value,
-        telefono: form.telefono.value,
-        email: form.email.value,
-        idCobertura: form.idCobertura.value,
-        contactoEmergencia: form.contactoEmergencia.value
-    };
-
-    try {
-        await guardarpaciente(paciente, true);
-        Swal.fire({
-            title: 'Éxito',
-            text: 'Los datos del paciente han sido actualizados correctamente.',
-            icon: 'success',
-            confirmButtonText: 'Cerrar'
-        }).then(() => {
-            resetearBusqueda();
-        });
-    } catch (error) {
-        console.error('Error al modificar paciente:', error);
-    }
-}   );
-
-btnRegistrar.addEventListener("click", async () => {
-    if (!validarDatos(form)) return;
-
-    const paciente = {
-        documento: form.documento.value,
-        apellidoNombres: form.apellidoNombres.value,
-        fechaNacimiento: form.fechaNacimiento.value,
-        sexo: form.sexo.value,
-        direccion: form.direccion.value,
-        telefono: form.telefono.value,
-        email: form.email.value,
-        idCobertura: form.idCobertura.value,
-        contactoEmergencia: form.contactoEmergencia.value
-    };
-
-    try {
-        await guardarpaciente(paciente);
-        Swal.fire({
-            title: 'Éxito',
-            text: 'Los datos del paciente han sido registrados correctamente.',
-            icon: 'success',
-            confirmButtonText: 'Cerrar'
-        }).then(() => {
-            resetearBusqueda();
-        });
-    } catch (error) {
-        console.error('Error al registrar paciente:', error);
-    }
-}   );
-
+btnModificar.addEventListener("click", () => {
+    desbloquearCamposFormulario();
+    btnModificar.disabled = true;
+    btnRegistrar.disabled = false;
+    btnRegistrar.textContent = "Actualizar";
+    modoEdicion = true;
+});
 
 document.addEventListener("DOMContentLoaded", async () => {
+
+    btnRegistrar.addEventListener("click", async (event) => {
+        event.preventDefault(); 
+    
+        if (!validarDatos(form)) return;
+    
+        const paciente = {
+            documento: form.documento.value,
+            apellidoNombres: form.apellidoNombres.value,
+            fechaNacimiento: form.fechaNacimiento.value,
+            sexo: form.sexo.value,
+            direccion: form.direccion.value,
+            telefono: form.telefono.value,
+            email: form.email.value,
+            idCobertura: form.idCobertura.value,
+            contactoEmergencia: form.contactoEmergencia.value
+        };
+    
+        try {
+            await guardarpaciente(paciente, modoEdicion); 
+    
+            Swal.fire({
+                title: 'Éxito',
+                text: modoEdicion ? 'Paciente actualizado correctamente.' : 'Paciente registrado correctamente.',
+                icon: 'success',
+                confirmButtonText: 'Cerrar'
+            }).then(() => {
+                resetearBusqueda();
+            });
+        } catch (error) {
+            console.error(`Error al ${modoEdicion ? 'modificar' : 'registrar'} paciente:`, error);
+        }
+    });
+
     await cargarCoberturas();
     bloquearCamposFormulario();
     
@@ -217,19 +199,23 @@ async function buscarpaciente(documento) {
     }
 }
 
-async function guardarpaciente(datospaciente, esActualizacion = false) {
-    try {
-        const method = esActualizacion ? 'PUT' : 'POST';
-        const url = esActualizacion ? `${API_URL}/${datospaciente.documento}` : API_URL;
+async function guardarpaciente(paciente, esEdicion = false) {
+    const metodo = esEdicion ? 'PUT' : 'POST';
+    const url = esEdicion ? `${API_URL}/${paciente.documento}` : API_URL;
 
+
+
+    try {
+
+        console.log('Guardando paciente...');
+        console.log('URL:', url);
+        console.log('Método:', metodo);
+        console.log('Body:', JSON.stringify({ datosPaciente: paciente }));
+        
         const response = await fetch(url, {
-            method,
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                datospaciente,
-            }),
+            method: metodo,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({datosPaciente: paciente})
         });
 
         if (!response.ok) {
@@ -238,30 +224,16 @@ async function guardarpaciente(datospaciente, esActualizacion = false) {
         }
 
         return await response.json();
+
     } catch (error) {
-        console.log('Error al guardar paciente:', error);
-        mostrarMensaje(error.message, 0);
-        throw error;
+        console.error('Error en guardarpaciente:', error);
+        throw error; // Re-lanzamos el error para manejarlo en el evento click
     }
 }
 
-/*function mostrarDatosPaciente(paciente) {
-
-    console.log("Paciente recibido:", paciente);
-
-    //form.apellidoNombres.value = paciente.apellidoNombres;
-    form.fechaNacimiento.value = paciente.fechaNacimiento.split('T')[0];
-    form.sexo.value = paciente.sexo;
-    form.direccion.value = paciente.direccion || '';
-    form.telefono.value = paciente.telefono || '';
-    form.email.value = paciente.email || '';
-    form.idCobertura.value = detalles.idCobertura || '';
-    form.contactoEmergencia.value = detalles.contactoEmergencia || '';
-}*/
-
 function mostrarDatosPaciente(paciente) {
     document.getElementById("apellidoNombres").value = paciente.apellidoNombres;
-    document.getElementById("fechaNacimiento").value = paciente.fechaNacimiento;
+    document.getElementById("fechaNacimiento").value = paciente.fechaNacimiento.split('T')[0];
     document.getElementById("sexo").value = paciente.sexo;
     document.getElementById("direccion").value = paciente.direccion;
     document.getElementById("telefono").value = paciente.telefono;
@@ -294,17 +266,17 @@ function bloqueardocumento() {
     btnBuscar.textContent = "Nueva Búsqueda";
 }
 
+
 function resetearBusqueda() {
-    inputDocumento.value = "";
-    inputDocumento.disabled = false;
-    inputDocumento.style.backgroundColor = ""; 
-    limpiarCampos();
-    btnBuscar.textContent = "Buscar";
+    form.reset();
     mensajeBusqueda.textContent = '';
-    inputDocumento.focus();
-    bloquearCamposFormulario();
-    btnModificar.disabled = true;
+    desbloquearCamposFormulario();
+    inputDocumento.disabled = false;
+    btnBuscar.textContent = "Buscar";
+    btnRegistrar.textContent = "Registrar";
     btnRegistrar.disabled = true;
+    btnModificar.disabled = true;
+    modoEdicion = false; 
 }
 
 function limpiarCampos() {
@@ -323,7 +295,7 @@ function mostrarMensaje(mensaje, tipo) {
     mensajeBusqueda.textContent = mensaje;
     mensajeBusqueda.style.color = tipo === 0 ? "red" : "#007bff";
     mensajeBusqueda.style.backgroundColor = tipo === 0 ? "#f8d7da" : "#cce5ff";
-    setTimeout(() => { mensajeBusqueda.textContent = ''; }, 3000);
+    setTimeout(() => { mensajeBusqueda.textContent = ''; }, 5000);
 }
 
 function bloquearCamposFormulario() {

@@ -266,6 +266,8 @@ btnModificar.addEventListener("click", () => {
     desbloquearCamposFormulario();
     btnModificar.disabled = true;
     btnRegistrar.disabled = false;
+    btnRegistrar.textContent = "Actualizar";
+    
 });
 
 

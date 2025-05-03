@@ -1,6 +1,9 @@
 const express = require('express');
 const path = require('path');
 const app = express();
+const cors = require('cors'); 
+
+app.use(cors());
 
 const pacientesRouter = require('./src/routes/pacientesRoutes');
 const coberturasRouter = require('./src/routes/coberturasRoutes');
