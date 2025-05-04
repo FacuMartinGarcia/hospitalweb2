@@ -33,11 +33,18 @@ app.use('/api/especialidades', especialidadesRouter);
 app.use('/api/enfermeros', enfermerosRouter);
 app.use('/api/turnos', turnosRouter);
 
+app.set('view engine', 'pug');
+app.set('views', './views');
 
+
+app.get('/', (req, res) => {
+  res.render('index');
+});
+/*
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/html/index.html'));
 });
-
+*/
 app.get('/persona', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/html/persona.html'));
 });

@@ -1,0 +1,28 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Admisión Hospitalaria
+    link(rel="stylesheet", href="/css/index.css")
+    script.
+      function cargarPagina(pagina, link) {
+          document.getElementById("contenido").src = pagina;
+          document.querySelectorAll(".nav-link").forEach(item => item.classList.remove("active"));
+          link.classList.add("active");
+      }
+
+  body
+    nav
+      //- img(src="img/gato.jpg", alt="Logo", width="60", height="60", style="border-radius: 50%; margin: 10px auto; display: block;")
+      h3 Menú
+      ul
+        li: a.nav-link(href="#", onclick="cargarPagina('/html/pacientes.html', this)") Pacientes
+        li: a.nav-link(href="#", onclick="cargarPagina('internacion.html', this)") Internación
+        li: a.nav-link(href="#", onclick="cargarPagina('medicos.html', this)") Médicos
+        li: a.nav-link(href="#", onclick="cargarPagina('enfermeros.html', this)") Enfermeros
+        li: a.nav-link(href="#", onclick="cargarPagina('usuarios.html', this)") Usuarios
+        li: a.nav-link(href="#", onclick="cargarPagina('reportes.html', this)") Reportes
+
+    #contenedor-principal
+      iframe#contenido
