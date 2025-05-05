@@ -3,15 +3,15 @@
     "idPaciente": 1,
     "apellidoNombres": "Gómez, Juan Carlos JAVIER",
     "documento": 22,
-    "fechaNacimiento": "1985-03-15",
+    "fechaNacimiento": "2025-03-15",
     "sexo": "F",
     "direccion": "LAVALLE 1515",
     "telefono": "12",
     "email": "juan.gomez@mail.com",
     "idCobertura": "1",
     "contactoEmergencia": "María Gómez - 3515555678",
-    "fechaFallecimiento": null,
-    "actaDefuncion": null
+    "fechaFallecimiento": "2025-05-01",
+    "actaDefuncion": "2565"
   },
   {
     "idPaciente": 2,
@@ -56,15 +56,17 @@
     "actaDefuncion": null
   },
   {
-    "documento": "12",
-    "apellidoNombres": "soria arnaldo",
-    "fechaNacimiento": "1980-12-12",
+    "documento": "31",
+    "apellidoNombres": "alberto plaza",
+    "fechaNacimiento": "2000-10-12",
     "sexo": "M",
-    "direccion": "lavalle 1115",
+    "direccion": "colon 145",
     "telefono": "2664484134",
     "email": "",
-    "idCobertura": "3",
-    "contactoEmergencia": "juan perez",
-    "id": 1746289691763
+    "idCobertura": "1",
+    "contactoEmergencia": "",
+    "fechaFallecimiento": "",
+    "actaDefuncion": "",
+    "id": 1746457097010
   }
 ]

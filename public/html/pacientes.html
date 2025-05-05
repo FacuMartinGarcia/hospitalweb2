@@ -124,6 +124,12 @@
       gap: 15px;
       margin-bottom: 15px;
     }
+
+    .fallecimiento-section {
+      margin-top: 20px;
+      padding-top: 15px;
+      border-top: 1px dashed #ccc;
+    }
   </style>
 
 </head>
@@ -184,6 +190,21 @@
           </div>
         </div>
       </div>
+
+      <!-- Sección de fallecimiento -->
+      <div class="fallecimiento-section">
+        <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+          <div>
+            <label for="fechaFallecimiento">Fecha de Fallecimiento:</label>
+            <input type="date" id="fechaFallecimiento" />
+          </div>
+          <div>
+            <label for="actaDefuncion">N° Acta de Defunción:</label>
+            <input type="text" id="actaDefuncion" />
+          </div>
+        </div>
+      </div>
+
       <button type="button" id="btnRegistrar">Guardar</button>
     </form>
 

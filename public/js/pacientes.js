@@ -22,53 +22,88 @@ function validarDocumento(documento) {
 }
 
 function validarDatos(form) {
+
     let documento = form.documento.value.trim();
     let apellidoNombres = form.apellidoNombres.value.trim();
-    let fechaNacimiento = form.fechaNacimiento.value;
-    let telefono = form.telefono.value.trim();
-    let email = form.email.value.trim();
+    let cobertura = form.idCobertura.value;
 
-    if (documento === "" || documento === "0" || isNaN(documento) || !/^\d{1,9}$/.test(documento)) {
-        mostrarMensaje('El documento debe contener solo números y tener hasta 9 dígitos.', 0);
+    if (documento === "" || documento === "0" || isNaN(documento)) {
+        mostrarMensaje('El documento es obligatorio y debe contener solo números.', 0);
+        form.documento.focus();
+        return false;
+    }
+
+    if (documento.length > 9) {
+        mostrarMensaje('El documento no debe exceder los 9 dígitos.', 0);
         form.documento.focus();
         return false;
     }
 
     if (apellidoNombres === "") {
         mostrarMensaje('El Apellido y Nombres es obligatorio.', 0);
+        form.apellidoNombres.focus();
         return false;
     }
 
-    if (telefono !== "" && !/^\d{1,20}$/.test(telefono)) {
-        mostrarMensaje('El Teléfono debe contener solo números.', 0);
-        return false;
-    }
-
-    let fechaNac = new Date(fechaNacimiento);
-    let hoy = new Date();
-    let hace150años = new Date();
-    hace150años.setFullYear(hoy.getFullYear() - 150);
-
-    if (fechaNac < hace150años || fechaNac > hoy) {
-        mostrarMensaje('La fecha de nacimiento no puede ser mayor a 150 años atrás ni estar en el futuro.', 0);
-        return false;
-    }
-
-    let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (email !== "" && !emailRegex.test(email)) {
-        mostrarMensaje('El correo electrónico no tiene un formato válido.', 0);
-        return false;
-    }
-
-    let cobertura = form.idCobertura.value;
-    if (!cobertura || datosCoberturas.find(c => c.idCobertura == cobertura) === undefined) {
+    if (!cobertura || !datosCoberturas.some(c => c.idCobertura == cobertura)) {
         mostrarMensaje('Debe seleccionar una cobertura válida.', 0);
         return false;
     }
 
+    let telefono = form.telefono.value.trim();
+    let email = form.email.value.trim();
+    let fechaNacimiento = form.fechaNacimiento.value;
+    let fechaFallecimiento = form.fechaFallecimiento.value;
     let contacto = form.contactoEmergencia.value.trim();
-    if (contacto === "") {
-        mostrarMensaje('Debe ingresar un contacto de emergencia.', 0);
+
+    if (telefono !== "" && !/^\d{1,20}$/.test(telefono)) {
+        mostrarMensaje('El teléfono debe contener solo números (máx. 20 dígitos).', 0);
+        form.telefono.focus();
+        return false;
+    }
+
+    if (email !== "" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        mostrarMensaje('El correo electrónico no tiene un formato válido.', 0);
+        form.email.focus();
+        return false;
+    }
+
+    if (fechaNacimiento) {
+        let fechaNac = new Date(fechaNacimiento);
+        let hoy = new Date();
+        let hace150años = new Date(hoy.getFullYear() - 150, hoy.getMonth(), hoy.getDate());
+
+        if (fechaNac > hoy) {
+            mostrarMensaje('La fecha de nacimiento no puede ser futura.', 0);
+            return false;
+        }
+
+        if (fechaNac < hace150años) {
+            mostrarMensaje('La fecha de nacimiento no puede ser mayor a 150 años atrás.', 0);
+            return false;
+        }
+    }
+
+    if (fechaFallecimiento) {
+        let fechaFal = new Date(fechaFallecimiento);
+        let hoy = new Date();
+        let hace30dias = new Date(hoy);
+        hace30dias.setDate(hoy.getDate() - 30);
+
+        if (fechaFal > hoy) {
+            mostrarMensaje('La fecha de fallecimiento no puede ser futura.', 0);
+            return false;
+        }
+
+        if (fechaFal < hace30dias) {
+            mostrarMensaje('La fecha de fallecimiento no puede ser anterior a 30 días.', 0);
+            return false;
+        }
+    }
+
+    if (contacto !== "" && contacto.length < 3) {
+        mostrarMensaje('El contacto de emergencia debe tener al menos 3 caracteres.', 0);
+        form.contactoEmergencia.focus();
         return false;
     }
 
@@ -152,7 +187,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             telefono: form.telefono.value,
             email: form.email.value,
             idCobertura: form.idCobertura.value,
-            contactoEmergencia: form.contactoEmergencia.value
+            contactoEmergencia: form.contactoEmergencia.value,
+            fechaFallecimiento: form.fechaFallecimiento.value,
+            actaDefuncion: form.actaDefuncion.value
         };
     
         try {
