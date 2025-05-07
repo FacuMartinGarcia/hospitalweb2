@@ -1,18 +1,36 @@
-class Paciente {
-    constructor(idPaciente, apellidoNombres, documento, fechaNacimiento, sexo, direccion, telefono, email, idCobertura, contactoEmergencia, fechaFallecimiento, actaDefuncion) {
-      this.idPaciente = idPaciente;
-      this.apellidoNombres = apellidoNombres;
-      this.documento = documento;
-      this.fechaNacimiento = fechaNacimiento;
-      this.sexo = sexo;
-      this.direccion = direccion;
-      this.telefono = telefono;
-      this.email = email;
-      this.idCobertura = idCobertura;
-      this.contactoEmergencia = contactoEmergencia;
-      this.fechaFallecimiento = fechaFallecimiento;
-      this.actaDefuncion = actaDefuncion;
-    }
-  }
- 
+const { DataTypes } = require('sequelize');
+const sequelize = require('../../config/db'); 
+
+const Paciente = sequelize.define('Paciente', {
+  idPaciente: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true
+  },
+  apellidoNombres: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  documento: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    unique: true
+  },
+  fechaNacimiento: DataTypes.DATEONLY,
+  sexo: DataTypes.STRING(1),
+  direccion: DataTypes.STRING,
+  telefono: DataTypes.STRING,
+  email: DataTypes.STRING,
+  idCobertura: {
+    type: DataTypes.INTEGER,
+    allowNull: false
+  },
+  contactoEmergencia: DataTypes.STRING,
+  fechaFallecimiento: DataTypes.DATEONLY,
+  actaDefuncion: DataTypes.STRING
+}, {
+  tableName: 'pacientes', 
+  timestamps: false
+});
+
 module.exports = Paciente;

@@ -1,16 +1,4 @@
-class Internacion {
-    constructor(idInternacion, idPaciente, origen, idMedico, fechaInternacion, horaInternacion, motivo, fechaAlta = null) {
-        this.idInternacion = idInternacion;
-        this.idPaciente = idPaciente;
-        this.origen = origen;
-        this.idMedico = idMedico;
-        this.fechaInternacion = fechaInternacion;
-        this.horaInternacion = horaInternacion;
-        this.motivo = motivo;
-        this.fechaAlta = fechaAlta;
-        this.activa = true; // Para controlar si está internado
-    }
-}
+
 
 class Cobertura {
     constructor(idCobertura, denominacion) {
