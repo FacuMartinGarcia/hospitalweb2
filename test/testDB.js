@@ -1,5 +1,4 @@
-const sequelize = require('./config/db.js');
-
+const sequelize = require('../config/db');
 sequelize.authenticate()
   .then(() => {
     console.log('Conexión a MySQL exitosa 🚀');

@@ -10,7 +10,7 @@ const enfermerosRouter = require('./src/routes/enfermerosRoutes');
 const turnosRouter = require('./src/routes/turnosRoutes');
 
 const sequelize = require('./config/db');
-const Paciente = require('./src/models/Paciente');
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -39,11 +39,8 @@ app.set('views', './views');
 app.get('/', (req, res) => {
   res.render('index');
 });
-/*
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/html/index.html'));
-});
-*/
+
+
 app.get('/persona', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/html/persona.html'));
 });
@@ -56,7 +53,7 @@ app.listen(PORT, () => {
 
   sequelize.sync({ alter: true }) 
   .then(() => {
-    console.log('Base de datos sincronizada correctamente 🟢');
+    console.log('Base de datos sincronizada correctamente ');
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       console.log(`Servidor corriendo en http://localhost:${PORT}`);

@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const Paciente = require('../models/Paciente');
 
 const pacientesController = {
@@ -16,6 +17,382 @@ const pacientesController = {
       console.error('Error:', error);
       return res.status(500).json({ success: false, error: 'Error interno del servidor' });
     }
+  },
+  crearPaciente: async (req, res) => {
+    try {
+      const { datosPaciente } = req.body;
+
+      if (!datosPaciente) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'Faltan parámetros requeridos' 
+        });
+      }
+      if (!datosPaciente.documento) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'El documento es obligatorio' 
+        });
+      }
+
+      if (!datosPaciente.apellidonombres) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'El apellido y nombres son obligatorios' 
+        });
+      }
+
+      if (!datosPaciente.idcobertura) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'Debe seleccionar una cobertura' 
+        });
+      }
+
+      const documento = Number(datosPaciente.documento);
+  
+      if (isNaN(documento)) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'El documento debe ser un número válido' 
+        });
+      }
+
+      if (documento.toString().length > 9) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'El documento no debe exceder los 9 dígitos' 
+        });
+      }
+
+
+      if (datosPaciente.telefono && !/^\d{1,20}$/.test(datosPaciente.telefono)) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'El teléfono debe contener solo números (máx. 20 dígitos)' 
+        });
+      }
+
+      if (datosPaciente.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datosPaciente.email)) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'El correo electrónico no tiene un formato válido' 
+        });
+      }
+      if (datosPaciente.fechanacimiento) {
+        const fechaNac = new Date(datosPaciente.fechanacimiento);
+        const hoy = new Date();
+        const hace150años = new Date(hoy.getFullYear() - 150, hoy.getMonth(), hoy.getDate());
+
+        if (fechaNac > hoy) {
+          return res.status(400).json({ 
+            success: false,
+            error: 'La fecha de nacimiento no puede ser futura' 
+          });
+        }
+
+        if (fechaNac < hace150años) {
+          return res.status(400).json({ 
+            success: false,
+            error: 'La fecha de nacimiento no puede ser mayor a 150 años atrás' 
+          });
+        }
+      }
+
+      if (datosPaciente.fechafallecimiento) {
+        const fechaFal = new Date(datosPaciente.fechafallecimiento);
+        const hoy = new Date();
+        const hace30dias = new Date(hoy);
+        hace30dias.setDate(hoy.getDate() - 30);
+
+        if (fechaFal > hoy) {
+          return res.status(400).json({ 
+            success: false,
+            error: 'La fecha de fallecimiento no puede ser futura' 
+          });
+        }
+
+        if (fechaFal < hace30dias) {
+          return res.status(400).json({ 
+            success: false,
+            error: 'La fecha de fallecimiento no puede ser anterior a 30 días' 
+          });
+        }
+      }
+
+      if (datosPaciente.contactoemergencia && datosPaciente.contactoemergencia.trim().length < 3) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'El contacto de emergencia debe tener al menos 3 caracteres' 
+        });
+      }
+
+      const existente = await Paciente.findOne({ where: { documento } });
+      if (existente) {
+        return res.status(400).json({ success: false, error: 'Ya existe un paciente con este documento' });
+      }
+  
+      const nuevo = await Paciente.create(datosPaciente);
+  
+      return res.status(201).json({
+        success: true,
+        paciente: nuevo,
+        mensaje: 'Paciente registrado correctamente'
+      });
+  
+    } catch (error) {
+      console.error('Error en crearPaciente:', error);
+      return res.status(500).json({ success: false, error: 'Error interno del servidor' });
+    }
+  },
+
+  buscarPorDocumento: async (req, res) => {
+    try {
+      const documento = parseInt(req.params.documento);
+      const paciente = await Paciente.findOne({ where: { documento } });
+
+      if (!paciente) {
+        return res.status(404).json({ success: false, error: 'Paciente no encontrado' });
+      }
+
+      return res.status(200).json({ success: true, paciente });
+
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(500).json({ success: false, error: 'Error interno del servidor' });
+    }
+  },
+
+  listarPacientes: async (req, res) => {
+    try {
+      const { page = 1, limit = 10, search = '' } = req.query;
+      const offset = (page - 1) * limit;
+
+      const whereClause = {};
+      if (search) {
+        whereClause[Op.or] = [
+          { apellidonombres: { [Op.like]: `%${search}%` } },
+          { documento: { [Op.like]: `%${search}%` } }
+        ];
+      }
+
+      const { count, rows } = await Paciente.findAndCountAll({
+        where: whereClause,
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        order: [['apellidonombres', 'ASC']],
+        attributes: [
+          'idpaciente', 
+          'apellidonombres', 
+          'documento', 
+          'fechanacimiento',
+          'sexo',
+          'telefono',
+          'email'
+        ]
+      });
+
+      return res.status(200).json({
+        success: true,
+        pacientes: rows,
+        total: count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: parseInt(page)
+      });
+
+    } catch (error) {
+      console.error('Error al listar pacientes:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Error interno del servidor' 
+      });
+    }
+  },
+
+  actualizarPaciente: async (req, res) => {
+    try {
+      const { documento } = req.params;
+      const { datosPaciente } = req.body;
+
+      if (!datosPaciente) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'Faltan parámetros requeridos' 
+        });
+      }
+
+      if (datosPaciente.telefono && !/^\d{1,20}$/.test(datosPaciente.telefono)) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'El teléfono debe contener solo números (máx. 20 dígitos)' 
+        });
+      }
+
+      if (datosPaciente.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(datosPaciente.email)) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'El correo electrónico no tiene un formato válido' 
+        });
+      }
+      if (datosPaciente.fechanacimiento) {
+        const fechaNac = new Date(datosPaciente.fechanacimiento);
+        const hoy = new Date();
+        const hace150años = new Date(hoy.getFullYear() - 150, hoy.getMonth(), hoy.getDate());
+
+        if (fechaNac > hoy) {
+          return res.status(400).json({ 
+            success: false,
+            error: 'La fecha de nacimiento no puede ser futura' 
+          });
+        }
+
+        if (fechaNac < hace150años) {
+          return res.status(400).json({ 
+            success: false,
+            error: 'La fecha de nacimiento no puede ser mayor a 150 años atrás' 
+          });
+        }
+      }
+
+      if (datosPaciente.fechafallecimiento) {
+        const fechaFal = new Date(datosPaciente.fechafallecimiento);
+        const hoy = new Date();
+        const hace30dias = new Date(hoy);
+        hace30dias.setDate(hoy.getDate() - 30);
+
+        if (fechaFal > hoy) {
+          return res.status(400).json({ 
+            success: false,
+            error: 'La fecha de fallecimiento no puede ser futura' 
+          });
+        }
+
+        if (fechaFal < hace30dias) {
+          return res.status(400).json({ 
+            success: false,
+            error: 'La fecha de fallecimiento no puede ser anterior a 30 días' 
+          });
+        }
+      }
+
+      if (datosPaciente.contactoemergencia && datosPaciente.contactoemergencia.trim().length < 3) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'El contacto de emergencia debe tener al menos 3 caracteres' 
+        });
+      }
+
+
+      const paciente = await Paciente.findOne({ where: { documento } });
+      if (!paciente) {
+        return res.status(404).json({ 
+          success: false, 
+          error: 'Paciente no encontrado' 
+        });
+      }
+
+      const camposActualizables = [
+        'apellidonombres',
+        'fechanacimiento',
+        'sexo',
+        'direccion',
+        'telefono',
+        'email',
+        'idcobertura',
+        'contactoemergencia',
+        'fechafallecimiento',
+        'actadefuncion'
+      ];
+
+      camposActualizables.forEach(campo => {
+        if (datosPaciente[campo] !== undefined) {
+          paciente[campo] = datosPaciente[campo];
+        }
+      });
+
+      await paciente.save();
+
+      return res.status(200).json({
+        success: true,
+        paciente,
+        mensaje: 'Paciente actualizado correctamente'
+      });
+
+    } catch (error) {
+      console.error('Error al actualizar paciente:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Error interno del servidor' 
+      });
+    }
+  },
+
+  eliminarPaciente: async (req, res) => {
+    try {
+      const { documento } = req.params;
+
+      const paciente = await Paciente.findOne({ where: { documento } });
+      if (!paciente) {
+        return res.status(404).json({ 
+          success: false, 
+          error: 'Paciente no encontrado' 
+        });
+      }
+
+      await paciente.destroy();
+
+      return res.status(200).json({
+        success: true,
+        mensaje: 'Paciente eliminado correctamente'
+      });
+
+    } catch (error) {
+      console.error('Error al eliminar paciente:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Error interno del servidor' 
+      });
+    }
+  },
+
+  reactivarPaciente: async (req, res) => {
+    try {
+      const { documento } = req.params;
+
+      const paciente = await Paciente.findOne({ 
+        where: { documento },
+        paranoid: false // Buscar incluso entre los que eliminamos
+      });
+
+      if (!paciente) {
+        return res.status(404).json({ 
+          success: false, 
+          error: 'Paciente no encontrado' 
+        });
+      }
+
+      if (!paciente.deletedAt) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'El paciente no está eliminado' 
+        });
+      }
+
+      await paciente.restore();
+
+      return res.status(200).json({
+        success: true,
+        mensaje: 'Paciente reactivado correctamente'
+      });
+
+    } catch (error) {
+      console.error('Error al reactivar paciente:', error);
+      return res.status(500).json({ 
+        success: false, 
+        error: 'Error interno del servidor' 
+      });
+    }
   }
 };
+
 module.exports = pacientesController;

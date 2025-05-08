@@ -6,7 +6,7 @@ const btnBuscar = document.getElementById("btnBuscar");
 const btnModificar = document.getElementById("btnModificar");
 const btnRegistrar = document.getElementById("btnRegistrar");
 const mensajeBusqueda = document.getElementById("mensajes");
-const selectCobertura = document.getElementById("idCobertura");
+const selectCobertura = document.getElementById("idcobertura");
 
 let modoEdicion = false;
 
@@ -24,8 +24,8 @@ function validarDocumento(documento) {
 function validarDatos(form) {
 
     let documento = form.documento.value.trim();
-    let apellidoNombres = form.apellidoNombres.value.trim();
-    let cobertura = form.idCobertura.value;
+    let apellidonombres = form.apellidonombres.value.trim();
+    let cobertura = form.idcobertura.value;
 
     if (documento === "" || documento === "0" || isNaN(documento)) {
         mostrarMensaje('El documento es obligatorio y debe contener solo números.', 0);
@@ -39,22 +39,22 @@ function validarDatos(form) {
         return false;
     }
 
-    if (apellidoNombres === "") {
+    if (apellidonombres === "") {
         mostrarMensaje('El Apellido y Nombres es obligatorio.', 0);
-        form.apellidoNombres.focus();
+        form.apellidonombres.focus();
         return false;
     }
 
-    if (!cobertura || !datosCoberturas.some(c => c.idCobertura == cobertura)) {
+    if (!cobertura || !datosCoberturas.some(c => c.idcobertura == cobertura)) {
         mostrarMensaje('Debe seleccionar una cobertura válida.', 0);
         return false;
     }
 
     let telefono = form.telefono.value.trim();
     let email = form.email.value.trim();
-    let fechaNacimiento = form.fechaNacimiento.value;
-    let fechaFallecimiento = form.fechaFallecimiento.value;
-    let contacto = form.contactoEmergencia.value.trim();
+    let fechanacimiento = form.fechanacimiento.value;
+    let fechafallecimiento = form.fechafallecimiento.value;
+    let contacto = form.contactoemergencia.value.trim();
 
     if (telefono !== "" && !/^\d{1,20}$/.test(telefono)) {
         mostrarMensaje('El teléfono debe contener solo números (máx. 20 dígitos).', 0);
@@ -68,8 +68,8 @@ function validarDatos(form) {
         return false;
     }
 
-    if (fechaNacimiento) {
-        let fechaNac = new Date(fechaNacimiento);
+    if (fechanacimiento) {
+        let fechaNac = new Date(fechanacimiento);
         let hoy = new Date();
         let hace150años = new Date(hoy.getFullYear() - 150, hoy.getMonth(), hoy.getDate());
 
@@ -84,8 +84,8 @@ function validarDatos(form) {
         }
     }
 
-    if (fechaFallecimiento) {
-        let fechaFal = new Date(fechaFallecimiento);
+    if (fechafallecimiento) {
+        let fechaFal = new Date(fechafallecimiento);
         let hoy = new Date();
         let hace30dias = new Date(hoy);
         hace30dias.setDate(hoy.getDate() - 30);
@@ -103,7 +103,7 @@ function validarDatos(form) {
 
     if (contacto !== "" && contacto.length < 3) {
         mostrarMensaje('El contacto de emergencia debe tener al menos 3 caracteres.', 0);
-        form.contactoEmergencia.focus();
+        form.contactoemergencia.focus();
         return false;
     }
 
@@ -122,7 +122,7 @@ btnBuscar.addEventListener("click", async () => {
 
     try {
 
-        const resultado = await buscarpaciente(documento);
+        const resultado = await buscarPaciente(documento);
         console.log("Aqui el resultado");
         console.log(resultado);
         
@@ -140,7 +140,13 @@ btnBuscar.addEventListener("click", async () => {
             });
             return;
         }
-        
+
+        Swal.fire({
+            title: 'Paciente Registrado',
+            html: `El n° de documento ingresado se encuentra registrado en el sistema.<br>Presione "Modificar" si desea agregar/modificar datos.`,    
+            icon: 'info',
+            confirmButtonText: 'Entendido'});
+
         const paciente = resultado.paciente;
 
         mostrarDatosPaciente(paciente);
@@ -169,31 +175,38 @@ btnModificar.addEventListener("click", () => {
     btnRegistrar.disabled = false;
     btnRegistrar.textContent = "Actualizar";
     modoEdicion = true;
+    apellidonombres.focus();
 });
 
 document.addEventListener("DOMContentLoaded", async () => {
-
+    
+    await cargarCoberturas();
+    bloquearCamposFormulario();
+    inputDocumento.focus();
+    
     btnRegistrar.addEventListener("click", async (event) => {
         event.preventDefault(); 
     
         if (!validarDatos(form)) return;
     
+
         const paciente = {
             documento: form.documento.value,
-            apellidoNombres: form.apellidoNombres.value,
-            fechaNacimiento: form.fechaNacimiento.value,
-            sexo: form.sexo.value,
-            direccion: form.direccion.value,
-            telefono: form.telefono.value,
-            email: form.email.value,
-            idCobertura: form.idCobertura.value,
-            contactoEmergencia: form.contactoEmergencia.value,
-            fechaFallecimiento: form.fechaFallecimiento.value,
-            actaDefuncion: form.actaDefuncion.value
+            apellidonombres: form.apellidonombres.value,
+            fechaNacimiento: form.fechanacimiento.value || null,
+            sexo: form.sexo.value || null,
+            direccion: form.direccion.value || null,
+            telefono: form.telefono.value || null,
+            email: form.email.value || null,
+            idCobertura: form.idcobertura.value,
+            contactoEmergencia: form.contactoemergencia.value || null,
+            fechafallecimiento: form.fechafallecimiento.value || null,
+            actaDefuncion: form.actadefuncion.value || null
         };
+   
     
         try {
-            await guardarpaciente(paciente, modoEdicion); 
+            await guardarPaciente(paciente, modoEdicion); 
     
             Swal.fire({
                 title: 'Éxito',
@@ -208,15 +221,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    await cargarCoberturas();
-    bloquearCamposFormulario();
-    
-    inputDocumento.focus();
+
 }); 
 
 
 
-async function buscarpaciente(documento) {
+async function buscarPaciente(documento) {
     try {
         if (!validarDocumento(documento)) return null;
         const response = await fetch(`${API_URL}/${documento}`);
@@ -236,47 +246,95 @@ async function buscarpaciente(documento) {
     }
 }
 
-async function guardarpaciente(paciente, esEdicion = false) {
+async function guardarPaciente(paciente, esEdicion = false) {
     const metodo = esEdicion ? 'PUT' : 'POST';
     const url = esEdicion ? `${API_URL}/${paciente.documento}` : API_URL;
 
-
-
     try {
+        const datosParaBackend = {
+            documento: paciente.documento,
+            apellidonombres: paciente.apellidoNombres,
+            fechanacimiento: paciente.fechaNacimiento,
+            sexo: paciente.sexo,
+            direccion: paciente.direccion,
+            telefono: paciente.telefono,
+            email: paciente.email,
+            idcobertura: paciente.idCobertura,
+            contactoemergencia: paciente.contactoEmergencia,
+            fechafallecimiento: paciente.fechafallecimiento,
+            actadefuncion: paciente.actaDefuncion
+        };
 
-        console.log('Guardando paciente...');
-        console.log('URL:', url);
-        console.log('Método:', metodo);
-        console.log('Body:', JSON.stringify({ datosPaciente: paciente }));
-        
+        // Eliminar campos undefined o vacíos 
+        Object.keys(datosParaBackend).forEach(key => {
+            if (datosParaBackend[key] === undefined || datosParaBackend[key] === '') {
+                delete datosParaBackend[key];
+            }
+        });
+
+        console.log('Enviando datos al backend:', {
+            method: metodo,
+            url: url,
+            body: datosParaBackend
+        });
+
         const response = await fetch(url, {
             method: metodo,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({datosPaciente: paciente})
+            body: JSON.stringify({ datosPaciente: datosParaBackend })
         });
 
+        const responseData = await response.json();
+
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Error al guardar paciente');
+            const errorMessage = responseData.error || 
+                               responseData.message || 
+                               `Error ${response.status}: ${response.statusText}`;
+            throw new Error(errorMessage);
         }
 
-        return await response.json();
+        return responseData;
 
     } catch (error) {
-        console.error('Error en guardarpaciente:', error);
-        throw error; // Re-lanzamos el error para manejarlo en el evento click
+        console.error('Error en guardarPaciente:', error);
+        
+        let errorMessage = error.message;
+        if (error.message.includes('Failed to fetch')) {
+            errorMessage = 'No se pudo conectar con el servidor. Verifique su conexión a internet.';
+        } else if (error.message.includes('validation')) {
+            errorMessage = 'Datos inválidos: ' + error.message;
+        }
+
+        throw new Error(errorMessage);
     }
 }
 
 function mostrarDatosPaciente(paciente) {
-    document.getElementById("apellidoNombres").value = paciente.apellidoNombres;
-    document.getElementById("fechaNacimiento").value = paciente.fechaNacimiento.split('T')[0];
-    document.getElementById("sexo").value = paciente.sexo;
-    document.getElementById("direccion").value = paciente.direccion;
-    document.getElementById("telefono").value = paciente.telefono;
-    document.getElementById("email").value = paciente.email;
-    document.getElementById("idCobertura").value = paciente.idCobertura;
-    document.getElementById("contactoEmergencia").value = paciente.contactoEmergencia;
+
+    document.getElementById("apellidonombres").value = paciente.apellidonombres || '';
+    
+    const fechanacimiento = paciente.fechanacimiento;
+    if (fechanacimiento) {
+        const fechaFormateada = typeof fechanacimiento === 'string' && fechanacimiento.includes('T') 
+            ? fechanacimiento.split('T')[0] 
+            : fechanacimiento;
+        document.getElementById("fechanacimiento").value = fechaFormateada;
+    } else {
+        document.getElementById("fechanacimiento").value = '';
+    }
+    
+    document.getElementById("sexo").value = paciente.sexo || '';
+    document.getElementById("direccion").value = paciente.direccion || '';
+    document.getElementById("telefono").value = paciente.telefono || '';
+    document.getElementById("email").value = paciente.email || '';
+    document.getElementById("idcobertura").value = paciente.idcobertura || '';
+    document.getElementById("contactoemergencia").value = paciente.contactoemergencia || '';
+    document.getElementById("fechafallecimiento").value = paciente.fechafallecimiento || '';        
+    document.getElementById("actadefuncion").value = paciente.actadefuncion || '';
+
+    modoEdicion = true;
+    btnRegistrar.disabled = true;
+
 }
 
 
@@ -287,7 +345,7 @@ async function cargarCoberturas() {
         datosCoberturas = await response.json();
         datosCoberturas.forEach(cob => {
             const option = document.createElement('option');
-            option.value = cob.idCobertura; 
+            option.value = cob.idcobertura; 
             option.textContent = cob.denominacion;
             selectCobertura.appendChild(option);
         });
@@ -318,9 +376,9 @@ function resetearBusqueda() {
 
 function limpiarCampos() {
     const campos = [
-        "apellidoNombres", "fechaNacimiento", "sexo",
-        "direccion", "telefono", "email", "idCobertura",
-        "contactoEmergencia"
+        "apellidonombres", "fechanacimiento", "sexo",
+        "direccion", "telefono", "email", "idcobertura",
+        "contactoemergencia", "fechafallecimiento", "actadefuncion"
     ];
     
     campos.forEach(id => {
@@ -337,9 +395,9 @@ function mostrarMensaje(mensaje, tipo) {
 
 function bloquearCamposFormulario() {
     const campos = [
-        "apellidoNombres", "fechaNacimiento", "sexo",
-        "direccion", "telefono", "email", "idCobertura",
-        "contactoEmergencia"
+        "apellidonombres", "fechanacimiento", "sexo",
+        "direccion", "telefono", "email", "idcobertura",
+        "contactoemergencia", "fechafallecimiento", "actadefuncion"
     ];
     
     campos.forEach(id => {
@@ -350,9 +408,9 @@ function bloquearCamposFormulario() {
 
 function desbloquearCamposFormulario() {
     const campos = [
-        "apellidoNombres", "fechaNacimiento", "sexo",
-        "direccion", "telefono", "email", "idCobertura",
-        "contactoEmergencia"
+        "apellidonombres", "fechanacimiento", "sexo",
+        "direccion", "telefono", "email", "idcobertura",
+        "contactoemergencia", "fechafallecimiento", "actadefuncion"
     ];
     
     campos.forEach(id => {
