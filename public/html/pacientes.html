@@ -75,7 +75,7 @@
       font-weight: bold;
       margin-bottom: 5px;
     }
-
+    
     input, select, button {
       width: 100%;
       padding: 8px;
@@ -83,8 +83,18 @@
       border: 1px solid #ccc;
       box-sizing: border-box;
     }
+/*  
+      form#formPaciente input,
+      form#formPaciente select,
+      form#formPaciente button {
+        width: 100%;
+        padding: 8px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+      }
 
-    #btnRegistrar  {
+      #btnRegistrar  {
       width: 100%;
       padding: 10px;
       background-color: #0078d4;
@@ -100,6 +110,25 @@
       background-color: #005cd4f6;
     }
 
+
+*/
+    .boton-accion {
+      width: 100%;
+      padding: 10px;
+      background-color: #0078d4;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:disabled {
+      background-color: #ccc;
+      color: #666;
+      cursor: not-allowed;
+    }
+    
     #mensajes {
       margin-top: 15px;
       font-weight: bold;
@@ -141,8 +170,8 @@
 
       <div class="documento-row">
         <input type="text" id="documento" placeholder="Ingrese aquí el n° de documento" required autocomplete="off" />
-        <button type="button" id="btnBuscar">Buscar</button>
-        <button type="button" id="btnModificar" disabled>Modificar</button>
+        <button type="button" id="btnBuscar" class="boton-accion">Buscar</button>
+        <button type="button" id="btnModificar" class="boton-accion" disabled>Modificar</button>
       </div>
 
       <div class="form-row" style="grid-template-columns: 2fr 1fr 0.7fr;">
@@ -205,7 +234,7 @@
         </div>
       </div>
 
-      <button type="button" id="btnRegistrar">Guardar</button>
+      <button type="button" id="btnRegistrar" class="boton-accion" disabled>Guardar</button>
     </form>
 
     <div id="mensajes" class="mensajes"></div>

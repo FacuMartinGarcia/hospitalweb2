@@ -4,25 +4,65 @@ html(lang="es")
     meta(charset="UTF-8")
     meta(name="viewport", content="width=device-width, initial-scale=1.0")
     title Admisión Hospitalaria
+    // Bootstrap CSS
+    link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css")
+    // Bootstrap Icons
+    link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css")
     link(rel="stylesheet", href="/css/index.css")
+    
     script.
       function cargarPagina(pagina, link) {
-          document.getElementById("contenido").src = pagina;
-          document.querySelectorAll(".nav-link").forEach(item => item.classList.remove("active"));
-          link.classList.add("active");
+        document.getElementById("contenido").src = pagina;
+        document.querySelectorAll(".nav-link").forEach(item => item.classList.remove("active"));
+        link.classList.add("active");
       }
 
   body
-    nav
-      //- img(src="img/gato.jpg", alt="Logo", width="60", height="60", style="border-radius: 50%; margin: 10px auto; display: block;")
-      h3 Menú
-      ul
-        li: a.nav-link(href="#", onclick="cargarPagina('/html/pacientes.html', this)") Pacientes
-        li: a.nav-link(href="#", onclick="cargarPagina('/html/internacion.html', this)") Internación
-        li: a.nav-link(href="#", onclick="cargarPagina('medicos.html', this)") Médicos
-        li: a.nav-link(href="#", onclick="cargarPagina('enfermeros.html', this)") Enfermeros
-        li: a.nav-link(href="#", onclick="cargarPagina('usuarios.html', this)") Usuarios
-        li: a.nav-link(href="#", onclick="cargarPagina('reportes.html', this)") Reportes
+    // HEADER
+    header.bg-primary.text-white.py-3
+      .container
+        h1.text-center.mb-0 Admisión Hospitalaria
 
-    #contenedor-principal
-      iframe#contenido
+    // CONTENIDO PRINCIPAL DIVIDIDO EN DOS COLUMNAS
+    main.container-fluid
+      .row
+        // Menú lateral
+        .col-md-3.bg-primary.text-white.py-4
+          h3.text-center Menú
+          ul.nav.flex-column.px-3
+            li.nav-item
+              a.nav-link.text-white(href="#", onclick="cargarPagina('/pacientes', this)")
+                i.bi.bi-person-fill.me-2
+                | Pacientes
+            li.nav-item
+              a.nav-link.text-white(href="#", onclick="cargarPagina('/internacion', this)")
+                i.bi.bi-hospital-fill.me-2
+                | Internación
+            li.nav-item
+              a.nav-link.text-white(href="#", onclick="cargarPagina('/medicos', this)")
+                i.bi.bi-stethoscope.me-2
+                | Médicos
+            li.nav-item
+              a.nav-link.text-white(href="#", onclick="cargarPagina('/enfermeros', this)")
+                i.bi.bi-capsule.me-2
+                | Enfermeros
+            li.nav-item
+              a.nav-link.text-white(href="#", onclick="cargarPagina('/usuarios', this)")
+                i.bi.bi-person-gear.me-2
+                | Usuarios
+            li.nav-item
+              a.nav-link.text-white(href="#", onclick="cargarPagina('/reportes', this)")
+                i.bi.bi-graph-up.me-2
+                | Reportes
+
+        // Contenido principal (iframe)
+        .col-md-9.p-4
+          iframe#contenido(name="contenido", width="100%", height="800", frameborder="0")
+
+    // FOOTER
+    footer.bg-light.text-center.text-muted.py-3
+      .container
+        small © 2025 Hospital General - Sistema de Admisión
+
+    // Bootstrap JS
+    script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js")

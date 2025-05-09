@@ -123,9 +123,7 @@ btnBuscar.addEventListener("click", async () => {
     try {
 
         const resultado = await buscarPaciente(documento);
-        console.log("Aqui el resultado");
-        console.log(resultado);
-        
+         
         if (!resultado || !resultado.paciente) {
             Swal.fire({
                 title: 'No Registrado',
@@ -137,6 +135,9 @@ btnBuscar.addEventListener("click", async () => {
                 desbloquearCamposFormulario();
                 btnModificar.disabled = true;
                 btnRegistrar.disabled = false;
+                setTimeout(() => {
+                    form.apellidonombres.focus();
+                }, 300);
             });
             return;
         }
@@ -144,7 +145,7 @@ btnBuscar.addEventListener("click", async () => {
         Swal.fire({
             title: 'Paciente Registrado',
             html: `El n° de documento ingresado se encuentra registrado en el sistema.<br>Presione "Modificar" si desea agregar/modificar datos.`,    
-            icon: 'info',
+            icon: 'success',
             confirmButtonText: 'Entendido'});
 
         const paciente = resultado.paciente;
@@ -175,7 +176,13 @@ btnModificar.addEventListener("click", () => {
     btnRegistrar.disabled = false;
     btnRegistrar.textContent = "Actualizar";
     modoEdicion = true;
-    apellidonombres.focus();
+});
+
+document.getElementById("apellidonombres").addEventListener("input", function () {
+    this.value = this.value.toUpperCase();
+});
+document.getElementById("email").addEventListener("input", function () {
+    this.value = this.value.toLowerCase();
 });
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -189,21 +196,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     
         if (!validarDatos(form)) return;
     
-
+        if (fechafallecimiento.value !== "") {
+            const result = await Swal.fire({
+                title: 'Paciente Fallecido',
+                text: 'No podrá registrar ningún tipo de operación sobre un paciente fallecido. ¿Está seguro?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, continuar',
+                cancelButtonText: 'Cancelar'
+            });
+    
+            if (!result.isConfirmed) {
+                return; 
+            }
+        }
         const paciente = {
             documento: form.documento.value,
             apellidonombres: form.apellidonombres.value,
-            fechaNacimiento: form.fechanacimiento.value || null,
+            fechanacimiento: form.fechanacimiento.value || null,
             sexo: form.sexo.value || null,
             direccion: form.direccion.value || null,
             telefono: form.telefono.value || null,
             email: form.email.value || null,
-            idCobertura: form.idcobertura.value,
-            contactoEmergencia: form.contactoemergencia.value || null,
-            fechafallecimiento: form.fechafallecimiento.value || null,
-            actaDefuncion: form.actadefuncion.value || null
+            idcobertura: form.idcobertura.value || null,
+            contactoemergencia: form.contactoemergencia.value || null,
+            fechafallecimiento: fechafallecimiento.value || null,
+            actadefuncion: form.actadefuncion.value || null
         };
-   
     
         try {
             await guardarPaciente(paciente, modoEdicion); 
@@ -220,7 +239,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.error(`Error al ${modoEdicion ? 'modificar' : 'registrar'} paciente:`, error);
         }
     });
-
 
 }); 
 
@@ -241,7 +259,6 @@ async function buscarPaciente(documento) {
         return data;
     } catch (error) {
         console.log('Error al buscar paciente:', error);
-        mostrarMensaje('Error al buscar la paciente', 0);
         return null;
     }
 }
@@ -253,16 +270,16 @@ async function guardarPaciente(paciente, esEdicion = false) {
     try {
         const datosParaBackend = {
             documento: paciente.documento,
-            apellidonombres: paciente.apellidoNombres,
-            fechanacimiento: paciente.fechaNacimiento,
+            apellidonombres: paciente.apellidonombres,
+            fechanacimiento: paciente.fechanacimiento,
             sexo: paciente.sexo,
             direccion: paciente.direccion,
             telefono: paciente.telefono,
             email: paciente.email,
-            idcobertura: paciente.idCobertura,
-            contactoemergencia: paciente.contactoEmergencia,
+            idcobertura: paciente.idcobertura,
+            contactoemergencia: paciente.contactoemergencia,
             fechafallecimiento: paciente.fechafallecimiento,
-            actadefuncion: paciente.actaDefuncion
+            actadefuncion: paciente.actadefuncion
         };
 
         // Eliminar campos undefined o vacíos 
@@ -272,11 +289,13 @@ async function guardarPaciente(paciente, esEdicion = false) {
             }
         });
 
+        /*
         console.log('Enviando datos al backend:', {
             method: metodo,
             url: url,
             body: datosParaBackend
         });
+        */
 
         const response = await fetch(url, {
             method: metodo,
