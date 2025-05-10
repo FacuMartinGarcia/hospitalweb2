@@ -1,28 +1,199 @@
-const { leerJSON, guardarJSON } = require('../utils/dataUtils');
+const { Op } = require('sequelize');
+const Enfermero = require('../models/Enfermero');
 
-const enfermerosController = {
-  listar: async (req, res) => {
+const enfermeroController = {
+  buscarPorMatricula: async (req, res) => {
     try {
-      const enfermeros = await leerJSON('enfermerosDetalles.json');
-      res.json(enfermeros);
+      const { matricula } = req.params;
+      const enfermero = await Enfermero.findOne({ where: { matricula } });
+
+      if (!enfermero) {
+        return res.status(404).json({ success: false, error: 'Enfermero no encontrado' });
+      }
+
+      return res.status(200).json({ success: true, enfermero });
+
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      console.error('Error al buscar enfermero:', error);
+      return res.status(500).json({ success: false, error: 'Error interno del servidor' });
     }
   },
 
-  buscarPorId: async (req, res) => {
+  crearEnfermero: async (req, res) => {
     try {
-      const { id } = req.params;
-      const enfermeros = await leerJSON('enfermerosDetalles.json');
-      const enfermero = enfermeros.find(m => m.idPersona == id);
-      if (!enfermero) {
-        return res.status(404).json({ error: 'Médico no encontrado' });
+      const { datosEnfermero } = req.body;
+
+      if (!datosEnfermero) {
+        return res.status(400).json({ success: false, error: 'Faltan parámetros requeridos' });
       }
-      res.json(enfermero);
+
+      const { apellidonombres, matricula, telefono, email } = datosEnfermero;
+
+      if (!apellidonombres || apellidonombres.trim().length < 3) {
+        return res.status(400).json({ success: false, error: 'Debe ingresar un nombre válido (mínimo 3 caracteres)' });
+      }
+
+      if (!matricula) {
+        return res.status(400).json({ success: false, error: 'La matrícula es obligatoria' });
+      }
+
+      const existente = await Enfermero.findOne({ where: { matricula } });
+      if (existente) {
+        return res.status(400).json({ success: false, error: 'Ya existe un enfermero con esta matrícula' });
+      }
+
+      if (telefono && !/^\d{1,20}$/.test(telefono)) {
+        return res.status(400).json({ success: false, error: 'El teléfono debe contener solo números (máx. 20 dígitos)' });
+      }
+
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ success: false, error: 'El correo electrónico no tiene un formato válido' });
+      }
+
+      const nuevo = await Enfermero.create(datosEnfermero);
+
+      return res.status(201).json({
+        success: true,
+        enfermero: nuevo,
+        mensaje: 'Enfermero registrado correctamente'
+      });
+
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      console.error('Error al crear enfermero:', error);
+      return res.status(500).json({ success: false, error: 'Error interno del servidor' });
+    }
+  },
+
+  listarEnfermeros: async (req, res) => {
+    try {
+      const { page = 1, limit = 10, search = '' } = req.query;
+      const offset = (page - 1) * limit;
+
+      const whereClause = {};
+      if (search) {
+        whereClause[Op.or] = [
+          { apellidonombres: { [Op.like]: `%${search}%` } },
+          { matricula: { [Op.like]: `%${search}%` } }
+        ];
+      }
+
+      const { count, rows } = await Enfermero.findAndCountAll({
+        where: whereClause,
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        order: [['apellidonombres', 'ASC']],
+        attributes: ['idenfermero', 'apellidonombres', 'matricula', 'telefono', 'email']
+      });
+
+      return res.status(200).json({
+        success: true,
+        enfermeros: rows,
+        total: count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: parseInt(page)
+      });
+
+    } catch (error) {
+      console.error('Error al listar enfermeros:', error);
+      return res.status(500).json({ success: false, error: 'Error interno del servidor' });
+    }
+  },
+
+  actualizarEnfermero: async (req, res) => {
+    try {
+      const { matricula } = req.params;
+      const { datosEnfermero } = req.body;
+
+      if (!datosEnfermero) {
+        return res.status(400).json({ success: false, error: 'Faltan parámetros requeridos' });
+      }
+
+      const enfermero = await Enfermero.findOne({ where: { matricula } });
+      if (!enfermero) {
+        return res.status(404).json({ success: false, error: 'Enfermero no encontrado' });
+      }
+
+      const { telefono, email } = datosEnfermero;
+
+      if (telefono && !/^\d{1,20}$/.test(telefono)) {
+        return res.status(400).json({ success: false, error: 'El teléfono debe contener solo números (máx. 20 dígitos)' });
+      }
+
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ success: false, error: 'El correo electrónico no tiene un formato válido' });
+      }
+
+      ['apellidonombres', 'telefono', 'email'].forEach(campo => {
+        if (datosEnfermero[campo] !== undefined) {
+          enfermero[campo] = datosEnfermero[campo];
+        }
+      });
+
+      await enfermero.save();
+
+      return res.status(200).json({
+        success: true,
+        enfermero,
+        mensaje: 'Enfermero actualizado correctamente'
+      });
+
+    } catch (error) {
+      console.error('Error al actualizar enfermero:', error);
+      return res.status(500).json({ success: false, error: 'Error interno del servidor' });
+    }
+  },
+
+  eliminarEnfermero: async (req, res) => {
+    try {
+      const { matricula } = req.params;
+
+      const enfermero = await Enfermero.findOne({ where: { matricula } });
+      if (!enfermero) {
+        return res.status(404).json({ success: false, error: 'Enfermero no encontrado' });
+      }
+
+      await enfermero.destroy();
+
+      return res.status(200).json({
+        success: true,
+        mensaje: 'Enfermero eliminado correctamente'
+      });
+
+    } catch (error) {
+      console.error('Error al eliminar enfermero:', error);
+      return res.status(500).json({ success: false, error: 'Error interno del servidor' });
+    }
+  },
+
+  reactivarEnfermero: async (req, res) => {
+    try {
+      const { matricula } = req.params;
+
+      const enfermero = await Enfermero.findOne({
+        where: { matricula },
+        paranoid: false
+      });
+
+      if (!enfermero) {
+        return res.status(404).json({ success: false, error: 'Enfermero no encontrado' });
+      }
+
+      if (!enfermero.deletedAt) {
+        return res.status(400).json({ success: false, error: 'El enfermero no está eliminado' });
+      }
+
+      await enfermero.restore();
+
+      return res.status(200).json({
+        success: true,
+        mensaje: 'Enfermero reactivado correctamente'
+      });
+
+    } catch (error) {
+      console.error('Error al reactivar enfermero:', error);
+      return res.status(500).json({ success: false, error: 'Error interno del servidor' });
     }
   }
 };
 
-module.exports = enfermerosController;
+module.exports = enfermeroController;

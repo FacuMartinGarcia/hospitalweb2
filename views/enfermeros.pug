@@ -1,0 +1,46 @@
+extends layout
+
+block content
+  h1 Enfermeros
+
+  div.container.mt-4
+    div.form-group
+      label(for="matriculaBusqueda") Buscar por Matrícula
+      input#matriculaBusqueda.form-control(type="text", placeholder="Ej. 1234")
+
+    button#btnBuscar.btn.btn-primary.mt-2 Buscar
+
+    hr
+
+    form#formEnfermero
+      div.form-group
+        label(for="matricula") Matrícula
+        input#matricula.form-control(type="text", name="matricula", required)
+
+      div.form-group
+        label(for="nombre") Nombre
+        input#nombre.form-control(type="text", name="nombre", required)
+
+      div.form-group
+        label(for="apellido") Apellido
+        input#apellido.form-control(type="text", name="apellido", required)
+
+      div.form-group
+        label(for="telefono") Teléfono
+        input#telefono.form-control(type="text", name="telefono")
+
+      div.form-group
+        label(for="email") Email
+        input#email.form-control(type="email", name="email")
+
+      div.form-group
+        label(for="especialidad") Especialidad
+        input#especialidad.form-control(type="text", name="especialidad")
+
+      div.mt-3
+        button#btnNuevo.btn.btn-success(type="button") Nuevo
+        button#btnEditar.btn.btn-warning(type="button", disabled=true) Editar
+        button#btnGuardar.btn.btn-primary(type="submit", disabled=true) Guardar
+        button#btnCancelar.btn.btn-secondary(type="button", disabled=true) Cancelar
+
+  script(src="/js/enfermero.js")

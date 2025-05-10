@@ -36,7 +36,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/pacientes', (req, res) => {
-  res.render('registro'); 
+  res.render('pacientes'); 
 });
 
 app.get('/persona', (req, res) => {
