@@ -39,8 +39,8 @@ app.get('/pacientes', (req, res) => {
   res.render('pacientes'); 
 });
 
-app.get('/persona', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public/html/persona.html'));
+app.get('/enfermeros', (req, res) => {
+  res.render('enfermeros'); 
 });
 
 // Sincronización de BD y arranque del servidor

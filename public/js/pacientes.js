@@ -289,15 +289,7 @@ async function guardarPaciente(paciente, esEdicion = false) {
             }
         });
 
-        /*
-        console.log('Enviando datos al backend:', {
-            method: metodo,
-            url: url,
-            body: datosParaBackend
-        });
-        */
-
-        const response = await fetch(url, {
+       const response = await fetch(url, {
             method: metodo,
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ datosPaciente: datosParaBackend })

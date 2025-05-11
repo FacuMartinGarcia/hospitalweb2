@@ -1,46 +1,45 @@
-extends layout
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1.0")
+    title Registro de Enfermeros
+    link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css")
+    script(src="https://cdn.jsdelivr.net/npm/sweetalert2@11")
+    script(type="module", src="/js/enfermeros.js")
 
-block content
-  h1 Enfermeros
+  body.bg-light
+    .container.mt-5
+      .card.shadow
+        .card-body
+          h2.text-center.h5.mb-4 Registro de Enfermeros
 
-  div.container.mt-4
-    div.form-group
-      label(for="matriculaBusqueda") Buscar por Matrícula
-      input#matriculaBusqueda.form-control(type="text", placeholder="Ej. 1234")
+          form#formEnfermero
+            .row.mb-3
+              .col-md-4
+                input.form-control#matricula(type="text", placeholder="Ingrese matrícula para buscar", autocomplete="off")
+              .col-md-4
+                button.btn.btn-primary.w-100(type="button", id="btnBuscar") Buscar
+              .col-md-4
+                button.btn.btn-warning.w-100(type="button", id="btnModificar", disabled) Modificar
 
-    button#btnBuscar.btn.btn-primary.mt-2 Buscar
+            .row.mb-3
+              .col-md-4
+                label.form-label(for="apellidonombres") Apellido y Nombres:
+                input.form-control(type="text", id="apellidonombres", required, autocomplete="off", style="text-transform: uppercase;")
 
-    hr
+              .col-md-4
+                label.form-label(for="telefono") Teléfono:
+                input.form-control(type="text", id="telefono", autocomplete="off")
 
-    form#formEnfermero
-      div.form-group
-        label(for="matricula") Matrícula
-        input#matricula.form-control(type="text", name="matricula", required)
+              .col-md-4
+                label.form-label(for="email") Email:
+                input.form-control(type="email", id="email", autocomplete="off")
 
-      div.form-group
-        label(for="nombre") Nombre
-        input#nombre.form-control(type="text", name="nombre", required)
+            hr.my-4
 
-      div.form-group
-        label(for="apellido") Apellido
-        input#apellido.form-control(type="text", name="apellido", required)
+            .row
+              .col-md-3
+                button.btn.btn-primary.w-100(type="submit", id="btnGuardar", disabled) Guardar
 
-      div.form-group
-        label(for="telefono") Teléfono
-        input#telefono.form-control(type="text", name="telefono")
-
-      div.form-group
-        label(for="email") Email
-        input#email.form-control(type="email", name="email")
-
-      div.form-group
-        label(for="especialidad") Especialidad
-        input#especialidad.form-control(type="text", name="especialidad")
-
-      div.mt-3
-        button#btnNuevo.btn.btn-success(type="button") Nuevo
-        button#btnEditar.btn.btn-warning(type="button", disabled=true) Editar
-        button#btnGuardar.btn.btn-primary(type="submit", disabled=true) Guardar
-        button#btnCancelar.btn.btn-secondary(type="button", disabled=true) Cancelar
-
-  script(src="/js/enfermero.js")
+            #mensajes.text-danger.mt-3.text-center

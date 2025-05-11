@@ -9,8 +9,9 @@ const mensajeBusqueda = document.getElementById("mensajes");
 let modoEdicion = false;
 
 function validarMatricula(matricula) {
-    if (matricula === "" || matricula.length < 3 || matricula.length > 50) {
-        mostrarMensaje('La matrícula debe tener entre 3 y 50 caracteres.', 0);
+    console.log(matricula);
+    if (matricula === "" || matricula.length < 3 || matricula.length > 6) {
+        mostrarMensaje('La matrícula debe tener entre 3 y 6 caracteres.', 0);
         inputMatricula.focus();
         return false;
     }
@@ -22,6 +23,9 @@ function validarDatos(form) {
     const matricula = form.matricula.value.trim();
     const telefono = form.telefono.value.trim();
     const email = form.email.value.trim();
+    console.log(matricula);
+    console.log(apellidonombres);
+
 
     if (!validarMatricula(matricula)) return false;
 
@@ -47,8 +51,8 @@ function validarDatos(form) {
 }
 
 btnBuscar.addEventListener("click", async () => {
-    const matricula = inputMatricula.value.trim();
 
+    const matricula  = inputMatricula.value;     
     if (!validarMatricula(matricula)) return;
 
     if (btnBuscar.textContent === "Nueva Búsqueda") {
@@ -187,7 +191,7 @@ function resetearBusqueda() {
     form.reset();
     mensajeBusqueda.textContent = '';
     desbloquearCamposFormulario();
-    inputMatricula.disabled = false;
+    matricula.disabled = false;
     btnBuscar.textContent = "Buscar";
     btnRegistrar.textContent = "Registrar";
     btnRegistrar.disabled = true;
@@ -196,8 +200,8 @@ function resetearBusqueda() {
 }
 
 function bloquearMatricula() {
-    inputMatricula.disabled = true;
-    inputMatricula.style.backgroundColor = "#f0f0f0";
+    matricula.disabled = true;
+    matricula.style.backgroundColor = "#f0f0f0";
     btnBuscar.textContent = "Nueva Búsqueda";
 }
 

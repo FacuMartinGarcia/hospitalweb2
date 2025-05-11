@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const enfermeroController = require('../controllers/enfermeroController');
+const enfermerosController = require('../controllers/enfermerosController');
 
-router.get('/:matricula', enfermeroController.buscarPorMatricula);
-router.post('/', enfermeroController.crearEnfermero);
-router.get('/', enfermeroController.listarEnfermeros);
-router.put('/:matricula', enfermeroController.actualizarEnfermero);
-router.delete('/:matricula', enfermeroController.eliminarEnfermero);
-router.post('/reactivar/:matricula', enfermeroController.reactivarEnfermero);
+router.get('/:matricula', enfermerosController.buscarPorMatricula);
+router.post('/', enfermerosController.crearEnfermero);
+router.get('/', enfermerosController.listarEnfermeros);
+router.put('/:matricula', enfermerosController.actualizarEnfermero);
+router.delete('/:matricula', enfermerosController.eliminarEnfermero);
+router.post('/reactivar/:matricula', enfermerosController.reactivarEnfermero);
 
 module.exports = router;
