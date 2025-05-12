@@ -9,14 +9,6 @@ html(lang="es")
     link(rel="stylesheet", href="/css/index.css")
 
     script.
-      function actualizarFechaHora() {
-        const fechaHoraElement = document.getElementById("fechaHora");
-        const fecha = new Date();
-        const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
-        fechaHoraElement.textContent = fecha.toLocaleDateString('es-ES', opciones);
-      }
-      setInterval(actualizarFechaHora, 1000); 
-
       function cargarPagina(pagina, link) {
         document.getElementById("contenido").src = pagina;
         document.querySelectorAll(".nav-link").forEach(item => item.classList.remove("active"));
@@ -24,25 +16,15 @@ html(lang="es")
       }
 
   body
-    
-    .container-fluid.fixed-top.bg-dark.text-white.p-2
+    .container-fluid
       .row
-        .col-4.text-start
-          span#fechaHora 
-        .col-4.text-center
-          h4.m-0 Admisión Hospitalaria
-        .col-4.text-end
-          i.bi.bi-person-circle.me-2
-          span Usuario
-
-    .container-fluid.mt-5
-      .row
-        
+        // Menú lateral (columna izquierda)
         .col-md-3.bg-primary.text-white.min-vh-100.p-4
+          h3.text-center Menú
           ul.nav.flex-column
             li.nav-item
               a.nav-link.text-white(href="#", onclick="cargarPagina('/pacientes', this)")
-                i.bi.bi-person-rolodex.me-2
+                i.bi.bi-person-fill.me-2
                 | Pacientes
             li.nav-item
               a.nav-link.text-white(href="#", onclick="cargarPagina('/internacion', this)")
@@ -50,7 +32,7 @@ html(lang="es")
                 | Internación
             li.nav-item
               a.nav-link.text-white(href="#", onclick="cargarPagina('/medicos', this)")
-                i.bi.bi-person-vcard.me-2 
+                i.bi.bi-stethoscope.me-2
                 | Médicos
             li.nav-item
               a.nav-link.text-white(href="#", onclick="cargarPagina('/enfermeros', this)")
@@ -65,7 +47,7 @@ html(lang="es")
                 i.bi.bi-graph-up.me-2
                 | Reportes
 
-        
+        // Contenido principal (columna derecha)
         .col-md-9.p-4
           iframe#contenido(name="contenido", width="100%", height="800", frameborder="0")
 

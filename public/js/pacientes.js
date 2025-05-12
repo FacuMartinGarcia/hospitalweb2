@@ -176,6 +176,8 @@ btnModificar.addEventListener("click", () => {
     btnRegistrar.disabled = false;
     btnRegistrar.textContent = "Actualizar";
     modoEdicion = true;
+    const campo = form.apellidonombres;
+    if (!campo.disabled) campo.focus();
 });
 
 document.getElementById("apellidonombres").addEventListener("input", function () {

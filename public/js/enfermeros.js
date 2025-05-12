@@ -4,7 +4,9 @@ const inputMatricula = document.getElementById("matricula");
 const btnBuscar = document.getElementById("btnBuscar");
 const btnModificar = document.getElementById("btnModificar");
 const btnRegistrar = document.getElementById("btnRegistrar");
+const btnDesactivar = document.getElementById("btnDesactivar");
 const mensajeBusqueda = document.getElementById("mensajes");
+
 
 let modoEdicion = false;
 
@@ -51,8 +53,7 @@ function validarDatos(form) {
 }
 
 btnBuscar.addEventListener("click", async () => {
-
-    const matricula  = inputMatricula.value;     
+    const matricula = inputMatricula.value;     
     if (!validarMatricula(matricula)) return;
 
     if (btnBuscar.textContent === "Nueva Búsqueda") {
@@ -68,29 +69,37 @@ btnBuscar.addEventListener("click", async () => {
                 title: 'No Registrado',
                 html: 'La matrícula ingresada no está registrada.<br>Puede proceder a registrar los datos.',
                 icon: 'info',
-                confirmButtonText: 'Entendido'
-            }).then(() => {
-                bloquearMatricula();
-                desbloquearCamposFormulario();
-                btnModificar.disabled = true;
-                btnRegistrar.disabled = false;
-                form.apellidonombres.focus();
+                confirmButtonText: 'Entendido',
+                didClose: () => {
+                    bloquearMatricula();
+                    desbloquearCamposFormulario();
+                    btnModificar.disabled = true;
+                    btnRegistrar.disabled = false;
+                    const campo = document.getElementById("apellidonombres");
+                    if (campo && !campo.disabled) campo.focus();
+                }
             });
             return;
         }
 
+        const enfermero = resultado.enfermero;
+
+        console.log("Estado activo:", enfermero.activo);
+    
         Swal.fire({
-            title: 'Enfermero Registrado',
+            title: enfermero.activo === false ? 'Enfermero Desactivado' : 'Enfermero Registrado',
             html: 'La matrícula ingresada ya está registrada.<br>Presione "Modificar" si desea editar los datos.',
-            icon: 'success',
+            icon: enfermero.activo === false ? 'warning' : 'success',
             confirmButtonText: 'Entendido'
         });
 
-        mostrarDatosEnfermero(resultado.enfermero);
+        mostrarDatosEnfermero(enfermero);
         bloquearMatricula();
         bloquearCamposFormulario();
         btnModificar.disabled = false;
+        btnDesactivar.disabled = false;
         btnRegistrar.disabled = true;
+
 
     } catch (error) {
         console.error("Error en búsqueda:", error);
@@ -144,6 +153,67 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+btnDesactivar.addEventListener("click", async () => {
+    const matricula = form.matricula.value.trim();
+    if (!matricula) return;
+
+    const estado = btnDesactivar.dataset.estado;
+
+    if (estado === "desactivar") {
+        const confirmacion = await Swal.fire({
+            title: '¿Está seguro?',
+            text: "Esta acción desactivará al enfermero. Puede reactivarlo más tarde.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, desactivar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!confirmacion.isConfirmed) return;
+
+        try {
+            const response = await fetch(`${API_URL}/${matricula}`, {
+                method: "DELETE"
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.error || "Error al desactivar enfermero.");
+
+            Swal.fire('Desactivado', data.mensaje, 'success').then(() => resetearBusqueda());
+
+        } catch (error) {
+            Swal.fire("Error", error.message, "error");
+        }
+
+    } else if (estado === "reactivar") {
+        const confirmacion = await Swal.fire({
+            title: '¿Reactivar enfermero?',
+            text: "El enfermero fue desactivado. ¿Desea reactivarlo?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, reactivar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!confirmacion.isConfirmed) return;
+
+        try {
+            const response = await fetch(`${API_URL}/${matricula}/reactivar`, {
+                method: "PUT"
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Error al reactivar enfermero.");
+            Swal.fire('Reactivado', data.mensaje, 'success').then(() => resetearBusqueda());
+
+        } catch (error) {
+            Swal.fire("Error", error.message, "error");
+        }
+    }
+});
+
+
 async function buscarEnfermero(matricula) {
     try {
         const response = await fetch(`${API_URL}/${matricula}`);
@@ -180,11 +250,24 @@ async function guardarEnfermero(enfermero, esEdicion = false) {
 }
 
 function mostrarDatosEnfermero(enfermero) {
+
+    if (enfermero.deletedAt) {
+        btnDesactivar.textContent = "Reactivar";
+        btnDesactivar.dataset.estado = "reactivar";
+        btnDesactivar.classList.remove("btn-danger");
+        btnDesactivar.classList.add("btn-success");
+    } else {
+        btnDesactivar.textContent = "Desactivar";
+        btnDesactivar.dataset.estado = "desactivar";
+        btnDesactivar.classList.remove("btn-success");
+        btnDesactivar.classList.add("btn-danger");
+    }
     form.apellidonombres.value = enfermero.apellidonombres || "";
     form.telefono.value = enfermero.telefono || "";
     form.email.value = enfermero.email || "";
     modoEdicion = true;
     btnRegistrar.disabled = true;
+    btnDesactivar.disabled = false;
 }
 
 function resetearBusqueda() {
@@ -196,6 +279,11 @@ function resetearBusqueda() {
     btnRegistrar.textContent = "Registrar";
     btnRegistrar.disabled = true;
     btnModificar.disabled = true;
+    btnDesactivar.disabled = true;
+    btnDesactivar.textContent = "Desactivar";
+    btnDesactivar.dataset.estado = "desactivar";
+    btnDesactivar.classList.remove("btn-success");
+    btnDesactivar.classList.add("btn-danger");      
     modoEdicion = false;
 }
 

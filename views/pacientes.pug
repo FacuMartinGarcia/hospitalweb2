@@ -12,21 +12,21 @@ html(lang="es")
     .container.mt-5
       .card.shadow
         .card-body
-          h2.text-center.mb-4 Registro de Pacientes
+          h2.text-center.h5.mb-4  Registro de Pacientes
 
           form#formPaciente
             .row.mb-3
               .col-md-8
-                input.form-control#documento(type="text", placeholder="Ingrese aquí el n° de documento", required, autocomplete="off")
+                input.form-control#documento.text-center.fw-bold.fs-5(type="text", placeholder="Ingrese aquí el n° de documento", required, autocomplete="off")
               .col-md-2
                 button.btn.btn-primary.w-100(type="button", id="btnBuscar") Buscar
               .col-md-2
-                button.btn.btn-secondary.w-100(type="button", id="btnModificar", disabled) Modificar
+                button.btn.btn-primary.w-100(type="button", id="btnModificar", disabled) Modificar
 
             .row.mb-3
               .col-md-6
                 label.form-label(for="apellidonombres") Apellido y Nombres:
-                input.form-control(type="text", id="apellidonombres", required, autocomplete="off", style="text-transform: uppercase;")
+                input.form-control.fw-bold.fs-5(type="text", id="apellidonombres", required, autocomplete="off", style="text-transform: uppercase;")
               .col-md-3
                 label.form-label(for="fechanacimiento") Fecha de Nacimiento:
                 input.form-control(type="date", id="fechanacimiento", required)
@@ -65,6 +65,8 @@ html(lang="es")
                 label.form-label(for="actadefuncion") N° Acta de Defunción:
                 input.form-control(type="text", id="actadefuncion")
 
-            button.btn.btn-success.w-100.mt-4(type="button", id="btnRegistrar", disabled) Guardar
+            .row
+              .col-md-12
+                button.btn.btn-primary.w-100.mt-4(type="button", id="btnRegistrar", disabled) Guardar
 
           #mensajes.text-danger.mt-3.text-center

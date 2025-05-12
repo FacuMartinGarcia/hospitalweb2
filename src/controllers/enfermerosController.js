@@ -5,13 +5,20 @@ const enfermeroController = {
   buscarPorMatricula: async (req, res) => {
     try {
       const { matricula } = req.params;
-      const enfermero = await Enfermero.findOne({ where: { matricula } });
+      const enfermero = await Enfermero.findOne({ 
+      where: { matricula }, 
+        paranoid: false
+      });
 
       if (!enfermero) {
         return res.status(404).json({ success: false, error: 'Enfermero no encontrado' });
       }
 
-      return res.status(200).json({ success: true, enfermero });
+      
+      const enfermeroData = enfermero.toJSON();
+      enfermeroData.activo = !enfermero.deletedAt;
+      
+      return res.status(200).json({ success: true, enfermero: enfermeroData });
 
     } catch (error) {
       console.error('Error al buscar enfermero:', error);
@@ -169,9 +176,10 @@ const enfermeroController = {
     try {
       const { matricula } = req.params;
 
+      console.log("Matrícula recibida para reactivar:", matricula);
       const enfermero = await Enfermero.findOne({
         where: { matricula },
-        paranoid: false
+        paranoid: false 
       });
 
       if (!enfermero) {
@@ -191,9 +199,10 @@ const enfermeroController = {
 
     } catch (error) {
       console.error('Error al reactivar enfermero:', error);
-      return res.status(500).json({ success: false, error: 'Error interno del servidor' });
+      return res.status(500).json({ success: false, error: 'Error interno del servidor', detalles: error.message });
     }
   }
+
 };
 
 module.exports = enfermeroController;
