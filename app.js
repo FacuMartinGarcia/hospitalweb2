@@ -8,6 +8,7 @@ const coberturasRouter = require('./src/routes/coberturasRoutes');
 const enfermerosRouter = require('./src/routes/enfermerosRoutes');
 const especialidadesRouter = require('./src/routes/especialidadesRoutes');
 const medicosRouter = require('./src/routes/medicosRoutes');
+const origenesRouter = require('./src/routes/origenesRoutes');
 const pacientesRouter = require('./src/routes/pacientesRoutes');
 const usuariosRoutes = require('./src/routes/usuariosRoutes');
 const loginRoutes = require('./src/routes/loginRoutes');
@@ -28,11 +29,12 @@ app.use(session({
 }));
 
 // Rutas de API
-app.use('/api/pacientes', pacientesRouter);
 app.use('/api/coberturas', coberturasRouter);
-app.use('/api/especialidades', especialidadesRouter);
 app.use('/api/enfermeros', enfermerosRouter);
+app.use('/api/especialidades', especialidadesRouter);
 app.use('/api/medicos', medicosRouter);
+app.use('/api/origenes', origenesRouter);
+app.use('/api/pacientes', pacientesRouter);
 app.use('/api/usuarios', usuariosRoutes);
 
 // Rutas de login

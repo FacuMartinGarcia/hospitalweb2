@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/db');
+const Especialidad = require('./especialidad'); 
 
 const Medico = sequelize.define('Medico', {
   idmedico: {
@@ -34,10 +35,20 @@ const Medico = sequelize.define('Medico', {
 }, {
   tableName: 'medicos',
   timestamps: true,
-  paranoid: true, // habilita soft delete usando deletedAt
+  paranoid: true, 
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt'
+});
+
+Medico.belongsTo(Especialidad, {
+  foreignKey: 'idespecialidad',
+  as: 'especialidad' 
+});
+
+Especialidad.hasMany(Medico, {
+  foreignKey: 'idespecialidad',
+  as: 'medicos'
 });
 
 module.exports = Medico;
