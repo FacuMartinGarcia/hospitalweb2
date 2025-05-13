@@ -2,6 +2,7 @@ extends layout-login
 
 block content
   .card.shadow-lg.p-5(style="min-width: 400px;")
+    
     h3.mb-4.text-center.text-primary Iniciar Sesión
 
     form(action="/login", method="POST")
@@ -17,3 +18,9 @@ block content
 
     if error
       .alert.alert-danger.mt-3.text-center #{error}
+    
+    .mt-4.text-center.text-muted
+      p ¿Olvidaste tu contraseña? <a href="/reset-password">Recupérala aquí</a>.
+    
+    .mt-4.text-center.text-muted
+      p Gestión de Admisión e Internación Hospitalaria ©
