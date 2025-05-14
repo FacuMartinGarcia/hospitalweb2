@@ -35,6 +35,7 @@ app.use('/api/especialidades', especialidadesRouter);
 app.use('/api/medicos', medicosRouter);
 app.use('/api/origenes', origenesRouter);
 app.use('/api/pacientes', pacientesRouter);
+app.use('/api/pacienteslistado', pacientesRouter);
 app.use('/api/usuarios', usuariosRoutes);
 
 // Rutas de login
@@ -57,6 +58,14 @@ app.get('/pacientes', (req, res) => {
   res.render('pacientes');
 });
 
+app.get('/pacienteslistado', (req, res) => {
+  res.render('pacienteslistado', {
+    pacientes: rows 
+  });
+})
+app.get('/medicos', (req, res) => {
+  res.render('medicos');
+});
 app.get('/enfermeros', (req, res) => {
   res.render('enfermeros');
 });

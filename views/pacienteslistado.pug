@@ -1,0 +1,36 @@
+extends layout
+
+block extraHead
+  script(src="https://cdn.jsdelivr.net/npm/sweetalert2@11")
+  script(src="https://code.jquery.com/jquery-3.6.0.min.js")
+  script(src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js")
+
+block content
+  h1 Lista de Pacientes
+
+  table#tablaPacientes
+    thead
+      tr
+        th Nombre y Apellido
+        th Documento
+        th Fecha de Nacimiento
+        th Cobertura
+    tbody
+      each paciente in pacientes
+        tr
+          td= paciente.apellidonombres
+          td= paciente.documento
+          td= paciente.fechanacimiento
+          td= paciente.cobertura?.nombre || 'Sin cobertura'
+
+  script.
+    $(document).ready(function() {
+      $('#tablaPacientes').DataTable({
+        paging: true,
+        searching: true,
+        info: true,
+        language: {
+          url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+        }
+      });
+    });

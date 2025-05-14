@@ -1,0 +1,58 @@
+extends layout
+
+block extraHead
+  script(src="https://cdn.jsdelivr.net/npm/sweetalert2@11")
+  script(type="module", src="/js/medicos.js")
+
+block content
+  .card.shadow
+    .card-body
+      h2.text-center.h5.mb-4 Registro de Médicos
+
+      form#formMedico
+        .row.mb-3
+          .col-md-6
+            input.form-control#matricula.text-center.fw-bold.fs-5(
+              type="text", 
+              placeholder="Ingrese matrícula para buscar", 
+              autocomplete="off", 
+              required
+            )
+          .col-md-2
+            button.btn.btn-primary.w-100(type="button", id="btnBuscar") Buscar
+          .col-md-2
+            button.btn.btn-primary.w-100(type="button", id="btnModificar", disabled) Modificar
+          .col-md-2
+            button.btn.btn-danger.w-100(type="button", id="btnDesactivar", disabled) Desactivar
+
+        .row.mb-3
+          .col-md-6
+            label.form-label(for="apellidomombres") Apellido y Nombres:
+            input.form-control.fw-bold.fs-5(
+              type="text", 
+              id="apellidomombres", 
+              required, 
+              autocomplete="off", 
+              style="text-transform: uppercase;"
+            )
+          .col-md-3
+            label.form-label(for="telefono") Teléfono:
+            input.form-control(type="text", id="telefono", autocomplete="off")
+          .col-md-3
+            label.form-label(for="email") Email:
+            input.form-control(type="email", id="email", autocomplete="off")
+
+        .row.mb-3
+          .col-md-6
+            label.form-label(for="especialidad") Especialidad:
+            select.form-select(id="especialidad", required)
+              option(value="") Seleccione una especialidad
+              // opciones de la base
+
+        hr.my-4
+
+        .row
+          .col-md-12
+            button.btn.btn-primary.w-100.mt-4(type="submit", id="btnRegistrar", disabled) Guardar
+
+        #mensajes.text-danger.mt-3.text-center

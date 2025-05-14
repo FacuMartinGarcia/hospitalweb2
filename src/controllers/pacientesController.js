@@ -1,5 +1,7 @@
 const { Op } = require('sequelize');
 const Paciente = require('../models/Paciente');
+const Cobertura = require('../models/Cobertura');
+//const Internacion = require('../models/internacion');
 
 const pacientesController = {
   buscarPorDocumento: async (req, res) => {
@@ -145,7 +147,7 @@ const pacientesController = {
       return res.status(500).json({ success: false, error: 'Error interno del servidor' });
     }
   },
-
+/*
   buscarPorDocumento: async (req, res) => {
     try {
       const documento = parseInt(req.params.documento);
@@ -162,6 +164,7 @@ const pacientesController = {
       return res.status(500).json({ success: false, error: 'Error interno del servidor' });
     }
   },
+  */
 
   listarPacientes: async (req, res) => {
     try {
@@ -392,7 +395,34 @@ const pacientesController = {
         error: 'Error interno del servidor' 
       });
     }
+  },
+ obtenerPacientes: async () => {
+  try {
+    const pacientes = await Paciente.findAll({
+      include: [{
+        model: Cobertura,
+        attributes: ['denominacion']  
+      }],
+      attributes: [
+        'idpaciente',
+        'apellidonombres',
+        'documento',
+        'fechanacimiento',
+        'sexo',
+        'telefono',
+        'email'
+      ],
+      order: [['apellidonombres', 'ASC']]
+    });
+    console.log("listado de pacientes");
+    console.log(pacientes);
+    return pacientes;
+  } catch (error) {
+    console.error('Error al obtener pacientes:', error);
+    return [];
   }
+},
+
 };
 
 module.exports = pacientesController;
