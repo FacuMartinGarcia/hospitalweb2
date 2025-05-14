@@ -83,7 +83,7 @@ const Paciente = sequelize.define('Paciente', {
   tableName: 'pacientes',
   timestamps: true, 
   paranoid: true, 
-  underscored: false, // Usa camelCase en lugar de snake_case
+  underscored: false, 
   indexes: [
     {
       unique: true,

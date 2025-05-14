@@ -8,6 +8,7 @@ const { obtenerPacientes } = require('./src/controllers/pacientesController');
 const coberturasRouter = require('./src/routes/coberturasRoutes');
 const enfermerosRouter = require('./src/routes/enfermerosRoutes');
 const especialidadesRouter = require('./src/routes/especialidadesRoutes');
+const internacionesRouter = require('./src/routes/internacionesRoutes');
 const medicosRouter = require('./src/routes/medicosRoutes');
 const origenesRouter = require('./src/routes/origenesRoutes');
 const pacientesRouter = require('./src/routes/pacientesRoutes');
@@ -33,6 +34,7 @@ app.use(session({
 app.use('/api/coberturas', coberturasRouter);
 app.use('/api/enfermeros', enfermerosRouter);
 app.use('/api/especialidades', especialidadesRouter);
+app.use('/api/internaciones', internacionesRouter);
 app.use('/api/medicos', medicosRouter);
 app.use('/api/origenes', origenesRouter);
 app.use('/api/pacientes', pacientesRouter);

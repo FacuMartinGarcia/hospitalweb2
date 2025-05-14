@@ -74,7 +74,7 @@ const Internacion = sequelize.define('Internacion', {
   underscored: false
 });
 
-// Relaciones (associate)
+
 Internacion.associate = (models) => {
   Internacion.belongsTo(models.Origen, {
     foreignKey: 'idorigen',

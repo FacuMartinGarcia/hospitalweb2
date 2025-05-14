@@ -17,4 +17,11 @@ const Origen = sequelize.define('Origen', {
     timestamps: false 
 });
 
+Origen.associate = (models) => {
+    Origen.hasMany(models.Internacion, {
+        foreignKey: 'idorigen',
+        as: 'internacion'
+    });
+};
+
 module.exports = Origen;
