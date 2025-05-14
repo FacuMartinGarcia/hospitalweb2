@@ -1,4 +1,4 @@
-const Origen = require('../models/origenes');
+const Origen = require('../models/origen');
 
 const origenesController = {
   listar: async (req, res) => {

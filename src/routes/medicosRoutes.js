@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const medicosController = require('../controllers/medicoController');
+const medicosController = require('../controllers/medicosController');
 
 router.post('/:id/reactivar', medicosController.reactivar); 
 router.post('/', medicosController.crear);

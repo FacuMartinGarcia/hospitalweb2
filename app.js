@@ -61,6 +61,10 @@ app.get('/enfermeros', (req, res) => {
   res.render('enfermeros');
 });
 
+app.get('/internacion', (req, res) => {
+  res.render('internacion');
+});
+
 // Sincronización de la base de datos y arranque del servidor
 sequelize.sync()
   .then(() => {
@@ -71,5 +75,7 @@ sequelize.sync()
     });
   })
   .catch((err) => {
-    console.error('Error al sincronizar la base de datos:', err);
+    console.error('No se pudo conectar a la base de datos.');
+    console.error('Detalles:', err.message); 
   });
+
