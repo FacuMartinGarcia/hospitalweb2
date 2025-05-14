@@ -1,4 +1,5 @@
-const Medico = require('../models/medico');
+const db = require('../models'); 
+const { Medico, Especialidad } = db;
 
 const medicosController = {
   listar: async (req, res) => {
@@ -214,7 +215,32 @@ const medicosController = {
         error: error.message
       });
     }
+  },
+  obtenerMedicos: async () => {
+    try {
+      const medicos = await Medico.findAll({
+        include: [{
+          model: Especialidad,
+          as: 'especialidad',
+          attributes: ['denominacion']
+        }],
+        attributes: [
+          'apellidomombres',
+          'matricula',
+          'telefono',
+          'email'
+        ],
+        order: [['apellidomombres', 'ASC']]
+      });
+      console.log("Listado de médicos:");
+      console.log(medicos);
+      return medicos;
+    } catch (error) {
+      console.error('Error al obtener médicos:', error);
+      return [];
+    }
   }
+
 };
 
 module.exports = medicosController;

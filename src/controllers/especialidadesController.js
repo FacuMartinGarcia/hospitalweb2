@@ -1,4 +1,5 @@
-const Especialidad = require('../models/Especialidad');
+const db = require('../models'); 
+const { Especialidad } = db;
 
 const especialidadController = {
   listar: async (req, res) => {

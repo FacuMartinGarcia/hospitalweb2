@@ -4,15 +4,8 @@ const pacientesController = require('../controllers/pacientesController');
 
 
 router.get('/pacienteslistado', async (req, res) => {
-  console.log("Ruta /pacienteslistado llamada");  // Verificar si la ruta se alcanza
-  try {
-    const pacientes = await obtenerPacientes();
-    console.log("Pacientes obtenidos:", pacientes);
-    res.render('pacienteslistado', { pacientes });
-  } catch (error) {
-    console.error('Error al obtener pacientes:', error);
-    res.status(500).send('Error al obtener pacientes');
-  }
+  const pacientes = await obtenerPacientes();
+  res.render('pacienteslistado', { pacientes });
 });
 
 router.get('/', pacientesController.listarPacientes);

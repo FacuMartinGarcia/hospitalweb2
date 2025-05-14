@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
-const Paciente = require('../models/Paciente');
-const Cobertura = require('../models/Cobertura');
+const db = require('../models'); 
+const { Paciente, Cobertura } = db;
 //const Internacion = require('../models/internacion');
 
 const pacientesController = {
@@ -147,24 +147,6 @@ const pacientesController = {
       return res.status(500).json({ success: false, error: 'Error interno del servidor' });
     }
   },
-/*
-  buscarPorDocumento: async (req, res) => {
-    try {
-      const documento = parseInt(req.params.documento);
-      const paciente = await Paciente.findOne({ where: { documento } });
-
-      if (!paciente) {
-        return res.status(404).json({ success: false, error: 'Paciente no encontrado' });
-      }
-
-      return res.status(200).json({ success: true, paciente });
-
-    } catch (error) {
-      console.error('Error:', error);
-      return res.status(500).json({ success: false, error: 'Error interno del servidor' });
-    }
-  },
-  */
 
   listarPacientes: async (req, res) => {
     try {
@@ -401,16 +383,13 @@ const pacientesController = {
     const pacientes = await Paciente.findAll({
       include: [{
         model: Cobertura,
+        as: 'cobertura',
         attributes: ['denominacion']  
       }],
       attributes: [
-        'idpaciente',
         'apellidonombres',
         'documento',
         'fechanacimiento',
-        'sexo',
-        'telefono',
-        'email'
       ],
       order: [['apellidonombres', 'ASC']]
     });
@@ -421,7 +400,7 @@ const pacientesController = {
     console.error('Error al obtener pacientes:', error);
     return [];
   }
-},
+}
 
 };
 

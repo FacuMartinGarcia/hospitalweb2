@@ -94,11 +94,13 @@ const Paciente = sequelize.define('Paciente', {
     }
   ]
 });
-Paciente.associate = function(models) {
-  Paciente.belongsTo(models.Cobertura, {
-    foreignKey: 'idcobertura',
-    as: 'cobertura'
-  });
-};
+
+
+  Paciente.associate = (models) => {
+    Paciente.belongsTo(models.Cobertura, {
+      foreignKey: 'idcobertura',
+      as: 'cobertura'
+    });
+  };
 
 module.exports = Paciente;

@@ -1,4 +1,6 @@
-const Cobertura = require('../models/Cobertura');
+const db = require('../models'); 
+const { Cobertura } = db;
+//const Cobertura = require('../models/Cobertura');
 
 const coberturasController = {
   listar: async (req, res) => {

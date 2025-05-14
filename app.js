@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const session = require('express-session');
 const sequelize = require('./config/db');
+const { obtenerPacientes } = require('./src/controllers/pacientesController');
 
 // Importar rutas
 const coberturasRouter = require('./src/routes/coberturasRoutes');
@@ -35,7 +36,6 @@ app.use('/api/especialidades', especialidadesRouter);
 app.use('/api/medicos', medicosRouter);
 app.use('/api/origenes', origenesRouter);
 app.use('/api/pacientes', pacientesRouter);
-app.use('/api/pacienteslistado', pacientesRouter);
 app.use('/api/usuarios', usuariosRoutes);
 
 // Rutas de login
@@ -58,20 +58,27 @@ app.get('/pacientes', (req, res) => {
   res.render('pacientes');
 });
 
-app.get('/pacienteslistado', (req, res) => {
-  res.render('pacienteslistado', {
-    pacientes: rows 
-  });
-})
 app.get('/medicos', (req, res) => {
   res.render('medicos');
 });
+
 app.get('/enfermeros', (req, res) => {
   res.render('enfermeros');
 });
 
 app.get('/internacion', (req, res) => {
   res.render('internacion');
+});
+
+//  Vista de listado de pacientes
+app.get('/pacienteslistado', async (req, res) => {
+  try {
+    const pacientes = await obtenerPacientes();
+    res.render('pacienteslistado', { pacientes });
+  } catch (error) {
+    console.error('Error al renderizar pacienteslistado:', error);
+    res.status(500).send('Error al cargar la vista de pacientes');
+  }
 });
 
 // Sincronización de la base de datos y arranque del servidor
@@ -85,6 +92,5 @@ sequelize.sync()
   })
   .catch((err) => {
     console.error('No se pudo conectar a la base de datos.');
-    console.error('Detalles:', err.message); 
+    console.error('Detalles:', err.message);
   });
-

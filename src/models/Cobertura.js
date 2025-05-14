@@ -23,11 +23,12 @@ const Cobertura = sequelize.define('Cobertura', {
 });
 
 
-Cobertura.associate = function(models) {
-  Cobertura.hasMany(models.Paciente, {
-    foreignKey: 'idcobertura',
-    as: 'pacientes' 
-  });
-};
+  Cobertura.associate = (models) => {
+    Cobertura.hasMany(models.Paciente, {
+      foreignKey: 'idcobertura',
+      as: 'pacientes'
+    });
+  };
+
 
 module.exports = Cobertura;

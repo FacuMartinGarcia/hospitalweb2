@@ -1,5 +1,5 @@
 const { DataTypes } = require('sequelize');
-const sequelize = require('../../config/db');  // Asumiendo que 'db' es tu archivo de configuración de Sequelize
+const sequelize = require('../../config/db');  
 
 const Especialidad = sequelize.define('Especialidad', {
   idespecialidad: {
@@ -16,5 +16,11 @@ const Especialidad = sequelize.define('Especialidad', {
   tableName: 'especialidades', 
   timestamps: false            
 });
+
+Especialidad.associate = (models) => {
+  Especialidad.hasMany(models.Medico, { 
+    foreignKey: 'idespecialidad',
+    as: 'especialidad'});
+};
 
 module.exports = Especialidad;
