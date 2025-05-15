@@ -1,0 +1,60 @@
+extends layout
+
+block extraHead
+  script(src="https://cdn.jsdelivr.net/npm/sweetalert2@11")
+  script(type="module", src="/js/internacion.js")
+
+block content
+  .card.shadow
+    .card-body
+      h2.text-center.h5.mb-4 Admisión de Pacientes para Internación
+
+      // Sección Datos del Paciente
+      .row.mb-3
+        .col-md-8
+          input.form-control#documento(type="text", placeholder="Ingrese el documento del paciente", required, autocomplete="off")
+        .col-md-4
+          button.btn.btn-primary.w-100(type="button", id="btnBuscarPaciente") Buscar Paciente
+
+      #mensajePaciente.text-danger.mt-2.text-center
+
+      #datosPaciente
+
+      // Sección Datos de Internación (va oculta por defecto)
+      .section.mt-4#seccionInternacion(style="display: none;")
+        h5.text-center.mb-4 Datos de Admisión
+
+        form#formInternacion
+          .row.mb-3
+            .col-md-6
+              label(for="origen") Origen:
+              select#idorigen.form-select(name="idorigen", required)
+                option(value="") Seleccione un origen...
+
+            .col-md-6
+              label(for="medico") Médico:
+              select#idmedico.form-select(name="idmedico", required)
+                option(value="") Seleccione un médico...
+                
+            .form-group
+              label(for="diagnostico") Diagnóstico
+              select#iddiagnostico.form-select(name="iddiagnostico", required)
+                option(value="") Seleccione...
+
+          .row.mb-3
+            .col-md-6
+              label.form-label(for="fechaInternacion") Fecha de admisión:
+              input.form-control#fechaInternacion(type="date", required)
+            .col-md-6
+              label.form-label(for="horaInternacion") Hora de admisión:
+              input.form-control#horaInternacion(type="time", required)
+
+          .mb-3
+            label.form-label(for="motivo") Motivo:
+            textarea.form-control#motivo(rows="3", required)
+
+          button.btn.btn-success.w-100.mt-3#btnRegistrarInternacion(type="submit") Registrar Internación
+
+      #datosInternacion
+
+  #mensajes.text-danger.mt-3.text-center

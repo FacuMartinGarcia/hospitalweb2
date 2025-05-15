@@ -5,13 +5,14 @@ const sequelize = require('./config/db');
 const { obtenerPacientes } = require('./src/controllers/pacientesController');
 
 // Importar rutas
-const coberturasRouter = require('./src/routes/coberturasRoutes');
-const enfermerosRouter = require('./src/routes/enfermerosRoutes');
-const especialidadesRouter = require('./src/routes/especialidadesRoutes');
-const internacionesRouter = require('./src/routes/internacionesRoutes');
-const medicosRouter = require('./src/routes/medicosRoutes');
-const origenesRouter = require('./src/routes/origenesRoutes');
-const pacientesRouter = require('./src/routes/pacientesRoutes');
+const coberturasRoutes = require('./src/routes/coberturasRoutes');
+const diagnosticosRoutes = require('./src/routes/diagnosticosRoutes');
+const enfermerosRoutes = require('./src/routes/enfermerosRoutes');
+const especialidadesRoutes = require('./src/routes/especialidadesRoutes');
+const internacionesRoutes = require('./src/routes/internacionesRoutes');
+const medicosRoutes = require('./src/routes/medicosRoutes');
+const origenesRoutes = require('./src/routes/origenesRoutes');
+const pacientesRoutes = require('./src/routes/pacientesRoutes');
 const usuariosRoutes = require('./src/routes/usuariosRoutes');
 const loginRoutes = require('./src/routes/loginRoutes');
 
@@ -31,13 +32,14 @@ app.use(session({
 }));
 
 // Rutas de API
-app.use('/api/coberturas', coberturasRouter);
-app.use('/api/enfermeros', enfermerosRouter);
-app.use('/api/especialidades', especialidadesRouter);
-app.use('/api/internaciones', internacionesRouter);
-app.use('/api/medicos', medicosRouter);
-app.use('/api/origenes', origenesRouter);
-app.use('/api/pacientes', pacientesRouter);
+app.use('/api/coberturas', coberturasRoutes);
+app.use('/api/enfermeros', enfermerosRoutes);
+app.use('/api/especialidades', especialidadesRoutes);
+app.use('/api/diagnosticos', diagnosticosRoutes);
+app.use('/api/internaciones', internacionesRoutes);
+app.use('/api/medicos', medicosRoutes);
+app.use('/api/origenes', origenesRoutes);
+app.use('/api/pacientes', pacientesRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 
 // Rutas de login

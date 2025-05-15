@@ -15,7 +15,10 @@ const medicosController = {
       
       res.json({
         success: true,
-        medicos
+        medicos: [
+        { idmedico: 1, apellidomombres: "Gómez Ana" },
+        { idmedico: 2, apellidomombres: "López Carlos" }
+    ]
       });
     } catch (error) {
       console.error('Error al obtener médicos:', error);

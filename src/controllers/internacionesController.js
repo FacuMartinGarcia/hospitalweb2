@@ -1,7 +1,8 @@
 const db = require('../models');
-const { Internacion, Medico, Paciente, Origen } = db;
+const { Internacion, Medico, Paciente, Origen, Diagnostico } = db;
 
 const internacionesController = {
+
 
   obtenerPorPaciente: async (req, res) => {
     try {
@@ -10,9 +11,10 @@ const internacionesController = {
         where: { idpaciente },
         include: [
           { model: Medico, as: 'medico' },
-          { model: Origen, as: 'origen' }
+          { model: Origen, as: 'origen' },
+          { model: Diagnostico, as: 'diagnostico' }
         ],
-        order: [['fecha_ingreso', 'DESC']]
+        order: [['fechaingreso', 'DESC']]  
       });
       res.status(200).json({ success: true, internaciones });
     } catch (error) {
@@ -20,6 +22,7 @@ const internacionesController = {
       res.status(500).json({ success: false, message: 'Error al obtener internaciones' });
     }
   },
+
 
   crear: async (req, res) => {
     try {
@@ -40,7 +43,8 @@ const internacionesController = {
         include: [
           { model: Medico, as: 'medico' },
           { model: Paciente, as: 'paciente' },
-          { model: Origen, as: 'origen' }
+          { model: Origen, as: 'origen' },
+          { model: Diagnostico, as: 'diagnostico' }
         ]
       });
 

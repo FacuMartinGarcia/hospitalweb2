@@ -40,7 +40,7 @@ const Enfermero = sequelize.define('Enfermero', {
 }, {
   tableName: 'enfermeros',
   timestamps: true,
-  paranoid: true, // Habilita el soft delete usando deletedAt
+  paranoid: true, 
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   deletedAt: 'deletedAt',

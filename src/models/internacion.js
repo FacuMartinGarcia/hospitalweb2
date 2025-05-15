@@ -32,6 +32,14 @@ const Internacion = sequelize.define('Internacion', {
       key: 'idpaciente'
     }
   },
+  iddiagnostico: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'diagnosticos',
+      key: 'iddiagnostico'
+    }
+  },
   fechaingreso: {
     type: DataTypes.DATEONLY,
     allowNull: false
@@ -89,6 +97,11 @@ Internacion.associate = (models) => {
   Internacion.belongsTo(models.Paciente, {
     foreignKey: 'idpaciente',
     as: 'paciente'
+  });
+
+  Internacion.belongsTo(models.Diagnostico, {
+    foreignKey: 'iddiagnostico',
+    as: 'diagnostico'
   });
 };
 Internacion.prototype.esActiva = function () {
