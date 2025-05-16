@@ -38,7 +38,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     btnBuscarPaciente.addEventListener("click", buscarPaciente);
 
-        console.log("ESTOY ENTRANDO A BUSCAR PACIENTE");
         async function buscarPaciente() {
             if (btnBuscarPaciente.textContent === "Nueva búsqueda") {
                 resetearBusqueda();
@@ -83,6 +82,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 mostrarDatosPaciente(pacienteSeleccionado);
                 bloqueardocumento();
+
+
+                verificarInternaciones(pacienteSeleccionado);
                 
                 // deberiamos crear un metodo asi para la internacione activa (abierta, sin fecha de alta)
                 //await verificarInternaciones(pacienteSeleccionado);
@@ -107,7 +109,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
                 throw new Error('Error en la respuesta del servidor');
             }
-            return await response.json();
+            //return await response.json();
+            const data = await response.json();
+            return data;
         } catch (error) {
             console.error('Error al buscar paciente:', error);
             throw error;
@@ -122,7 +126,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
             edad--;
         }
-
         // Obtener nombre de cobertura
         const coberturanombre = paciente.cobertura ? paciente.cobertura.denominacion : "Sin cobertura";
 
@@ -131,28 +134,30 @@ document.addEventListener("DOMContentLoaded", async () => {
             <p><strong>Sexo:</strong> ${paciente.sexo === 'M' ? 'Masculino' : 'Femenino'}</p>
             <p><strong>Fecha Nacimiento:</strong> ${paciente.fechanacimiento} (${edad} años)</p>
             <p><strong>Teléfono:</strong> ${paciente.telefono || 'No registrado'}</p>
-            <p><strong>Cobertura:</strong> ${coberturanombre}</p>
+            <p><strong>Cobertura:</strong> ${coberturanombre} </p>
         `;
+
     }
 
     async function verificarInternaciones(paciente) {
         try {
-            const response = await fetch(`${API_URL_INTERNACIONES}/paciente/${paciente.idPaciente}/activas`);
+            console.log("Paciente que llega sale del frontend");
+            console.log(paciente.idpaciente);
+
+            const response = await fetch(`${API_URL_INTERNACIONES}/paciente/${paciente.idpaciente}/activas`);
             if (!response.ok) {
                 throw new Error('Error al verificar internaciones');
             }
-            
-            const internaciones = await response.json();
-            
-            if (internaciones.length > 0) {
-                // Mostrar la última internación activa
-                mostrarAdmision(internaciones[0]);
+
+            const resultado = await response.json();
+
+            if (resultado.activa) {
+                mostrarAdmision(resultado.internacion);
                 inputDocumento.disabled = true;
                 btnBuscarPaciente.textContent = "Nueva búsqueda";
                 btnRegistrarInternacion.disabled = true;
                 seccionInternacion.style.display = "none";
             } else {
-                // No tiene internaciones activas, mostrar formulario
                 seccionInternacion.style.display = "block";
                 btnRegistrarInternacion.disabled = false;
             }
@@ -257,7 +262,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (!response.ok) throw new Error("Error al cargar orígenes");
             const json =  await response.json();
             const datosOrigenes = json.origenes;
-            //const select = document.getElementById('origen');
             datosOrigenes.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.idorigen;
@@ -275,11 +279,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (!response.ok) throw new Error("Error al cargar médicos");
             const json  = await response.json();
             const datosMedicos = json.medicos;
-            //const selectMedico = document.getElementById('idmedico');
             datosMedicos.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.idmedico;
-                option.textContent = `${item.apellidonombres}`;
+                option.textContent = item.apellidonombres;
                 selectMedico.appendChild(option);
             });
         } catch (error) {

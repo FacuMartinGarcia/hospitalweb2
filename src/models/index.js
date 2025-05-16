@@ -21,5 +21,7 @@ module.exports = {
   Paciente,
   Medico,
   Especialidad,
-  Diagnostico
+  Diagnostico,
+  Internacion,
+  Origen
 };

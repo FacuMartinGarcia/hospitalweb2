@@ -22,7 +22,36 @@ const internacionesController = {
       res.status(500).json({ success: false, message: 'Error al obtener internaciones' });
     }
   },
+  existeInternacionActiva: async (req, res) => {
+    try {
+      const idpaciente = parseInt(req.params.idpaciente);
+      console.log("Paciente que llega al backend");
+      console.log("ID PACIENTE:" + idpaciente);
 
+      const internacionActiva = await Internacion.findOne({
+        where: {
+          idpaciente,
+          fechaalta: null
+        },
+        include: [
+          { model: Medico, as: 'medico' },
+          { model: Origen, as: 'origen' },
+          { model: Diagnostico, as: 'diagnostico' }
+        ],
+        order: [['fechaingreso', 'DESC']]
+      });
+
+      if (internacionActiva) {
+        res.status(200).json({ success: true, activa: true, internacion: internacionActiva });
+      } else {
+        res.status(200).json({ success: true, activa: false });
+        console.log('No hay internaciones activas');
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ success: false, message: 'Error al verificar internación activa' });
+    }
+  },
 
   crear: async (req, res) => {
     try {
