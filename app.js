@@ -85,7 +85,9 @@ app.get('/pacienteslistado', async (req, res) => {
   }
 });
 
+
 // Sincronización de la base de datos y arranque del servidor
+/*
 sequelize.sync()
   .then(() => {
     console.log('Base de datos sincronizada correctamente');
@@ -98,3 +100,24 @@ sequelize.sync()
     console.error('No se pudo conectar a la base de datos.');
     console.error('Detalles:', err.message);
   });
+*/
+  
+sequelize.sync()
+.then(() => {
+  console.log('Base de datos sincronizada correctamente');
+
+  // Solo iniciar el servidor si no se está usando como módulo (Vercel)
+  if (require.main === module) {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    });
+  }
+})
+.catch((err) => {
+  console.error('No se pudo conectar a la base de datos.');
+  console.error('Detalles:', err.message);
+});
+
+module.exports = app; // Exportar para Vercel
+
