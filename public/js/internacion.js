@@ -8,7 +8,7 @@ const API_URL_DIAGNOSTICOS = '/api/diagnosticos';
 let datosMedicos=[];
 let datosOrigenes=[];
 let datosDiagnosticos=[];   
-
+let idinternacionRecuperada=0;
 
 document.addEventListener("DOMContentLoaded", async () => {
 
@@ -22,6 +22,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const selectOrigen = document.getElementById("idorigen");
     const selectDiagnostico = document.getElementById("iddiagnostico");
     const btnRegistrarInternacion = document.getElementById("btnRegistrarInternacion");
+    const seccionCancelarAdmision = document.getElementById("seccionCancelarAdmision");
+    const btnCancelarAdmision = document.getElementById("btnCancelarAdmision");
+    const seccionCamasAsignadas = document.getElementById("seccionCamasAsignadas");
+
     const mensajeBusqueda = document.getElementById("mensajes");
 
     btnRegistrarInternacion.addEventListener("click", registrarInternacion);
@@ -33,8 +37,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     await cargarDiagnosticos();
 
     const hoy = new Date();
-    document.getElementById("fechaInternacion").value = hoy.toISOString().split('T')[0];
-    document.getElementById("horaInternacion").value = hoy.toTimeString().substring(0, 5);
+    document.getElementById("fechaingreso").value = hoy.toISOString().split('T')[0];
+    document.getElementById("horaingreso").value = hoy.toTimeString().substring(0, 5);
 
     btnBuscarPaciente.addEventListener("click", buscarPaciente);
 
@@ -72,8 +76,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                 pacienteSeleccionado = resultado.paciente;
                 
                 // Verificar si el paciente ha fallecido
-                if (pacienteSeleccionado.fechaFallecimiento) {
-                    mostrarMensaje("El paciente ha fallecido el " + pacienteSeleccionado.fechaFallecimiento, "info");
+                if (pacienteSeleccionado.fechafallecimiento) {
+                    Swal.fire({
+                        title: 'Paciente fallecido',
+                        html: `<p>El paciente fue registrado como</p>
+                            <p><strong>fallecido</strong> en el día <strong>${pacienteSeleccionado.fechafallecimiento}</strong>.</p>
+                            <p>No podrá registrar antecedentes en su historia clínica.</p>`,
+                        icon: 'info',
+                        confirmButtonText: 'Entendido'
+                    });
                     btnRegistrarInternacion.disabled = true;
                     mostrarDatosPaciente(pacienteSeleccionado);
                     bloqueardocumento();
@@ -109,7 +120,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
                 throw new Error('Error en la respuesta del servidor');
             }
-            //return await response.json();
             const data = await response.json();
             return data;
         } catch (error) {
@@ -119,30 +129,66 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function mostrarDatosPaciente(paciente) {
-        const fechaNac = new Date(paciente.fechanacimiento);
-        const hoy = new Date();
-        let edad = hoy.getFullYear() - fechaNac.getFullYear();
-        const mes = hoy.getMonth() - fechaNac.getMonth();
-        if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
-            edad--;
+        let edadTexto = "Sin datos";
+        let fechaNacTexto = "Sin datos";
+
+        if (paciente.fechanacimiento) {
+            const fechaNac = new Date(paciente.fechanacimiento);
+            const hoy = new Date();
+            let edad = hoy.getFullYear() - fechaNac.getFullYear();
+            const mes = hoy.getMonth() - fechaNac.getMonth();
+            if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
+                edad--;
+            }
+            fechaNacTexto = paciente.fechanacimiento;
+            edadTexto = `${edad} años`;
         }
-        // Obtener nombre de cobertura
-        const coberturanombre = paciente.cobertura ? paciente.cobertura.denominacion : "Sin cobertura";
+
+        const sexoTexto = paciente.sexo === 'M' ? 'Masculino' : (paciente.sexo === 'F' ? 'Femenino' : 'Sin datos');
+        const coberturaNombre = (paciente.cobertura && paciente.cobertura.denominacion)
+            ? paciente.cobertura.denominacion
+            : "Sin cobertura";
 
         datosPaciente.innerHTML = `
-            <p><strong>Apellido y Nombres:</strong> ${paciente.apellidonombres}</p>
-            <p><strong>Sexo:</strong> ${paciente.sexo === 'M' ? 'Masculino' : 'Femenino'}</p>
-            <p><strong>Fecha Nacimiento:</strong> ${paciente.fechanacimiento} (${edad} años)</p>
-            <p><strong>Teléfono:</strong> ${paciente.telefono || 'No registrado'}</p>
-            <p><strong>Cobertura:</strong> ${coberturanombre} </p>
-        `;
+            <div class="card border shadow-sm mb-3">
+                <div class="card-body">
+                    <h4 class="card-title mb-4 text-center fs-5">Datos del Paciente</h4> <!-- Título agregado -->
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <p><strong>Apellido y Nombres:</strong> ${paciente.apellidonombres}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>Sexo:</strong> ${sexoTexto}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>Teléfono:</strong> ${paciente.telefono || 'No registrado'}</p>
+                        </div>
+                    </div>
 
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <p><strong>Fecha Nacimiento:</strong> ${fechaNacTexto}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Edad:</strong> ${edadTexto}</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <p><strong>Cobertura:</strong> ${coberturaNombre}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
+
+
     async function verificarInternaciones(paciente) {
+        idinternacionRecuperada = 0;
         try {
-            console.log("Paciente que llega sale del frontend");
-            console.log(paciente.idpaciente);
 
             const response = await fetch(`${API_URL_INTERNACIONES}/paciente/${paciente.idpaciente}/activas`);
             if (!response.ok) {
@@ -152,11 +198,16 @@ document.addEventListener("DOMContentLoaded", async () => {
             const resultado = await response.json();
 
             if (resultado.activa) {
+               
+                
+                idinternacionRecuperada = resultado.internacion.idinternacion;
                 mostrarAdmision(resultado.internacion);
                 inputDocumento.disabled = true;
                 btnBuscarPaciente.textContent = "Nueva búsqueda";
                 btnRegistrarInternacion.disabled = true;
                 seccionInternacion.style.display = "none";
+                seccionCancelarAdmision.style.display = "block";
+                btnCancelarAdmision.disabled = false;
             } else {
                 seccionInternacion.style.display = "block";
                 btnRegistrarInternacion.disabled = false;
@@ -169,44 +220,162 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function mostrarAdmision(internacion) {
         datosInternacion.innerHTML = `
-            <p><strong>Origen:</strong> ${internacion.origen}</p>
-            <p><strong>Médico:</strong> ${internacion.medico.apellidoNombres}</p>
-            <p><strong>Fecha Internación:</strong> ${internacion.fechaInternacion}</p>
-            <p><strong>Hora Internación:</strong> ${internacion.horaInternacion}</p>
-            <p><strong>Motivo:</strong> ${internacion.motivo}</p>            
+            <div class="card border shadow-sm mb-3">
+                <div class="card-body">
+                    <h4 class="card-title mb-4 text-center fs-5">Datos de Admisión</h4> <!-- Título -->
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <p><strong>Origen:</strong> ${internacion.origen.denominacion}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Médico:</strong> ${internacion.medico.apellidonombres}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-12">
+                            <p><strong>Diagnóstico:</strong> ${internacion.diagnostico.descripcion}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <p><strong>Fecha Ingreso:</strong> ${internacion.fechaingreso}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Hora Ingreso:</strong> ${internacion.horaingreso}</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <p><strong>Observaciones:</strong> ${internacion.observaciones}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         `;
     }
 
-    function validarDatos(form) {
-        let origen = form.origen.value; 
-        let medico = form.medico.value;
-        let fechaInternacion = form.fechaInternacion.value;
-        let horaInternacion = form.horaInternacion.value;
-        let motivo = form.motivo.value;
+        // Asumiendo que tienes el idInternacion disponible (ej: desde un campo oculto o variable global)
+    btnCancelarAdmision.addEventListener("click", async () => {
+            
+            /*
+            TERMINAR LA FUNCION PARA VERIFICAR REGISTROS RELACIONADOS;
+            TABLAS: 
+            internacion_estudios, terapias, cirugias, evmedica, evenfermeria,medicamentos, cama?
+            const tieneRegistrosAsociados = await verificarRegistrosAsociados(idinternacion);
+            
+            if (tieneRegistrosAsociados) {
+                Swal.fire({
+                    title: 'No se puede cancelar',
+                    html: `Esta admisión tiene registros asociados en el sistema.<br>
+                        <small>Elimine primero los registros relacionados antes de cancelar.</small>`,
+                    icon: 'error',
+                    confirmButtonText: 'Entendido'
+                });
+                return;
+            }
+            */
+        Swal.fire({
+            title: '¿Cancelar admisión?',
+            html: `Esta acción <strong>eliminará permanentemente</strong> el registro de admisión.<br>
+                <small>ID: ${idinternacionRecuperada}</small>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, cancelar',
+            cancelButtonText: 'No, volver',
+            reverseButtons: true,
+            focusCancel: true
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/api/internaciones/${idinternacionRecuperada}/cancelar`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
 
-        let fechaInter = new Date(fechaInternacion);
+                    const data = await response.json();
+
+                    if (data.success) {
+                        Swal.fire({
+                            title: '¡Cancelada!',
+                            text: 'La admisión fue cancelada exitosamente.',
+                            icon: 'success',
+                            confirmButtonText: 'Cerrar'
+                        }).then(() => {
+                            location.reload(); // O reemplazar esto por lógica que limpie la UI sin recargar
+                        });
+                    } else {
+                        throw new Error(data.message || 'No se pudo cancelar la admisión.');
+                    }
+                } catch (error) {
+                    Swal.fire({
+                        title: 'Error',
+                        text: error.message,
+                        icon: 'error',
+                        confirmButtonText: 'Cerrar'
+                    });
+                    console.error('Error cancelando admisión:', error);
+                }
+            }
+        });
+
+
+    });
+
+    /*
+    async function verificarRegistrosAsociados(idinternacion) {
+
+    }
+    */
+
+    function validarDatos(form) {
+        let origen = form.idorigen.value;
+        let medico = form.idmedico.value;
+        let diagnostico = form.iddiagnostico.value;
+        let fechaingreso = form.fechaingreso.value;
+        let horaingreso = form.horaingreso.value;
+
+        let fechainter = new Date(fechaingreso);
         let hoy = new Date();
         let hace1mes = new Date(hoy);
         hace1mes.setMonth(hace1mes.getMonth() - 1);
-        
-        if (fechaInter > hoy || fechaInter < hace1mes) {
+
+        if (fechainter > hoy || fechainter < hace1mes) {
             mostrarMensaje('La fecha de internación debe ser dentro del último mes y no puede estar en el futuro.', 0);
             return false;
+        }
+
+        const fechaIngresadaEsHoy = (
+            fechainter.getFullYear() === hoy.getFullYear() &&
+            fechainter.getMonth() === hoy.getMonth() &&
+            fechainter.getDate() === hoy.getDate()
+        );
+
+        if (fechaIngresadaEsHoy) {
+            const [hora, minuto] = horaingreso.split(':').map(Number);
+            const horaInter = new Date(fechainter);
+            horaInter.setHours(hora, minuto, 0);
+
+            if (horaInter < hoy) {
+                mostrarMensaje('La hora de internación no puede ser anterior a la hora actual.', 0);
+                return false;
+            }
         }
 
         if (origen === "") {
             mostrarMensaje('Debe seleccionar un origen.', 0);
             return false;
         }
-        
+
         if (medico === "") {
             mostrarMensaje('Debe seleccionar un médico.', 0);
             return false;   
         }
-        
-        if (motivo.trim() === "") {
-            mostrarMensaje('Debe ingresar un motivo de internación.', 0);
-            return false;
+
+        if (diagnostico === "") {
+            mostrarMensaje('Debe seleccionar un diagnóstico.', 0);
+            return false;   
         }
 
         return true;
@@ -218,13 +387,29 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!validarDatos(formInternacion)) return;
 
         const nuevaInternacion = {
-            idPaciente: pacienteSeleccionado.idPaciente,
-            origen: formInternacion.origen.value,
-            idMedico: Number(formInternacion.medico.value),
-            fechaInternacion: formInternacion.fechaInternacion.value,
-            horaInternacion: formInternacion.horaInternacion.value,
-            motivo: formInternacion.motivo.value
+            idpaciente: pacienteSeleccionado.idpaciente,
+            idorigen: Number(formInternacion.idorigen.value),
+            idmedico: Number(formInternacion.idmedico.value),
+            iddiagnostico: Number(formInternacion.iddiagnostico.value),
+            fechaingreso: formInternacion.fechaingreso.value,
+            horaingreso: formInternacion.horaingreso.value,
+            observaciones: formInternacion.observaciones.value
         };
+
+        const resultadoConfirmacion = await Swal.fire({
+            title: '¿Desea continuar?',
+            html: `<p>Va a registrar los datos de admisión para la internación.</p>
+                <p class="fw-bold text-danger">Estos datos no podrán ser modificados luego de registrar movimientos en la historia clínica del paciente.</p>
+                <p>¿Está seguro que desea continuar?</p>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, continuar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (!resultadoConfirmacion.isConfirmed) {
+            return; 
+        }
 
         try {
             const response = await fetch(API_URL_INTERNACIONES, {
@@ -237,10 +422,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 throw new Error('Error al registrar internación');
             }
 
-            const resultado = await response.json();
-            
-            mostrarMensaje("Internación registrada con éxito.", 1);
-            
+            await Swal.fire({
+                title: 'Éxito',
+                text: 'Internación registrada correctamente.',
+                icon: 'success',
+                confirmButtonText: 'Cerrar'
+            });
+
             formInternacion.reset();
             seccionInternacion.style.display = "none";
             limpiarDatosPaciente();
@@ -252,16 +440,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         } catch (error) {
             console.error('Error al registrar internación:', error);
-            mostrarMensaje("Error al registrar la internación", "error");
+            Swal.fire({
+                title: 'Error',
+                text: 'Error al registrar la internación',
+                icon: 'error',
+                confirmButtonText: 'Cerrar'
+            });
         }
     }
+
 
     async function cargarOrigenes() {
         try {
             const response = await fetch('/api/origenes');
             if (!response.ok) throw new Error("Error al cargar orígenes");
             const json =  await response.json();
-            const datosOrigenes = json.origenes;
+            datosOrigenes = json.origenes;
             datosOrigenes.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.idorigen;
@@ -278,7 +472,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const response = await fetch('/api/medicos');
             if (!response.ok) throw new Error("Error al cargar médicos");
             const json  = await response.json();
-            const datosMedicos = json.medicos;
+            datosMedicos = json.medicos;
             datosMedicos.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.idmedico;
@@ -294,7 +488,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         try {
             const response = await fetch('/api/diagnosticos');
             if (!response.ok) throw new Error("Error al cargar diagnósticos");
-            const datosDiagnosticos = await response.json();
+            datosDiagnosticos = await response.json();
             //const select = document.getElementById('diagnostico');
             datosDiagnosticos.forEach(item => {
                 const option = document.createElement('option');

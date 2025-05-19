@@ -48,7 +48,7 @@ const Internacion = sequelize.define('Internacion', {
     type: DataTypes.TIME,
     allowNull: false
   },
-  motivo: {
+  observaciones: {
     type: DataTypes.TEXT,
     allowNull: true
   },

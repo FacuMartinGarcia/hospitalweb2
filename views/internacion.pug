@@ -12,49 +12,76 @@ block content
       // Sección Datos del Paciente
       .row.mb-3
         .col-md-8
-          input.form-control#documento(type="text", placeholder="Ingrese el documento del paciente", required, autocomplete="off")
+          input.form-control#documento.text-center.fw-bold.fs-5(
+            type="text", 
+            placeholder="Ingrese el documento del paciente", 
+            required, 
+            autocomplete="off"
+          )
         .col-md-4
-          button.btn.btn-primary.w-100(type="button", id="btnBuscarPaciente") Buscar Paciente
+          button.btn.btn-primary.w-100(
+            type="button", 
+            id="btnBuscarPaciente"
+          ) Buscar Paciente
 
       #mensajePaciente.text-danger.mt-2.text-center
 
       #datosPaciente
 
-      // Sección Datos de Internación (va oculta por defecto)
+      // Sección Datos de Internación (oculta por defecto)
       .section.mt-4#seccionInternacion(style="display: none;")
         h5.text-center.mb-4 Datos de Admisión
 
         form#formInternacion
           .row.mb-3
             .col-md-6
-              label(for="origen") Origen:
+              label.form-label(for="origen") Origen:
               select#idorigen.form-select(name="idorigen", required)
                 option(value="") Seleccione un origen...
-
             .col-md-6
-              label(for="medico") Médico:
+              label.form-label(for="medico") Médico:
               select#idmedico.form-select(name="idmedico", required)
                 option(value="") Seleccione un médico...
-                
-            .form-group
-              label(for="diagnostico") Diagnóstico
+
+          .row.mb-3
+            .col-md-12
+              label.form-label(for="diagnostico") Diagnóstico:
               select#iddiagnostico.form-select(name="iddiagnostico", required)
                 option(value="") Seleccione...
 
           .row.mb-3
             .col-md-6
-              label.form-label(for="fechaInternacion") Fecha de admisión:
-              input.form-control#fechaInternacion(type="date", required)
+              label.form-label(for="fechaingreso") Fecha de admisión:
+              input.form-control#fechaingreso(type="date", name="fechaingreso", required)
             .col-md-6
-              label.form-label(for="horaInternacion") Hora de admisión:
-              input.form-control#horaInternacion(type="time", required)
+              label.form-label(for="horaingreso") Hora de admisión:
+              input.form-control#horaingreso(type="time", name="horaingreso", required)
 
           .mb-3
             label.form-label(for="motivo") Motivo:
-            textarea.form-control#motivo(rows="3", required)
+            textarea.form-control#motivo(name="motivo", rows="3", required)
 
           button.btn.btn-success.w-100.mt-3#btnRegistrarInternacion(type="submit") Registrar Internación
 
       #datosInternacion
+
+      // Botón para cancelar admisión (oculto por defecto)
+      .section.mt-4#seccionCancelarAdmision(style="display: none;")
+        button.btn.btn-danger.w-100#btnCancelarAdmision Cancelar Admisión
+
+      // Tabla de camas asignadas al paciente (oculta por defecto)
+      .section.mt-4#seccionCamasAsignadas(style="display: none;")
+        h5.text-center.mb-3 Camas asignadas al paciente
+        table.table.table-bordered
+          thead
+            tr.text-center
+              th Desde
+              th Hasta
+              th Unidad
+              th Habitación
+              th N° Cama
+          tbody#tablaCamas
+            // Las filas se llenarán dinámicamente desde JS
+
 
   #mensajes.text-danger.mt-3.text-center

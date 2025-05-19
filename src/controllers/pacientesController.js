@@ -7,7 +7,15 @@ const pacientesController = {
   buscarPorDocumento: async (req, res) => {
     try {
       const documento = parseInt(req.params.documento);
-      const paciente = await Paciente.findOne({ where: { documento } });
+
+      const paciente = await Paciente.findOne({
+        where: { documento },
+        include: {
+          model: Cobertura,
+          as: 'cobertura', 
+          attributes: ['idcobertura', 'denominacion'] 
+        }
+      });
 
       if (!paciente) {
         return res.status(404).json({ success: false, error: 'Paciente no encontrado' });

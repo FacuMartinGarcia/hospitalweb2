@@ -25,9 +25,6 @@ const internacionesController = {
   existeInternacionActiva: async (req, res) => {
     try {
       const idpaciente = parseInt(req.params.idpaciente);
-      console.log("Paciente que llega al backend");
-      console.log("ID PACIENTE:" + idpaciente);
-
       const internacionActiva = await Internacion.findOne({
         where: {
           idpaciente,
@@ -53,17 +50,90 @@ const internacionesController = {
     }
   },
 
+  cancelarAdmision: async (req, res) => {
+      try {
+          const idinternacion = parseInt(req.params.id);
+
+          const internacion = await Internacion.findByPk(idinternacion);
+          if (!internacion) {
+              return res.status(404).json({ 
+                  success: false, 
+                  message: 'Internación no encontrada' 
+              });
+          }
+
+          await internacion.destroy();
+
+          res.status(200).json({ 
+              success: true, 
+              message: 'Internación cancelada exitosamente' 
+          });
+
+      } catch (error) {
+          console.error(error);
+          res.status(500).json({ 
+              success: false, 
+              message: 'Error al cancelar la internación',
+              error: error.message 
+          });
+      }
+  },
+  
   crear: async (req, res) => {
     try {
-      const datos = req.body;
-      const internacion = await Internacion.create(datos);
+      const {
+        idpaciente,
+        idorigen,
+        idmedico,
+        iddiagnostico,
+        fechaingreso,
+        horaingreso,
+        observaciones
+      } = req.body;
+
+      if (!idpaciente || !idorigen || !idmedico || !iddiagnostico || !fechaingreso || !horaingreso) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Todos los campos son obligatorios." 
+        });
+      }
+
+      if (typeof idpaciente !== 'number' || isNaN(idpaciente)) {
+        return res.status(400).json({ success: false, message: "ID de paciente inválido." });
+      }
+
+      const internacionActiva = await Internacion.findOne({
+        where: {
+          idpaciente,
+          fechaalta: null
+        }
+      });
+
+      if (internacionActiva) {
+        return res.status(400).json({
+          success: false,
+          message: "El paciente ya tiene una internación activa."
+        });
+      }
+
+      const internacion = await Internacion.create({
+        idpaciente,
+        idorigen,
+        idmedico,
+        iddiagnostico,
+        fechaingreso,
+        horaingreso,
+        observaciones
+      });
+
+
       res.status(201).json({ success: true, internacion });
+
     } catch (error) {
       console.error(error);
       res.status(500).json({ success: false, message: 'Error al registrar la internación' });
     }
   },
-
 
   buscarPorId: async (req, res) => {
     try {
