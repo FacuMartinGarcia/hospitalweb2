@@ -8,7 +8,12 @@ html(lang="es")
     link(rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css")
 
     style.
-    
+      html, body {
+        height: 100%;
+        margin: 0;
+        background: linear-gradient(to right, #4facfe, #00f2fe);
+      }
+
       .navbar-nav .dropdown-menu {
         background-color: #1c1c1c;
         border: none;
@@ -103,7 +108,7 @@ html(lang="es")
     // Área de contenido
     .container.mt-4
       block content
-
+    
     script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js")
     script.
       function actualizarFechaHora() {
