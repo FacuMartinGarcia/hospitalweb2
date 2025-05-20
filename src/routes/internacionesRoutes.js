@@ -7,7 +7,6 @@ router.get('/paciente/:idpaciente', internacionesController.obtenerPorPaciente);
 router.post('/', internacionesController.crear);
 router.get('/:id', internacionesController.buscarPorId);
 router.put('/:id', internacionesController.actualizar);
-router.delete('/:id', internacionesController.cancelarAdmision);
-
+router.delete('/:id/cancelarAdmision', internacionesController.cancelarAdmision);
 module.exports = router;
  

@@ -10,10 +10,12 @@ const coberturasRoutes = require('./src/routes/coberturasRoutes');
 const diagnosticosRoutes = require('./src/routes/diagnosticosRoutes');
 const enfermerosRoutes = require('./src/routes/enfermerosRoutes');
 const especialidadesRoutes = require('./src/routes/especialidadesRoutes');
+const infraestructuraRoutes = require('./src/routes/infraestructuraRoutes');
 const internacionesRoutes = require('./src/routes/internacionesRoutes');
 const medicosRoutes = require('./src/routes/medicosRoutes');
 const origenesRoutes = require('./src/routes/origenesRoutes');
 const pacientesRoutes = require('./src/routes/pacientesRoutes');
+const unidadesRoutes = require('./src/routes/unidadesRoutes');
 const usuariosRoutes = require('./src/routes/usuariosRoutes');
 const loginRoutes = require('./src/routes/loginRoutes');
 
@@ -37,11 +39,14 @@ app.use('/api/coberturas', coberturasRoutes);
 app.use('/api/enfermeros', enfermerosRoutes);
 app.use('/api/especialidades', especialidadesRoutes);
 app.use('/api/diagnosticos', diagnosticosRoutes);
+app.use('/api/infraestructura', infraestructuraRoutes);
 app.use('/api/internaciones', internacionesRoutes);
 app.use('/api/medicos', medicosRoutes);
 app.use('/api/origenes', origenesRoutes);
 app.use('/api/pacientes', pacientesRoutes);
+app.use('/api/unidades', unidadesRoutes);
 app.use('/api/usuarios', usuariosRoutes);
+
 
 // Rutas de login
 app.use('/login', loginRoutes);

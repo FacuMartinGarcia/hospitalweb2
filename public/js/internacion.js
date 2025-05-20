@@ -4,11 +4,14 @@ const API_URL_COBERTURAS = '/api/coberturas';
 const API_URL_MEDICOS = '/api/medicos';
 const API_URL_ORIGENES = '/api/origenes';
 const API_URL_DIAGNOSTICOS = '/api/diagnosticos';
+const API_URL_INFRAESTRUCTURA = '/api/infraestructura';
+const API_URL_UNIDADES = '/api/unidades';
 
 let datosMedicos=[];
 let datosOrigenes=[];
 let datosDiagnosticos=[];   
 let idinternacionRecuperada=0;
+
 
 document.addEventListener("DOMContentLoaded", async () => {
 
@@ -208,6 +211,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 seccionInternacion.style.display = "none";
                 seccionCancelarAdmision.style.display = "block";
                 btnCancelarAdmision.disabled = false;
+                seccionCamasAsignadas.style.display = "block";
+                seleccionarUnidadYBuscarHabitaciones(paciente.sexo);
             } else {
                 seccionInternacion.style.display = "block";
                 btnRegistrarInternacion.disabled = false;
@@ -252,6 +257,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 </div>
             </div>
         `;
+
     }
 
         // Asumiendo que tienes el idInternacion disponible (ej: desde un campo oculto o variable global)
@@ -287,7 +293,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const response = await fetch(`/api/internaciones/${idinternacionRecuperada}/cancelar`, {
+                    const response = await fetch(`/api/internaciones/${idinternacionRecuperada}/cancelarAdmision`, {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json'
@@ -322,12 +328,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     });
-
-    /*
-    async function verificarRegistrosAsociados(idinternacion) {
-
-    }
-    */
 
     function validarDatos(form) {
         let origen = form.idorigen.value;
@@ -452,7 +452,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function cargarOrigenes() {
         try {
-            const response = await fetch('/api/origenes');
+            const response = await fetch(API_URL_ORIGENES);
             if (!response.ok) throw new Error("Error al cargar orígenes");
             const json =  await response.json();
             datosOrigenes = json.origenes;
@@ -469,7 +469,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function cargarMedicos() {
         try {
-            const response = await fetch('/api/medicos');
+            const response = await fetch(API_URL_MEDICOS);
             if (!response.ok) throw new Error("Error al cargar médicos");
             const json  = await response.json();
             datosMedicos = json.medicos;
@@ -486,7 +486,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function cargarDiagnosticos() {
         try {
-            const response = await fetch('/api/diagnosticos');
+            const response = await fetch(API_URL_DIAGNOSTICOS);
             if (!response.ok) throw new Error("Error al cargar diagnósticos");
             datosDiagnosticos = await response.json();
             //const select = document.getElementById('diagnostico');
@@ -501,6 +501,83 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    async function seleccionarUnidadYBuscarHabitaciones(sexoPaciente) {
+        
+        try {
+            const unidadesResponse = await fetch(API_URL_UNIDADES);
+            const unidadesData = await unidadesResponse.json();
+            if (!unidadesData.success) {
+                throw new Error('No se pudieron cargar las unidades');
+            }
+
+            const selectHtml = `
+            <div style="text-align: center;">
+                <select id="swal-select-unidad" style="
+                width: 90%;
+                font-size: 14px;
+                padding: 6px 8px;
+                border-radius: 4px;
+                margin-top: 10px;
+                max-width: 300px;
+                ">
+                <option value="">Seleccione una unidad...</option>
+                ${unidadesData.unidades.map(u => `<option value="${u.idunidad}">${u.denominacion}</option>`).join('')}
+                </select>
+            </div>
+            `;
+
+
+            const { value: confirm } = await Swal.fire({
+            title: 'Seleccionar unidad',
+            html: selectHtml,
+            preConfirm: () => {
+                const unidadSeleccionada = document.getElementById('swal-select-unidad').value;
+                if (!unidadSeleccionada) {
+                    Swal.showValidationMessage('Debe seleccionar una unidad');
+                }
+                return unidadSeleccionada;
+            },
+            showCancelButton: true,
+            confirmButtonText: 'Buscar habitaciones'
+            });
+
+            if (confirm) await cargarHabitacionesCompatibles(confirm, sexoPaciente);
+
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire('Error', error.message || 'Algo salió mal', 'error');
+        }
+    }
+
+
+    async function cargarHabitacionesCompatibles(idunidad, sexo) {
+
+        console.log(`Cargando habitaciones compatibles para unidad ${idunidad} y sexo ${sexo}`);
+        console.log(`FETCH --> /api/infraestructura/habitaciones-compatibles?idunidad=${idunidad}&sexo=${sexo}`);
+
+        try {
+            const response = await fetch(`/api/infraestructura/habitaciones-compatibles?idunidad=${idunidad}&sexo=${sexo}`);
+            const data = await response.json();
+
+            if (data.success) {
+            const select = document.getElementById('comboHabitaciones');
+            select.innerHTML = '<option value="">Seleccione una habitación...</option>';
+
+            data.habitaciones.forEach(h => {
+                const option = document.createElement('option');
+                option.value = h.idhabitacion;
+                option.textContent = h.nombrehabitacion;
+                select.appendChild(option);
+            });
+            } else {
+            Swal.fire('Error', data.message || 'No se pudieron cargar habitaciones', 'error');
+            }
+        } catch (error) {
+            console.error(error);
+            Swal.fire('Error', 'Fallo en la carga de habitaciones', 'error');
+        }
+    }
+
 
     function resetearBusqueda() {
         inputDocumento.value = "";
@@ -510,12 +587,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         datosInternacion.innerHTML = "";
         seccionInternacion.style.display = "none";
         btnRegistrarInternacion.disabled = false;
+        seccionCancelarAdmision.style.display = "none";
+        seccionCamasAsignadas.style.display = "none";
         inputDocumento.focus();
     }
 
     function limpiarDatosPaciente() {
         datosPaciente.innerHTML = "";
         pacienteSeleccionado = null;
+
+
     }
 
     function bloqueardocumento() {

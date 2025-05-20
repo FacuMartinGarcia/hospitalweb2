@@ -59,15 +59,17 @@ block content
 
           .mb-3
             label.form-label(for="motivo") Motivo:
-            textarea.form-control#motivo(name="motivo", rows="3", required)
+            textarea.form-control#observaciones(name="observaciones", rows="3", required)
 
           button.btn.btn-success.w-100.mt-3#btnRegistrarInternacion(type="submit") Registrar Internación
 
       #datosInternacion
 
-      // Botón para cancelar admisión (oculto por defecto)
+      // Botones de acciones (Asignación de Cama y Cancelar Admisión)
       .section.mt-4#seccionCancelarAdmision(style="display: none;")
-        button.btn.btn-danger.w-100#btnCancelarAdmision Cancelar Admisión
+        .d-flex.gap-2
+          button.btn.btn-danger.flex-fill#btnCancelarAdmision Cancelar Admisión
+          button.btn.btn-primary.flex-fill#btnAsignarCama(style="background-color: #007bff; border-color: #007bff;") Asignación de Cama
 
       // Tabla de camas asignadas al paciente (oculta por defecto)
       .section.mt-4#seccionCamasAsignadas(style="display: none;")
