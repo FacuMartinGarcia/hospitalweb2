@@ -79,6 +79,10 @@ app.get('/enfermeros', (req, res) => {
 app.get('/internacion', (req, res) => {
   res.render('internacion');
 });
+app.get('/atencionmedica', (req, res) => {
+  res.render('atencionmedica');
+});
+
 
 //  Vista de listado de pacientes
 app.get('/pacienteslistado', async (req, res) => {
