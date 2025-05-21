@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const btnRegistrarInternacion = document.getElementById("btnRegistrarInternacion");
     const seccionCancelarAdmision = document.getElementById("seccionCancelarAdmision");
     const btnCancelarAdmision = document.getElementById("btnCancelarAdmision");
+    const btnAsignarCama = document.getElementById("btnAsignarCama");
     const seccionCamasAsignadas = document.getElementById("seccionCamasAsignadas");
 
     const mensajeBusqueda = document.getElementById("mensajes");
@@ -46,6 +47,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     btnBuscarPaciente.addEventListener("click", buscarPaciente);
 
         async function buscarPaciente() {
+      
             if (btnBuscarPaciente.textContent === "Nueva búsqueda") {
                 resetearBusqueda();
                 return;
@@ -59,6 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
             try {
+                
                 const resultado = await buscarPacienteAPI(documento);
                 
                 if (!resultado || !resultado.paciente) {
@@ -96,13 +99,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 mostrarDatosPaciente(pacienteSeleccionado);
                 bloqueardocumento();
-
-
                 verificarInternaciones(pacienteSeleccionado);
                 
-                // deberiamos crear un metodo asi para la internacione activa (abierta, sin fecha de alta)
-                //await verificarInternaciones(pacienteSeleccionado);
-
             } catch (error) {
                 console.error('Error en búsqueda:', error);
                 Swal.fire({
@@ -114,153 +112,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         }
 
-    async function buscarPacienteAPI(documento) {
-        try {
-            const response = await fetch(`${API_URL_PACIENTES}/${documento}`);
-            if (!response.ok) {
-                if (response.status === 404) {
-                    return null; // paciente no encontrado
-                }
-                throw new Error('Error en la respuesta del servidor');
-            }
-            const data = await response.json();
-            return data;
-        } catch (error) {
-            console.error('Error al buscar paciente:', error);
-            throw error;
-        }
-    }
-
-    function mostrarDatosPaciente(paciente) {
-        let edadTexto = "Sin datos";
-        let fechaNacTexto = "Sin datos";
-
-        if (paciente.fechanacimiento) {
-            const fechaNac = new Date(paciente.fechanacimiento);
-            const hoy = new Date();
-            let edad = hoy.getFullYear() - fechaNac.getFullYear();
-            const mes = hoy.getMonth() - fechaNac.getMonth();
-            if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
-                edad--;
-            }
-            fechaNacTexto = paciente.fechanacimiento;
-            edadTexto = `${edad} años`;
-        }
-
-        const sexoTexto = paciente.sexo === 'M' ? 'Masculino' : (paciente.sexo === 'F' ? 'Femenino' : 'Sin datos');
-        const coberturaNombre = (paciente.cobertura && paciente.cobertura.denominacion)
-            ? paciente.cobertura.denominacion
-            : "Sin cobertura";
-
-        datosPaciente.innerHTML = `
-            <div class="card border shadow-sm mb-3">
-                <div class="card-body">
-                    <h4 class="card-title mb-4 text-center fs-5">Datos del Paciente</h4> <!-- Título agregado -->
-                    <div class="row mb-2">
-                        <div class="col-md-6">
-                            <p><strong>Apellido y Nombres:</strong> ${paciente.apellidonombres}</p>
-                        </div>
-                        <div class="col-md-3">
-                            <p><strong>Sexo:</strong> ${sexoTexto}</p>
-                        </div>
-                        <div class="col-md-3">
-                            <p><strong>Teléfono:</strong> ${paciente.telefono || 'No registrado'}</p>
-                        </div>
-                    </div>
-
-                    <div class="row mb-2">
-                        <div class="col-md-6">
-                            <p><strong>Fecha Nacimiento:</strong> ${fechaNacTexto}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Edad:</strong> ${edadTexto}</p>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-12">
-                            <p><strong>Cobertura:</strong> ${coberturaNombre}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-
-
-    async function verificarInternaciones(paciente) {
-        idinternacionRecuperada = 0;
-        try {
-
-            const response = await fetch(`${API_URL_INTERNACIONES}/paciente/${paciente.idpaciente}/activas`);
-            if (!response.ok) {
-                throw new Error('Error al verificar internaciones');
-            }
-
-            const resultado = await response.json();
-
-            if (resultado.activa) {
-               
-                
-                idinternacionRecuperada = resultado.internacion.idinternacion;
-                mostrarAdmision(resultado.internacion);
-                inputDocumento.disabled = true;
-                btnBuscarPaciente.textContent = "Nueva búsqueda";
-                btnRegistrarInternacion.disabled = true;
-                seccionInternacion.style.display = "none";
-                seccionCancelarAdmision.style.display = "block";
-                btnCancelarAdmision.disabled = false;
-                seccionCamasAsignadas.style.display = "block";
-                seleccionarUnidadYBuscarHabitaciones(paciente.sexo);
-            } else {
-                seccionInternacion.style.display = "block";
-                btnRegistrarInternacion.disabled = false;
-            }
-        } catch (error) {
-            console.error('Error al verificar internaciones:', error);
-            mostrarMensaje("Error al verificar internaciones del paciente", "error");
-        }
-    }
-
-    function mostrarAdmision(internacion) {
-        datosInternacion.innerHTML = `
-            <div class="card border shadow-sm mb-3">
-                <div class="card-body">
-                    <h4 class="card-title mb-4 text-center fs-5">Datos de Admisión</h4> <!-- Título -->
-                    <div class="row mb-2">
-                        <div class="col-md-6">
-                            <p><strong>Origen:</strong> ${internacion.origen.denominacion}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Médico:</strong> ${internacion.medico.apellidonombres}</p>
-                        </div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-md-12">
-                            <p><strong>Diagnóstico:</strong> ${internacion.diagnostico.descripcion}</p>
-                        </div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-md-6">
-                            <p><strong>Fecha Ingreso:</strong> ${internacion.fechaingreso}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Hora Ingreso:</strong> ${internacion.horaingreso}</p>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <p><strong>Observaciones:</strong> ${internacion.observaciones}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-    }
-
-        // Asumiendo que tienes el idInternacion disponible (ej: desde un campo oculto o variable global)
     btnCancelarAdmision.addEventListener("click", async () => {
             
             /*
@@ -329,58 +180,164 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     });
 
-    function validarDatos(form) {
-        let origen = form.idorigen.value;
-        let medico = form.idmedico.value;
-        let diagnostico = form.iddiagnostico.value;
-        let fechaingreso = form.fechaingreso.value;
-        let horaingreso = form.horaingreso.value;
-
-        let fechainter = new Date(fechaingreso);
-        let hoy = new Date();
-        let hace1mes = new Date(hoy);
-        hace1mes.setMonth(hace1mes.getMonth() - 1);
-
-        if (fechainter > hoy || fechainter < hace1mes) {
-            mostrarMensaje('La fecha de internación debe ser dentro del último mes y no puede estar en el futuro.', 0);
-            return false;
-        }
-
-        const fechaIngresadaEsHoy = (
-            fechainter.getFullYear() === hoy.getFullYear() &&
-            fechainter.getMonth() === hoy.getMonth() &&
-            fechainter.getDate() === hoy.getDate()
-        );
-
-        if (fechaIngresadaEsHoy) {
-            const [hora, minuto] = horaingreso.split(':').map(Number);
-            const horaInter = new Date(fechainter);
-            horaInter.setHours(hora, minuto, 0);
-
-            if (horaInter < hoy) {
-                mostrarMensaje('La hora de internación no puede ser anterior a la hora actual.', 0);
-                return false;
+    btnAsignarCama.addEventListener("click", async () => {
+            
+        try {
+            const camaSeleccionada = await seleccionarUnidadYCama(pacienteSeleccionado.sexo);
+            if (camaSeleccionada) {
+                asignarCama(idinternacionRecuperada, camaSeleccionada.idcama);
             }
+        } catch (error) {
+            console.error("Error al asignar cama:", error);
+            Swal.fire('Error', 'Ocurrió un error inesperado', 'error');
         }
-
-        if (origen === "") {
-            mostrarMensaje('Debe seleccionar un origen.', 0);
-            return false;
+        
+    });
+     
+    async function buscarPacienteAPI(documento) {
+        try {
+            const response = await fetch(`${API_URL_PACIENTES}/${documento}`);
+            if (!response.ok) {
+                if (response.status === 404) {
+                    return null; 
+                }
+                throw new Error('Error en la respuesta del servidor');
+            }
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error al buscar paciente:', error);
+            throw error;
         }
-
-        if (medico === "") {
-            mostrarMensaje('Debe seleccionar un médico.', 0);
-            return false;   
-        }
-
-        if (diagnostico === "") {
-            mostrarMensaje('Debe seleccionar un diagnóstico.', 0);
-            return false;   
-        }
-
-        return true;
     }
 
+    
+    async function mostrarDatosPaciente(paciente) {
+        let edadTexto = "Sin datos";
+        let fechaNacTexto = "Sin datos";
+
+        if (paciente.fechanacimiento) {
+            const fechaNac = new Date(paciente.fechanacimiento);
+            const hoy = new Date();
+            let edad = hoy.getFullYear() - fechaNac.getFullYear();
+            const mes = hoy.getMonth() - fechaNac.getMonth();
+            if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
+                edad--;
+            }
+            fechaNacTexto = paciente.fechanacimiento;
+            edadTexto = `${edad} años`;
+        }
+
+        const sexoTexto = paciente.sexo === 'M' ? 'Masculino' : (paciente.sexo === 'F' ? 'Femenino' : 'Sin datos');
+        const coberturaNombre = (paciente.cobertura && paciente.cobertura.denominacion)
+            ? paciente.cobertura.denominacion
+            : "Sin cobertura";
+
+        datosPaciente.innerHTML = `
+            <div class="card border shadow-sm mb-3">
+                <div class="card-body">
+                    <h4 class="card-title mb-4 text-center fs-5">Datos del Paciente</h4> <!-- Título agregado -->
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <p><strong>Apellido y Nombres:</strong> ${paciente.apellidonombres}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>Sexo:</strong> ${sexoTexto}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p><strong>Teléfono:</strong> ${paciente.telefono || 'No registrado'}</p>
+                        </div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <p><strong>Fecha Nacimiento:</strong> ${fechaNacTexto}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Edad:</strong> ${edadTexto}</p>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <p><strong>Cobertura:</strong> ${coberturaNombre}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    async function verificarInternaciones(paciente) {
+        idinternacionRecuperada = 0;
+        try {
+
+            const response = await fetch(`${API_URL_INTERNACIONES}/paciente/${paciente.idpaciente}/activas`);
+            if (!response.ok) {
+                throw new Error('Error al verificar internaciones');
+            }
+
+            const resultado = await response.json();
+
+            if (resultado.activa) {
+
+                idinternacionRecuperada = resultado.internacion.idinternacion;
+                mostrarAdmision(resultado.internacion);
+                inputDocumento.disabled = true;
+                btnBuscarPaciente.textContent = "Nueva búsqueda";
+                btnRegistrarInternacion.disabled = true;
+                seccionInternacion.style.display = "none";
+                seccionCancelarAdmision.style.display = "block";
+                btnCancelarAdmision.disabled = false;
+                seccionCamasAsignadas.style.display = "block";
+
+            } else {
+                seccionInternacion.style.display = "block";
+                btnRegistrarInternacion.disabled = false;
+            }
+
+        } catch (error) {
+            console.error('Error al verificar internaciones:', error);
+            mostrarMensaje("Error al verificar internaciones del paciente", "error");
+        }
+    }
+
+    async function mostrarAdmision(internacion) {
+        datosInternacion.innerHTML = `
+            <div class="card border shadow-sm mb-3">
+                <div class="card-body">
+                    <h4 class="card-title mb-4 text-center fs-5">Datos de Admisión</h4> <!-- Título -->
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <p><strong>Origen:</strong> ${internacion.origen.denominacion}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Médico:</strong> ${internacion.medico.apellidonombres}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-12">
+                            <p><strong>Diagnóstico:</strong> ${internacion.diagnostico.descripcion}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <p><strong>Fecha Ingreso:</strong> ${internacion.fechaingreso}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Hora Ingreso:</strong> ${internacion.horaingreso}</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <p><strong>Observaciones:</strong> ${internacion.observaciones}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+    }
+    
     async function registrarInternacion(e) {    
         e.preventDefault(); 
 
@@ -449,8 +406,200 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    async function asignarCama(idInternacion, idCama) {
 
-    async function cargarOrigenes() {
+        if (!idInternacion || !idCama) {
+            throw new Error('Se requieren ID de internación y ID de cama');
+        }
+        const url = `/api/internaciones/${idInternacion}/camas`; 
+        const options = {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ idcama: idCama })
+        };
+
+        try {
+            const response = await fetch(url, options);
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(
+                    errorData.message || 
+                    `Error ${response.status}: ${response.statusText}`
+                );
+            }
+
+            const result = await response.json();
+            
+            await Swal.fire({
+                title: '¡Éxito!',
+                text: result.message || 'Cama asignada correctamente',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            return result.data;
+
+        } catch (error) {
+            console.error('Error al asignar cama:', error);
+            
+            await Swal.fire({
+                    title: 'Error',
+                    text: 'Hubo un problema al realizar la búsqueda.',
+                    icon: 'error',
+                    confirmButtonText: 'Cerrar'
+            });
+
+            throw error;
+        }
+    }
+    async function seleccionarUnidadYCama(sexoPaciente, nombrePaciente) {
+
+        const unidadesResponse = await fetch(API_URL_UNIDADES);
+        const unidadesData = await unidadesResponse.json();
+        
+        if (!unidadesData.success) {
+            await Swal.fire('Error', 'No se pudieron cargar las unidades', 'error');
+            return;
+        }
+
+        const generarSelectUnidades = (unidades) => `
+            <div style="text-align: center;">
+                <select id="swal-select-unidad" style="
+                width: 90%;
+                font-size: 14px;
+                padding: 6px 8px;
+                border-radius: 4px;
+                margin-top: 10px;
+                max-width: 300px;
+                ">
+                <option value="">Seleccione una unidad...</option>
+                ${unidades.map(u => `<option value="${u.idunidad}">${u.denominacion}</option>`).join('')}
+                </select>
+            </div>
+        `;
+        const generarSelectCamas = (camas) => `
+            <div style="text-align: center;">
+                <select id="swal-select-cama" style="
+                width: 90%;
+                font-size: 14px;
+                padding: 6px 8px;
+                border-radius: 4px;
+                margin-top: 10px;
+                max-width: 300px;
+                ">
+                <option value="">Seleccione una cama...</option>
+                ${camas.map(c => `
+                    <option value="${c.idcama}" 
+                        data-numero="${c.numerocama}" 
+                        data-habitacion="${c.nombrehabitacion}" 
+                        data-ala="${c.denominacion}">
+                        Cama ${c.numerocama} - ${c.nombrehabitacion} - ${c.denominacion}
+                    </option>
+                `).join('')}
+                </select>
+            </div>
+        `;
+
+        const { value: idunidad } = await Swal.fire({
+            title: 'Seleccionar unidad',
+            html: generarSelectUnidades(unidadesData.unidades),
+            focusConfirm: false,
+            preConfirm: () => {
+                const select = document.getElementById('swal-select-unidad');
+                if (!select.value) {
+                    Swal.showValidationMessage('Debe seleccionar una unidad');
+                    return false;
+                }
+                return select.value;
+            },
+            showCancelButton: true,
+            cancelButtonText: 'Cancelar',
+            confirmButtonText: 'Buscar camas disponibles'
+        });
+
+        if (!idunidad) return;
+
+        let camasData;
+        try {
+            const response = await fetch(`/api/infraestructura/habitaciones-compatibles?idunidad=${idunidad}&sexo=${sexoPaciente}`);
+            camasData = await response.json();
+            
+            if (!camasData.success || !camasData.habitaciones?.length) {
+                throw new Error(camasData.message || 'No hay camas disponibles');
+            }
+        } catch (error) {
+            await Swal.fire('Error', error.message, 'error');
+            return seleccionarUnidadYCama(sexoPaciente, nombrePaciente);
+        }
+
+        const { value: idcama, isConfirmed } = await Swal.fire({
+            title: 'Seleccione cama disponible',
+            html: generarSelectCamas(camasData.habitaciones),
+            focusConfirm: false,
+            preConfirm: () => {
+                const select = document.getElementById('swal-select-cama');
+                if (!select.value) {
+                    Swal.showValidationMessage('Debe seleccionar una cama');
+                    return false;
+                }
+                
+                const selectedOption = select.options[select.selectedIndex];
+                return {
+                    idcama: select.value,
+                    numerocama: selectedOption.dataset.numero,
+                    nombrehabitacion: selectedOption.dataset.habitacion,
+                    denominacion: selectedOption.dataset.ala
+                };
+            },
+            showCancelButton: true,
+            cancelButtonText: 'Cambiar unidad',
+            confirmButtonText: 'Siguiente',
+            allowOutsideClick: false
+        });
+
+        if (!isConfirmed) {
+            return seleccionarUnidadYCama(sexoPaciente, nombrePaciente);
+        }
+
+        const unidadSeleccionada = unidadesData.unidades.find(u => u.idunidad == idunidad).denominacion;
+        const { value: confirmacion } = await Swal.fire({
+            title: 'Confirmar asignación de cama',
+            html: `
+                <div style="text-align: left; margin: 10px 0;">
+                    <p>El paciente se internará en:</p>
+                    <p><strong>Unidad:</strong> ${unidadSeleccionada}</p>
+                    <p><strong>Ala:</strong> ${idcama.denominacion}</p>
+                    <p><strong>Habitación:</strong> ${idcama.nombrehabitacion}</p>
+                    <p><strong>Cama:</strong> ${idcama.numerocama}</p>
+                </div>
+            `,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Confirmar internación',
+            cancelButtonText: 'Revisar',
+            footer: '<small>Verifique cuidadosamente los datos antes de confirmar</small>'
+        });
+
+        if (!confirmacion) {
+            return seleccionarUnidadYCama(sexoPaciente, nombrePaciente);
+        }
+
+        // Retorna todos los datos necesarios
+        return {
+            idunidad,
+            idcama: idcama.idcama,
+            unidad: unidadSeleccionada,
+            ala: idcama.denominacion,
+            habitacion: idcama.nombrehabitacion,
+            cama: idcama.numerocama
+        };
+    }
+
+        async function cargarOrigenes() {
         try {
             const response = await fetch(API_URL_ORIGENES);
             if (!response.ok) throw new Error("Error al cargar orígenes");
@@ -488,97 +637,71 @@ document.addEventListener("DOMContentLoaded", async () => {
         try {
             const response = await fetch(API_URL_DIAGNOSTICOS);
             if (!response.ok) throw new Error("Error al cargar diagnósticos");
-            datosDiagnosticos = await response.json();
-            //const select = document.getElementById('diagnostico');
-            datosDiagnosticos.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.iddiagnostico;
-                option.textContent = item.descripcion;
-                selectDiagnostico.appendChild(option);
+                datosDiagnosticos = await response.json();
+
+                datosDiagnosticos.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.iddiagnostico;
+                    option.textContent = item.descripcion;
+                    selectDiagnostico.appendChild(option);
             });
         } catch (error) {
             console.error("Error al cargar diagnósticos:", error);
         }
     }
 
-    async function seleccionarUnidadYBuscarHabitaciones(sexoPaciente) {
+    function validarDatos(form) {
         
-        try {
-            const unidadesResponse = await fetch(API_URL_UNIDADES);
-            const unidadesData = await unidadesResponse.json();
-            if (!unidadesData.success) {
-                throw new Error('No se pudieron cargar las unidades');
-            }
+        let origen = form.idorigen.value;
+        let medico = form.idmedico.value;
+        let diagnostico = form.iddiagnostico.value;
+        let fechaingreso = form.fechaingreso.value;
+        let horaingreso = form.horaingreso.value;
 
-            const selectHtml = `
-            <div style="text-align: center;">
-                <select id="swal-select-unidad" style="
-                width: 90%;
-                font-size: 14px;
-                padding: 6px 8px;
-                border-radius: 4px;
-                margin-top: 10px;
-                max-width: 300px;
-                ">
-                <option value="">Seleccione una unidad...</option>
-                ${unidadesData.unidades.map(u => `<option value="${u.idunidad}">${u.denominacion}</option>`).join('')}
-                </select>
-            </div>
-            `;
+        let fechainter = new Date(fechaingreso);
+        let hoy = new Date();
+        let hace1mes = new Date(hoy);
+        hace1mes.setMonth(hace1mes.getMonth() - 1);
 
-
-            const { value: confirm } = await Swal.fire({
-            title: 'Seleccionar unidad',
-            html: selectHtml,
-            preConfirm: () => {
-                const unidadSeleccionada = document.getElementById('swal-select-unidad').value;
-                if (!unidadSeleccionada) {
-                    Swal.showValidationMessage('Debe seleccionar una unidad');
-                }
-                return unidadSeleccionada;
-            },
-            showCancelButton: true,
-            confirmButtonText: 'Buscar habitaciones'
-            });
-
-            if (confirm) await cargarHabitacionesCompatibles(confirm, sexoPaciente);
-
-        } catch (error) {
-            console.error('Error:', error);
-            Swal.fire('Error', error.message || 'Algo salió mal', 'error');
+        if (fechainter > hoy || fechainter < hace1mes) {
+            mostrarMensaje('La fecha de internación debe ser dentro del último mes y no puede estar en el futuro.', 0);
+            return false;
         }
-    }
 
+        const fechaIngresadaEsHoy = (
+            fechainter.getFullYear() === hoy.getFullYear() &&
+            fechainter.getMonth() === hoy.getMonth() &&
+            fechainter.getDate() === hoy.getDate()
+        );
 
-    async function cargarHabitacionesCompatibles(idunidad, sexo) {
+        if (fechaIngresadaEsHoy) {
+            const [hora, minuto] = horaingreso.split(':').map(Number);
+            const horaInter = new Date(fechainter);
+            horaInter.setHours(hora, minuto, 0);
 
-        console.log(`Cargando habitaciones compatibles para unidad ${idunidad} y sexo ${sexo}`);
-        console.log(`FETCH --> /api/infraestructura/habitaciones-compatibles?idunidad=${idunidad}&sexo=${sexo}`);
-
-        try {
-            const response = await fetch(`/api/infraestructura/habitaciones-compatibles?idunidad=${idunidad}&sexo=${sexo}`);
-            const data = await response.json();
-
-            if (data.success) {
-            const select = document.getElementById('comboHabitaciones');
-            select.innerHTML = '<option value="">Seleccione una habitación...</option>';
-
-            data.habitaciones.forEach(h => {
-                const option = document.createElement('option');
-                option.value = h.idhabitacion;
-                option.textContent = h.nombrehabitacion;
-                select.appendChild(option);
-            });
-            } else {
-            Swal.fire('Error', data.message || 'No se pudieron cargar habitaciones', 'error');
+            if (horaInter < hoy) {
+                mostrarMensaje('La hora de internación no puede ser anterior a la hora actual.', 0);
+                return false;
             }
-        } catch (error) {
-            console.error(error);
-            Swal.fire('Error', 'Fallo en la carga de habitaciones', 'error');
         }
+
+        if (origen === "") {
+            mostrarMensaje('Debe seleccionar un origen.', 0);
+            return false;
+        }
+
+        if (medico === "") {
+            mostrarMensaje('Debe seleccionar un médico.', 0);
+            return false;   
+        }
+
+        if (diagnostico === "") {
+            mostrarMensaje('Debe seleccionar un diagnóstico.', 0);
+            return false;   
+        }
+
+        return true;
     }
-
-
     function resetearBusqueda() {
         inputDocumento.value = "";
         inputDocumento.disabled = false;

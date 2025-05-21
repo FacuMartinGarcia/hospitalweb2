@@ -52,24 +52,29 @@ const Internacion = sequelize.define('Internacion', {
     type: DataTypes.TEXT,
     allowNull: true
   },
-  estado: {
-    type: DataTypes.STRING(50),
-    allowNull: true
-  },
   fechaalta: {
     type: DataTypes.DATEONLY,
     allowNull: true
   },
+  idmedicoalta: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+    references: {
+      model: 'medicos',
+      key: 'idmedico'
+    }
+  },
+  indicaciones: {
+    type: DataTypes.STRING(100),
+    allowNull: true
+  },
   createdAt: {
     type: DataTypes.DATE,
-    allowNull: false,
     defaultValue: DataTypes.NOW
   },
   updatedAt: {
     type: DataTypes.DATE,
-    allowNull: false,
-    defaultValue: DataTypes.NOW,
-    onUpdate: DataTypes.NOW
+    defaultValue: DataTypes.NOW
   },
   deletedAt: {
     type: DataTypes.DATE,
@@ -78,32 +83,18 @@ const Internacion = sequelize.define('Internacion', {
 }, {
   tableName: 'internacion',
   timestamps: true,
-  paranoid: true,
-  underscored: false
+  paranoid: true
 });
 
-
 Internacion.associate = (models) => {
-  Internacion.belongsTo(models.Origen, {
-    foreignKey: 'idorigen',
-    as: 'origen'
-  });
-
-  Internacion.belongsTo(models.Medico, {
-    foreignKey: 'idmedico',
-    as: 'medico'
-  });
-
-  Internacion.belongsTo(models.Paciente, {
-    foreignKey: 'idpaciente',
-    as: 'paciente'
-  });
-
-  Internacion.belongsTo(models.Diagnostico, {
-    foreignKey: 'iddiagnostico',
-    as: 'diagnostico'
-  });
+  Internacion.belongsTo(models.Origen, { foreignKey: 'idorigen', as: 'origen' });
+  Internacion.belongsTo(models.Medico, { foreignKey: 'idmedico', as: 'medico' });
+  Internacion.belongsTo(models.Medico, { foreignKey: 'idmedicoalta', as: 'medicoAlta' });
+  Internacion.belongsTo(models.Paciente, { foreignKey: 'idpaciente', as: 'paciente' });
+  Internacion.belongsTo(models.Diagnostico, { foreignKey: 'iddiagnostico', as: 'diagnostico' });
+  Internacion.hasMany(models.InternacionCama, { foreignKey: 'idinternacion', as: 'internacionesCama' });
 };
+
 Internacion.prototype.esActiva = function () {
   return this.fechaalta === null;
 };

@@ -9,19 +9,22 @@ const Ala = require('./Ala');
 const Unidad = require('./Unidad');
 const Habitacion = require('./Habitacion');
 const Cama = require('./Cama');
+const InternacionCama = require('./InternacionCama');
 
 
 Cobertura.associate({ Paciente });
 Paciente.associate({ Cobertura });
 Medico.associate({ Especialidad });
 Especialidad.associate({ Medico }); 
-Internacion.associate({ Paciente, Medico, Origen, Diagnostico });
+Internacion.associate({ Paciente, Medico, Origen, Diagnostico, InternacionCama });
 Origen.associate({ Internacion });
 Diagnostico.associate({ Internacion });
 Ala.associate({ Habitacion });
 Unidad.associate({ Habitacion });
 Habitacion.associate({ Ala, Unidad, Cama });
-Cama.associate({ Habitacion });
+Cama.associate({ Habitacion, InternacionCama });
+InternacionCama.associate({ Internacion, Cama });
+
 
 
 // Exportar los modelos
@@ -36,5 +39,6 @@ module.exports = {
   Ala,
   Unidad,
   Habitacion,
-  Cama
+  Cama,
+  InternacionCama
 };

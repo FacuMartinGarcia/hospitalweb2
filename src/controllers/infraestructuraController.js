@@ -7,44 +7,44 @@ const obtenerHabitacionesCompatibles = async (req, res) => {
   if (!idunidad || !sexo) {
     return res.status(400).json({ success: false, message: 'Faltan parámetros: idunidad y sexo' });
   }
-  console.log('Ruta absoluta de db:', require.resolve('../../config/db'));
-  if (!sequelize) {
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Error de conexión con la base de datos' 
-    });
-  }
 
+  if (sexo !== 'M' && sexo !== 'F') {
+    return res.status(400).json({ success: false, message: 'Sexo inválido. Debe ser M o F.' });
+  } 
+  const idunidadNum = parseInt(idunidad, 10);
   
   try {
     const habitaciones = await sequelize.query(`
       SELECT DISTINCT
-        h.idhabitacion,
-        h.nombrehabitacion
-      FROM infra_habitaciones h
-      JOIN infra_camas c ON c.idhabitacion = h.idhabitacion
+        c.idcama,
+        c.numerocama,
+        h.nombrehabitacion,
+        a.denominacion
+      FROM infra_camas c
+      JOIN infra_habitaciones h ON c.idhabitacion = h.idhabitacion
+      JOIN infra_alas a ON h.idala = a.idala
       LEFT JOIN internacion_cama ic ON c.idcama = ic.idcama AND ic.fechahasta IS NULL
       LEFT JOIN internacion i ON ic.idinternacion = i.idinternacion
       LEFT JOIN pacientes p ON i.idpaciente = p.idpaciente
-      WHERE h.idunidad = :idunidad
-        AND c.idcama NOT IN (
-          SELECT idcama
-          FROM internacion_cama
-          WHERE fechahasta IS NULL AND idcama IS NOT NULL
+      WHERE h.idunidad = :idunidadNum
+        AND (
+          ic.idinternacion IS NULL
+
+          OR p.sexo = :sexo
         )
-        AND h.idhabitacion IN (
-          SELECT h2.idhabitacion
-          FROM infra_habitaciones h2
-          JOIN infra_camas c2 ON c2.idhabitacion = h2.idhabitacion
+        AND NOT EXISTS (
+
+        SELECT 1
+          FROM infra_camas c2
           JOIN internacion_cama ic2 ON c2.idcama = ic2.idcama AND ic2.fechahasta IS NULL
           JOIN internacion i2 ON ic2.idinternacion = i2.idinternacion
           JOIN pacientes p2 ON i2.idpaciente = p2.idpaciente
-          WHERE p2.sexo = :sexo AND h2.idunidad = :idunidad
-          GROUP BY h2.idhabitacion
+          WHERE c2.idhabitacion = h.idhabitacion
+            AND p2.sexo !=:sexo
         )
-      ORDER BY h.nombrehabitacion
+      ORDER BY h.nombrehabitacion, c.numerocama;
     `, {
-      replacements: { idunidad, sexo },
+      replacements: { idunidadNum, sexo },
       type: QueryTypes.SELECT
     });
 

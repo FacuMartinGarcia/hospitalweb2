@@ -18,18 +18,34 @@ const Cama = sequelize.define('Cama', {
   },
   numerocama: {
     type: DataTypes.STRING(10),
-    allowNull: true
+    allowNull: false  
+  },
+  higienizada: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   }
 }, {
   tableName: 'infra_camas',
   timestamps: false,
   paranoid: false,
+  indexes: [
+    {
+      unique: true,
+      fields: ['idhabitacion', 'numerocama']
+    }
+  ]
 });
 
 Cama.associate = (models) => {
   Cama.belongsTo(models.Habitacion, {
     foreignKey: 'idhabitacion',
     as: 'habitacion'
+  });
+  
+Cama.hasMany(models.InternacionCama, {
+    foreignKey: 'idcama',
+    as: 'internaciones'
   });
 };
 
