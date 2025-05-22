@@ -186,6 +186,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const camaSeleccionada = await seleccionarUnidadYCama(pacienteSeleccionado.sexo);
             if (camaSeleccionada) {
                 asignarCama(idinternacionRecuperada, camaSeleccionada.idcama);
+                cargarCamasAsignadas(idinternacionRecuperada);
             }
         } catch (error) {
             console.error("Error al asignar cama:", error);
@@ -289,6 +290,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 seccionCancelarAdmision.style.display = "block";
                 btnCancelarAdmision.disabled = false;
                 seccionCamasAsignadas.style.display = "block";
+                cargarCamasAsignadas(idinternacionRecuperada);
 
             } else {
                 seccionInternacion.style.display = "block";
@@ -443,6 +445,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             return result.data;
 
+
+
         } catch (error) {
             console.error('Error al asignar cama:', error);
             
@@ -529,7 +533,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             camasData = await response.json();
             
             if (!camasData.success || !camasData.habitaciones?.length) {
-                throw new Error(camasData.message || 'No hay camas disponibles');
+                throw new Error(camasData.message || 'No hay camas disponibles para esa Unidad');
             }
         } catch (error) {
             await Swal.fire('Error', error.message, 'error');
@@ -588,7 +592,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             return seleccionarUnidadYCama(sexoPaciente, nombrePaciente);
         }
 
-        // Retorna todos los datos necesarios
         return {
             idunidad,
             idcama: idcama.idcama,
@@ -598,6 +601,53 @@ document.addEventListener("DOMContentLoaded", async () => {
             cama: idcama.numerocama
         };
     }
+
+    async function cargarCamasAsignadas( idinternacion) {
+
+        if (!idinternacionRecuperada || isNaN(parseInt(idinternacionRecuperada))) {
+            document.getElementById('mensajes').textContent = 'ID de internación inválido.';
+            return;
+        }
+
+        try {
+        const response = await fetch(`/api/infraestructura/camas-paciente?idinternacion=${idinternacionRecuperada}`);
+
+        const data = await response.json();
+
+        if (!data.success) {
+            document.getElementById('mensajes').textContent = data.message || 'Error al cargar camas.';
+            return;
+        }
+
+        document.getElementById('seccionCamasAsignadas').style.display = 'block';
+
+        const tbody = document.getElementById('tablaCamas');
+        tbody.innerHTML = ''; 
+
+        if (data.camas.length === 0) {
+            const fila = document.createElement('tr');
+            fila.innerHTML = `<td colspan="4" class="text-center text-muted">No hay camas asignadas</td>`;
+            tbody.appendChild(fila);
+            return;
+        }
+
+        data.camas.forEach(cama => {
+            const fila = document.createElement('tr');
+            fila.innerHTML = `
+            <td class="text-center">${new Date(cama.fechadesde).toLocaleDateString()}</td>
+            <td>${cama.unidad}</td>
+            <td>${cama.habitacion}</td>
+            <td class="text-center">${cama.cama}</td>
+            `;
+            tbody.appendChild(fila);
+        });
+
+        } catch (error) {
+        console.error('Error al cargar camas:', error);
+        document.getElementById('mensajes').textContent = 'Ocurrió un error inesperado al cargar las camas.';
+        }
+    }
+
 
         async function cargarOrigenes() {
         try {

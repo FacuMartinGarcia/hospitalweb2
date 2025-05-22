@@ -113,64 +113,153 @@ const internacionesController = {
   },
 
   async asignarCama(req, res) {
-      try {
-          let idinternacion = req.params.id; 
-          let { idcama } = req.body;
+    try {
+      let idinternacion = req.params.id; 
+      let { idcama } = req.body;
 
-          if (!idinternacion || !idcama) {
-              return res.status(400).json({
-                  success: false,
-                  message: 'Faltan datos para la asignación'
-              });
-          }
-
-          let cama = await db.Cama.findByPk(idcama);
-          if (!cama) {
-              return res.status(404).json({ 
-                  success: false, 
-                  message: 'Cama no encontrada' 
-              });
-          }
-
-          let camaOcupada = await db.InternacionCama.findOne({
-              where: {
-                  idcama,
-                  fechahasta: null
-              }
-          });
-
-          if (camaOcupada) {
-              return res.status(400).json({ 
-                  success: false, 
-                  message: 'La cama ya está ocupada' 
-              });
-          }
-
-          let nuevaAsignacion = await db.InternacionCama.create({
-              idinternacion,
-              idcama,
-              fechadesde: new Date()
-          });
-
-          await db.Cama.update(
-              { higienizada: false },
-              { where: { idcama } }
-          );
-
-          return res.json({ 
-              success: true, 
-              data: nuevaAsignacion,
-              message: 'Cama asignada correctamente'
-          });
-
-      } catch (error) {
-          console.error('Error en asignarCama:', error);
-          return res.status(500).json({ 
-              success: false, 
-              message: 'Error al asignar cama',
-              error: error.message 
-          });
+      if (!idinternacion || !idcama) {
+        return res.status(400).json({
+          success: false,
+          message: 'Faltan datos para la asignación'
+        });
       }
+
+      let cama = await db.Cama.findByPk(idcama);
+      if (!cama) {
+        return res.status(404).json({ 
+          success: false, 
+          message: 'Cama no encontrada' 
+        });
+      }
+
+      // Verificar que la cama no este ocupada
+      let camaOcupada = await db.InternacionCama.findOne({
+        where: {
+          idcama,
+          fechahasta: null
+        }
+      });
+
+      if (camaOcupada) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'La cama ya está ocupada' 
+        });
+      }
+
+      // tenemos que ver que no tenga otra cana asignada
+      let camaAnterior = await db.InternacionCama.findOne({
+        where: {
+          idinternacion,
+          fechahasta: null
+        }
+      });
+
+      const ahora = new Date();
+
+      if (camaAnterior) {
+        if (ahora < camaAnterior.fechadesde) {
+          return res.status(400).json({
+            success: false,
+            message: 'La fecha de asignación no puede ser anterior a la asignación actual.'
+          });
+        }
+
+        // Liberar la cama anterior  y le ponemos en la fecha hasta, la fecha desde de ahora
+        camaAnterior.fechahasta = ahora;
+        await camaAnterior.save();
+      }
+
+      let nuevaAsignacion = await db.InternacionCama.create({
+        idinternacion,
+        idcama,
+        fechadesde: ahora
+      });
+
+      await db.Cama.update(
+        { higienizada: false },
+        { where: { idcama } }
+      );
+
+      return res.json({ 
+        success: true, 
+        data: nuevaAsignacion,
+        message: 'Cama asignada correctamente'
+      });
+
+    } catch (error) {
+      console.error('Error en asignarCama:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error al asignar cama',
+        error: error.message 
+      });
+    }
+  },
+
+  async anularUltimaAsignacionCama(req, res) {
+    try {
+      const idinternacion = req.params.id;
+
+      const historial = await db.InternacionCama.findAll({
+        where: { idinternacion },
+        order: [['fechadesde', 'DESC']],
+        include: [{ model: db.Cama }]
+      });
+
+      if (!historial || historial.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'No hay asignaciones de cama registradas'
+        });
+      }
+
+      const ultima = historial[0];
+
+      if (historial.length === 1) {
+        await ultima.destroy();
+        return res.json({
+          success: true,
+          message: 'Única asignación anulada correctamente'
+        });
+      }
+
+      const anterior = historial[1];
+
+      const fueOcupada = await db.InternacionCama.findOne({
+        where: {
+          idcama: anterior.idcama,
+          idinternacion: { [db.Sequelize.Op.ne]: idinternacion },
+          fechadesde: { [db.Sequelize.Op.gt]: anterior.fechahasta }
+        }
+      });
+
+      if (fueOcupada) {
+        return res.status(400).json({
+          success: false,
+          message: 'No se puede anular porque la cama anterior fue ocupada por otro paciente'
+        });
+      }
+
+      await ultima.destroy();
+
+      anterior.fechahasta = null;
+      await anterior.save();
+
+      return res.json({
+        success: true,
+        message: 'Asignación actual anulada y se reactivó la anterior',
+        data: { reactivada: anterior }
+    });
+
+    } catch (error) {
+      console.error('Error en anularUltimaAsignacionCama:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Error al anular la última asignación',
+        error: error.message
+      });
+    }
   },
 
   async liberarCama(req, res) {

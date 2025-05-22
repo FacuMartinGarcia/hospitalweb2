@@ -1,6 +1,30 @@
 extends layout
 
 block extraHead
+  style.
+    #seccionInternacion {
+      background-color: #f9f9f9;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+      border: 1px solid #ccc;
+    }
+    #seccionCamasAsignadas .card {
+      background-color: #f1f1f1;
+      padding: 1.5rem;
+      border-radius: 0.5rem;
+    }
+    #seccionCamasAsignadas table thead {
+      background-color: #007bff;
+      color: white;
+    }
+    #seccionCamasAsignadas td:nth-child(3),
+    #seccionCamasAsignadas td:nth-child(4) {
+      text-align: center;
+    }
+    .section + .section {
+      margin-top: 2rem;
+    }
+
   script(src="https://cdn.jsdelivr.net/npm/sweetalert2@11")
   script(type="module", src="/js/internacion.js")
 
@@ -72,18 +96,17 @@ block content
           button.btn.btn-primary.flex-fill#btnAsignarCama(style="background-color: #007bff; border-color: #007bff;") Asignación de Cama
 
       // Tabla de camas asignadas al paciente (oculta por defecto)
-      .section.mt-4#seccionCamasAsignadas(style="display: none;")
-        h5.text-center.mb-3 Camas asignadas al paciente
-        table.table.table-bordered
-          thead
-            tr.text-center
-              th Desde
-              th Hasta
-              th Unidad
-              th Habitación
-              th N° Cama
-          tbody#tablaCamas
-            // Las filas se llenarán dinámicamente desde JS
-
+      .section#seccionCamasAsignadas(style="display: none;")
+        .card
+          h5.text-center.mb-3 Camas asignadas al paciente
+          table.table.table-bordered
+            thead
+              tr.text-center
+                th Desde
+                th Unidad
+                th Habitación
+                th N° Cama
+            tbody#tablaCamas
+              // Las filas se llenarán dinámicamente desde JS
 
   #mensajes.text-danger.mt-3.text-center
