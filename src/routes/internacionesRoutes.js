@@ -9,5 +9,6 @@ router.post('/', internacionesController.crear);
 router.get('/:id', internacionesController.buscarPorId);
 router.put('/:id', internacionesController.actualizar);
 router.delete('/:id/cancelarAdmision', internacionesController.cancelarAdmision);
+router.delete('/:id/ultima-cama', internacionesController.anularUltimaAsignacionCama);
 module.exports = router;
  

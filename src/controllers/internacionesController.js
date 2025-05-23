@@ -204,7 +204,7 @@ const internacionesController = {
       const historial = await db.InternacionCama.findAll({
         where: { idinternacion },
         order: [['fechadesde', 'DESC']],
-        include: [{ model: db.Cama }]
+        include: [{ model: db.Cama, as: 'cama' }]
       });
 
       if (!historial || historial.length === 0) {
