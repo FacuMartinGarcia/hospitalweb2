@@ -31,7 +31,7 @@ const infraestructuraController = {// Método 1: Obtener hab
         LEFT JOIN pacientes p ON i.idpaciente = p.idpaciente
         WHERE h.idunidad = :idunidadNum
           AND (
-            ic.idinternacion IS NULL OR p.sexo = :sexo
+            ic.idinternacion IS NULL
           )
           AND NOT EXISTS (
             SELECT 1
@@ -57,6 +57,53 @@ const infraestructuraController = {// Método 1: Obtener hab
     }
   },
 
+  listarCamasOcupadasView: async (req, res) => {
+    try {
+      const camasRaw = await sequelize.query(`
+        SELECT 
+          u.denominacion AS unidad, 
+          a.denominacion AS ala, 
+          h.nombrehabitacion AS habitacion, 
+          c.numerocama AS cama, 
+          p.documento AS documento_paciente, 
+          p.apellidonombres AS apellidonombres_paciente, 
+          p.sexo AS sexo_paciente, 
+          i.idinternacion, 
+          ic.fechadesde 
+        FROM infra_camas c 
+        JOIN infra_habitaciones h ON c.idhabitacion = h.idhabitacion 
+        JOIN infra_alas a ON h.idala = a.idala 
+        JOIN infra_unidades u ON h.idunidad = u.idunidad 
+        LEFT JOIN internacion_cama ic ON ic.idcama = c.idcama AND ic.deletedAt IS NULL AND ic.fechahasta IS NULL 
+        LEFT JOIN internacion i ON ic.idinternacion = i.idinternacion AND i.deletedAt IS NULL 
+        LEFT JOIN pacientes p ON i.idpaciente = p.idpaciente 
+        WHERE ic.idintercama IS NOT NULL
+        ORDER BY u.denominacion, a.denominacion, h.nombrehabitacion, c.numerocama;
+      `, {
+        type: QueryTypes.SELECT
+      });
+
+      const camas = camasRaw.map(cama => ({
+        unidad: cama.unidad || 'N/D',
+        ala: cama.ala || 'N/D',
+        habitacion: cama.habitacion || 'N/D',
+        cama: cama.cama || 'N/D',
+        documento_paciente: cama.documento_paciente || 'N/D',
+        apellidonombres_paciente: cama.apellidonombres_paciente || 'N/D',
+        sexo_paciente: cama.sexo_paciente || 'N/D',
+        idinternacion: cama.idinternacion || 'N/D',
+        fechadesde: cama.fechadesde
+          ? new Date(cama.fechadesde).toLocaleString('es-AR')
+          : 'N/D'
+      }));
+
+      res.render('listarCamasOcupadas', { camas });
+
+    } catch (error) {
+      console.error('Error en listarCamasOcupadasView:', error.message);
+      res.status(500).send('Error al obtener camas ocupadas');
+    }
+  },
 
  listarCamasPorPacienteInternacion: async (req, res) => {
     const { idinternacion } = req.query;

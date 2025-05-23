@@ -83,6 +83,9 @@ app.get('/atencionmedica', (req, res) => {
   res.render('atencionmedica');
 });
 
+app.get('/listarcamasocupadas', (req, res) => {
+  res.render('listarcamasocupadas');   
+})
 
 //  Vista de listado de pacientes
 app.get('/pacienteslistado', async (req, res) => {

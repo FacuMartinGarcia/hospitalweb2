@@ -4,5 +4,6 @@ const infraestructuraController = require('../controllers/infraestructuraControl
 
 router.get('/habitaciones-compatibles', infraestructuraController.obtenerHabitacionesCompatibles);
 router.get('/camas-paciente/', infraestructuraController.listarCamasPorPacienteInternacion);
+router.get('/camas-ocupadas', infraestructuraController.listarCamasOcupadasView);
 
 module.exports = router;
