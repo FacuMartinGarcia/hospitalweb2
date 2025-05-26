@@ -40,6 +40,10 @@ const enfermeroController = {
         return res.status(400).json({ success: false, error: 'Debe ingresar un nombre válido (mínimo 3 caracteres)' });
       }
 
+      if (!/^[a-zA-ZÁÉÍÓÚáéíóúÑñ\s]+$/.test(apellidonombres.trim())) {
+        return res.status(400).json({ success: false, error: 'El nombre solo debe contener letras y espacios' });
+      }
+
       if (!matricula) {
         return res.status(400).json({ success: false, error: 'La matrícula es obligatoria' });
       }
@@ -57,7 +61,14 @@ const enfermeroController = {
         return res.status(400).json({ success: false, error: 'El correo electrónico no tiene un formato válido' });
       }
 
-      const nuevo = await Enfermero.create(datosEnfermero);
+      const datosLimpios = {
+        apellidonombres: apellidonombres.trim(),
+        matricula: matricula.trim?.() ?? matricula,
+        telefono: telefono?.trim?.() ?? telefono,
+        email: email?.trim?.() ?? email
+      };
+
+      const nuevo = await Enfermero.create(datosLimpios);
 
       return res.status(201).json({
         success: true,
@@ -70,6 +81,7 @@ const enfermeroController = {
       return res.status(500).json({ success: false, error: 'Error interno del servidor' });
     }
   },
+
 
   listarEnfermeros: async (req, res) => {
     try {
@@ -120,7 +132,11 @@ const enfermeroController = {
         return res.status(404).json({ success: false, error: 'Enfermero no encontrado' });
       }
 
-      const { telefono, email } = datosEnfermero;
+      const { apellidonombres, telefono, email } = datosEnfermero;
+
+      if (apellidonombres && !/^[a-zA-ZÁÉÍÓÚáéíóúÑñ\s]+$/.test(apellidonombres.trim())) {
+        return res.status(400).json({ success: false, error: 'El nombre solo debe contener letras y espacios' });
+      }
 
       if (telefono && !/^\d{1,20}$/.test(telefono)) {
         return res.status(400).json({ success: false, error: 'El teléfono debe contener solo números (máx. 20 dígitos)' });
@@ -132,7 +148,7 @@ const enfermeroController = {
 
       ['apellidonombres', 'telefono', 'email'].forEach(campo => {
         if (datosEnfermero[campo] !== undefined) {
-          enfermero[campo] = datosEnfermero[campo];
+          enfermero[campo] = datosEnfermero[campo].trim?.() ?? datosEnfermero[campo];
         }
       });
 
@@ -149,6 +165,7 @@ const enfermeroController = {
       return res.status(500).json({ success: false, error: 'Error interno del servidor' });
     }
   },
+
 
   eliminarEnfermero: async (req, res) => {
     try {

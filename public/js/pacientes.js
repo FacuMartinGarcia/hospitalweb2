@@ -45,6 +45,12 @@ function validarDatos(form) {
         return false;
     }
 
+    if (!/^[a-zA-ZÁÉÍÓÚáéíóúÑñ\s]+$/.test(apellidonombres)) {
+        mostrarMensaje('El Apellido y Nombres solo debe contener letras y espacios (sin signos, números ni símbolos).', 0);
+        form.apellidonombres.focus();
+        return false;
+    }
+
     if (!cobertura || !datosCoberturas.some(c => c.idcobertura == cobertura)) {
         mostrarMensaje('Debe seleccionar una cobertura válida.', 0);
         return false;
@@ -101,10 +107,18 @@ function validarDatos(form) {
         }
     }
 
-    if (contacto !== "" && contacto.length < 3) {
-        mostrarMensaje('El contacto de emergencia debe tener al menos 3 caracteres.', 0);
-        form.contactoemergencia.focus();
-        return false;
+    if (contacto !== "") {
+        if (!/^[a-zA-ZÁÉÍÓÚáéíóúÑñ0-9\s\-\(\)]+$/.test(contacto)) {
+            mostrarMensaje('El contacto de emergencia solo puede contener letras, números, espacios, guiones y paréntesis.', 0);
+            form.contactoemergencia.focus();
+            return false;
+        }
+
+        if (contacto.length < 3) {
+            mostrarMensaje('El contacto de emergencia debe tener al menos 3 caracteres.', 0);
+            form.contactoemergencia.focus();
+            return false;
+        }
     }
 
     return true;

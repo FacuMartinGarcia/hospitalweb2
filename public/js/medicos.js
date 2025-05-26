@@ -12,31 +12,80 @@ const selectEspecialidad = document.getElementById("especialidad");
 
 let modoEdicion = false;
 
-window.onload = () => {
+let datosEspecialidades = []; 
+
+
+document.addEventListener("DOMContentLoaded", async () => {
+
     bloquearCamposFormulario();
     inputMatricula.focus();
-    cargarEspecialidades();
-};
+    await cargarEspecialidades();    
+    
+    btnRegistrar.addEventListener("click", async (event) => {
+        event.preventDefault();
+        if (!validarDatos(form)) return;
+
+        const medico = {
+            matricula: form.matricula.value.trim(),
+            apellidonombres: form.apellidonombres.value.trim(),
+            telefono: form.telefono.value.trim(),
+            email: form.email.value.trim(),
+            especialidad: form.especialidad.value
+        };
+
+        console.log('estos datos estoy enviando...');
+        console.log(medico);
+
+        try {
+            await guardarMedico(medico, modoEdicion);
+            Swal.fire({
+                title: 'Éxito',
+                text: modoEdicion ? 'Médico actualizado correctamente.' : 'Médico registrado correctamente.',
+                icon: 'success',
+                confirmButtonText: 'Cerrar'
+            }).then(() => resetearBusqueda());
+        } catch (error) {
+            Swal.fire("Error", error.message, "error");
+        }
+    });
+
+});
+
 
 function validarMatricula(matricula) {
+    matricula = matricula.trim();
     if (matricula === "" || matricula.length < 3 || matricula.length > 6) {
         mostrarMensaje('La matrícula debe tener entre 3 y 6 caracteres.', 0);
+        inputMatricula.focus();
+        return false;
+    }
+    if (!/^[a-zA-Z0-9]+$/.test(matricula)) {
+        mostrarMensaje('La matrícula solo debe contener letras y números (sin espacios ni símbolos).', 0);
         inputMatricula.focus();
         return false;
     }
     return true;
 }
 
+
 function validarDatos(form) {
+
     const apellidonombres = form.apellidonombres.value.trim();
     const matricula = form.matricula.value.trim();
     const telefono = form.telefono.value.trim();
     const email = form.email.value.trim();
+    const especialidad = form.especialidad.value;
 
     if (!validarMatricula(matricula)) return false;
-
+    
     if (apellidonombres === "") {
-        mostrarMensaje('El campo Apellido y Nombres es obligatorio.', 0);
+        mostrarMensaje('El Apellido y Nombres es obligatorio.', 0);
+        form.apellidonombres.focus();
+        return false;
+    }
+
+    if (!/^[a-zA-ZÁÉÍÓÚáéíóúÑñ\s]+$/.test(apellidonombres)) {
+        mostrarMensaje('El Apellido y Nombres solo debe contener letras y espacios (sin signos, números ni símbolos).', 0);
         form.apellidonombres.focus();
         return false;
     }
@@ -52,6 +101,12 @@ function validarDatos(form) {
         form.email.focus();
         return false;
     }
+
+    if (!especialidad || !datosEspecialidades.some(c => c.idespecialidad == especialidad)) {
+        mostrarMensaje('Debe seleccionar una especialidad válida.', 0);
+        return false;
+    }
+
 
     return true;
 }
@@ -86,7 +141,7 @@ btnBuscar.addEventListener("click", async () => {
         }
 
         const medico = resultado.medico;
-
+        
         Swal.fire({
             title: medico.activo === false ? 'Médico Desactivado' : 'Médico Registrado',
             html: 'La matrícula ingresada ya está registrada.<br>Presione "Modificar" si desea editar los datos.',
@@ -121,30 +176,7 @@ document.getElementById("email").addEventListener("input", function () {
     this.value = this.value.toLowerCase();
 });
 
-btnRegistrar.addEventListener("click", async (event) => {
-    event.preventDefault();
-    if (!validarDatos(form)) return;
 
-    const medico = {
-        matricula: form.matricula.value.trim(),
-        apellidonombres: form.apellidonombres.value.trim(),
-        telefono: form.telefono.value.trim(),
-        email: form.email.value.trim(),
-        especialidad: form.especialidad.value
-    };
-
-    try {
-        await guardarMedico(medico, modoEdicion);
-        Swal.fire({
-            title: 'Éxito',
-            text: modoEdicion ? 'Médico actualizado correctamente.' : 'Médico registrado correctamente.',
-            icon: 'success',
-            confirmButtonText: 'Cerrar'
-        }).then(() => resetearBusqueda());
-    } catch (error) {
-        Swal.fire("Error", error.message, "error");
-    }
-});
 
 btnDesactivar.addEventListener("click", async () => {
     const matricula = form.matricula.value.trim();
@@ -196,10 +228,12 @@ btnDesactivar.addEventListener("click", async () => {
 });
 
 function mostrarDatosMedico(medico) {
+
+    console.log(medico);
     form.apellidonombres.value = medico.apellidonombres || "";
     form.telefono.value = medico.telefono || "";
     form.email.value = medico.email || "";
-    form.especialidad.value = medico.especialidad || "";
+    form.especialidad.value = medico.idespecialidad || "";
 
     if (medico.deletedAt) {
         btnDesactivar.textContent = "Reactivar";
@@ -211,6 +245,7 @@ function mostrarDatosMedico(medico) {
         btnDesactivar.classList.replace("btn-success", "btn-danger");
     }
     modoEdicion = true;
+
 }
 
 function resetearBusqueda() {
@@ -267,41 +302,64 @@ async function buscarMedico(matricula) {
 }
 
 async function guardarMedico(medico, esEdicion = false) {
+    
     const metodo = esEdicion ? "PUT" : "POST";
     const url = esEdicion ? `${API_URL_MEDICOS}/${medico.matricula}` : API_URL_MEDICOS;
 
-    const datosParaBackend = Object.fromEntries(
-        Object.entries(medico).filter(([_, v]) => v !== undefined && v !== "")
-    );
 
-    const response = await fetch(url, {
-        method: metodo,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ datosMedico: datosParaBackend })
-    });
+    try {
+        const datosParaBackend = {
+            matricula: medico.matricula,
+            apellidonombres: medico.apellidonombres,
+            telefono: medico.telefono,
+            email: medico.email,
+            idespecialidad: parseInt(medico.especialidad)
+        };
+    
+        console.log("Datos para backend:", datosParaBackend);
 
-    const responseData = await response.json();
+        
+        Object.keys(datosParaBackend).forEach(key => {
+            if (!datosParaBackend[key]) {
+                delete datosParaBackend[key];
+            }
+        })
+        
+        const response = await fetch(url, {
+            method: metodo,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datosParaBackend)
+        });
 
-    if (!response.ok) {
-        const mensaje = responseData.error || responseData.message || "Error al guardar datos";
-        throw new Error(mensaje);
+        const responseData = await response.json();
+
+        if (!response.ok) {
+            const errorMessage = responseData.error || 
+                               responseData.message || 
+                               `Error ${response.status}: ${response.statusText}`;
+            throw new Error(errorMessage);
+        }
+
+        return responseData;
+
+    } catch (error) {
+        console.error('Error en guardarMedico:', error);
+        throw error;
     }
-
-    return responseData;
 }
-
 async function cargarEspecialidades() {
     try {
         const response = await fetch(API_URL_ESPECIALIDADES);
-        const especialidades = await response.json();
-        selectEspecialidad.innerHTML = '<option value="">Seleccione</option>';
-        especialidades.forEach(esp => {
+        if (!response.ok) throw new Error("Error al cargar especialidades");    
+        datosEspecialidades = await response.json();
+        datosEspecialidades.forEach(esp => {
             const option = document.createElement("option");
-            option.value = esp.id;
-            option.textContent = esp.nombre;
-            selectEspecialidad.appendChild(option);
+            option.value = esp.idespecialidad;
+            option.textContent = esp.denominacion;
+            selectEspecialidad.appendChild(option); 
         });
     } catch (error) {
         console.error("Error al cargar especialidades:", error);
     }
 }
+

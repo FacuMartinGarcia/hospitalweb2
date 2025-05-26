@@ -11,14 +11,20 @@ const mensajeBusqueda = document.getElementById("mensajes");
 let modoEdicion = false;
 
 function validarMatricula(matricula) {
-    console.log(matricula);
+    matricula = matricula.trim();
     if (matricula === "" || matricula.length < 3 || matricula.length > 6) {
         mostrarMensaje('La matrícula debe tener entre 3 y 6 caracteres.', 0);
         inputMatricula.focus();
         return false;
     }
+    if (!/^[a-zA-Z0-9]+$/.test(matricula)) {
+        mostrarMensaje('La matrícula solo debe contener letras y números (sin espacios ni símbolos).', 0);
+        inputMatricula.focus();
+        return false;
+    }
     return true;
 }
+
 
 function validarDatos(form) {
     const apellidonombres = form.apellidonombres.value.trim();
@@ -32,7 +38,13 @@ function validarDatos(form) {
     if (!validarMatricula(matricula)) return false;
 
     if (apellidonombres === "") {
-        mostrarMensaje('El campo Apellido y Nombres es obligatorio.', 0);
+        mostrarMensaje('El Apellido y Nombres es obligatorio.', 0);
+        form.apellidonombres.focus();
+        return false;
+    }
+    
+    if (!/^[a-zA-ZÁÉÍÓÚáéíóúÑñ\s]+$/.test(apellidonombres)) {
+        mostrarMensaje('El Apellido y Nombres solo debe contener letras y espacios (sin signos, números ni símbolos).', 0);
         form.apellidonombres.focus();
         return false;
     }

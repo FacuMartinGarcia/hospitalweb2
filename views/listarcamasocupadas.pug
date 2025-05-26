@@ -5,11 +5,19 @@ block extraHead
   link(rel="stylesheet", href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css")
   script(src="https://code.jquery.com/jquery-3.6.0.min.js")
   script(src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js")
+  style.
+    .cama-ocupada {
+      background-color: #ffdddd !important;
+    }
+    .texto-disponible {
+      color: #6c757d;
+      font-style: italic;
+    }
 
 block content
   .card.shadow
     .card-body
-      h2.text-center.h5.mb-4 Camas actualmente ocupadas
+      h2.text-center.h5.mb-4 Listado de Camas
 
       .d-flex.justify-content-center.mb-4
         #customSearchContainer
@@ -21,6 +29,7 @@ block content
             th Ala
             th Habitación
             th Cama
+            th Estado
             th Documento Paciente
             th Apellido y Nombres
             th Sexo
@@ -29,53 +38,56 @@ block content
         tbody
           if camas && camas.length
             each cama in camas
-              tr
-                td= cama.unidad
-                td= cama.ala
-                td= cama.habitacion
-                td= cama.cama
-                td= cama.documento_paciente
-                td= cama.apellidonombres_paciente
-                td= cama.sexo_paciente
-                td= cama.idinternacion
-                td= cama.fechadesde || 'N/D'
+              tr(class=cama.idinternacion && cama.idinternacion !== 'N/D' ? 'cama-ocupada' : '')
+                td= cama.unidad || 'N/D'
+                td= cama.ala || 'N/D'
+                td= cama.habitacion || 'N/D'
+                td= cama.cama || 'N/D'
+                td= cama.idinternacion && cama.idinternacion !== 'N/D' ? 'Ocupada' : 'Disponible'
+                td(class=!cama.documento_paciente || cama.documento_paciente === 'N/D' ? 'texto-disponible' : '')= cama.documento_paciente || '---'
+                td(class=!cama.apellidonombres_paciente || cama.apellidonombres_paciente === 'N/D' ? 'texto-disponible' : '')= cama.apellidonombres_paciente || '---'
+                td(class=!cama.sexo_paciente || cama.sexo_paciente === 'N/D' ? 'texto-disponible' : '')= cama.sexo_paciente || '---'
+                td(class=!cama.idinternacion || cama.idinternacion === 'N/D' ? 'texto-disponible' : '')= cama.idinternacion || '---'
+                td(class=!cama.fechadesde || cama.fechadesde === 'N/D' ? 'texto-disponible' : '')= cama.fechadesde || '---'
           else
             tr
-              td(colspan="9").text-center No hay camas ocupadas actualmente.
+              td(colspan="10").text-center No hay datos de camas disponibles.
 
   script.
     $(document).ready(function() {
-      const tabla = $('#tablaCamas').DataTable({
-        paging: true,
-        searching: true,
-        info: true,
-        language: {
-          url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
-        },
-        initComplete: function () {
-          const label = $('.dataTables_filter label');
-          label.addClass('d-flex align-items-center gap-2');
-          label.contents().filter(function(){ return this.nodeType === 3; }).wrap('<span class="me-2 fw-bold"></span>');
 
-          $('.dataTables_filter input')
-            .addClass('form-control fw-bold')
-            .css({ 'text-transform': 'uppercase', 'width': '300px' });
+      if ($('#tablaCamas tbody tr').not('.no-data').length > 0) {
+        const tabla = $('#tablaCamas').DataTable({
+          paging: true,
+          searching: true,
+          info: true,
+          language: {
+            url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+          },
+          columnDefs: [
+            { targets: [5,6,7,8,9], searchable: false } 
+          ],
+          initComplete: function () {
+            const label = $('.dataTables_filter label');
+            label.addClass('d-flex align-items-center gap-2');
+            label.contents().filter(function(){ return this.nodeType === 3; }).wrap('<span class="me-2 fw-bold"></span>');
 
-          $('#customSearchContainer').append($('.dataTables_filter'));
+            $('.dataTables_filter input')
+              .addClass('form-control fw-bold')
+              .css({ 'text-transform': 'uppercase', 'width': '300px' });
 
-          $('.dataTables_paginate')
-            .addClass('d-flex justify-content-between align-items-center mt-3')
-            .find('a')
-            .addClass('btn btn-primary mx-1');
+            $('#customSearchContainer').append($('.dataTables_filter'));
 
-          $('.dataTables_info')
-            .addClass('mt-3 fw-bold text-center w-100');
-        }
-      });
+            $('.dataTables_paginate')
+              .addClass('d-flex justify-content-between align-items-center mt-3')
+              .find('a')
+              .addClass('btn btn-primary mx-1');
 
-      // Verificación de columnas por fila
-      $('#tablaCamas tbody tr').each(function(index) {
-        const columnCount = $(this).find('td').length;
-        console.log(`Fila ${index + 1} tiene ${columnCount} columnas`);
-      });
+            $('.dataTables_info')
+              .addClass('mt-3 fw-bold text-center w-100');
+          }
+        });
+      } else {
+        $('#customSearchContainer').html('<p class="text-muted text-center">No hay datos para mostrar</p>');
+      }
     });

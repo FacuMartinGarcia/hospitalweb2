@@ -77,34 +77,30 @@ const infraestructuraController = {// Método 1: Obtener hab
         LEFT JOIN internacion_cama ic ON ic.idcama = c.idcama AND ic.deletedAt IS NULL AND ic.fechahasta IS NULL 
         LEFT JOIN internacion i ON ic.idinternacion = i.idinternacion AND i.deletedAt IS NULL 
         LEFT JOIN pacientes p ON i.idpaciente = p.idpaciente 
-        WHERE ic.idintercama IS NOT NULL
         ORDER BY u.denominacion, a.denominacion, h.nombrehabitacion, c.numerocama;
       `, {
         type: QueryTypes.SELECT
       });
 
       const camas = camasRaw.map(cama => ({
-        unidad: cama.unidad || 'N/D',
-        ala: cama.ala || 'N/D',
-        habitacion: cama.habitacion || 'N/D',
-        cama: cama.cama || 'N/D',
-        documento_paciente: cama.documento_paciente || 'N/D',
-        apellidonombres_paciente: cama.apellidonombres_paciente || 'N/D',
-        sexo_paciente: cama.sexo_paciente || 'N/D',
-        idinternacion: cama.idinternacion || 'N/D',
-        fechadesde: cama.fechadesde
-          ? new Date(cama.fechadesde).toLocaleString('es-AR')
-          : 'N/D'
+        unidad: cama.unidad || null,
+        ala: cama.ala || null,
+        habitacion: cama.habitacion || null,
+        cama: cama.cama || null,
+        documento_paciente: cama.documento_paciente || null,
+        apellidonombres_paciente: cama.apellidonombres_paciente || null,
+        sexo_paciente: cama.sexo_paciente || null,
+        idinternacion: cama.idinternacion || null,
+        fechadesde: cama.fechadesde ? new Date(cama.fechadesde).toLocaleString('es-AR') : null
       }));
 
       res.render('listarCamasOcupadas', { camas });
 
     } catch (error) {
       console.error('Error en listarCamasOcupadasView:', error.message);
-      res.status(500).send('Error al obtener camas ocupadas');
+      res.status(500).send('Error al obtener camas');
     }
   },
-
  listarCamasPorPacienteInternacion: async (req, res) => {
     const { idinternacion } = req.query;
 

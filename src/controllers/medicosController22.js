@@ -1,72 +1,12 @@
 const db = require('../models'); 
 const { Medico, Especialidad } = db;
-const { Op } = require('sequelize');
 
 const medicosController = {
-  validarMatricula: (matricula) => {
-      const result = {
-          isValid: true,
-          error: null
-      };
-      
-      if (!matricula || typeof matricula !== 'string') {
-          result.isValid = false;
-          result.error = 'La matrícula es requerida';
-          return result;
-      }
-      
-      matricula = matricula.trim();
-      
-      if (matricula.length < 3 || matricula.length > 6) {
-          result.isValid = false;
-          result.error = 'La matrícula debe tener entre 3 y 6 caracteres';
-          return result;
-      }
-      
-      if (!/^[a-zA-Z0-9]+$/.test(matricula)) {
-          result.isValid = false;
-          result.error = 'La matrícula solo debe contener letras y números (sin espacios ni símbolos)';
-          return result;
-      }
-      
-      return result;
-  },
-
-  validarMedico: function(data, esActualizacion = false) {
-
-    const errores = [];
-
-    if (!data.apellidonombres || data.apellidonombres.trim() === '') {
-      errores.push('El Apellido y Nombres es obligatorio.');
-    } else if (!/^[a-zA-ZÁÉÍÓÚáéíóúÑñ\s]+$/.test(data.apellidonombres)) {
-      errores.push('El Apellido y Nombres solo debe contener letras y espacios.');
-    }
-
-    if (!esActualizacion) {
-      if (!data.matricula || data.matricula.trim() === '') {
-        errores.push('La matrícula es obligatoria.');
-      } else if (!this.validarMatricula(data.matricula)) {
-        errores.push('La matrícula no tiene un formato válido.');
-      }
-    }
-
-    if (data.telefono && !/^\d{1,20}$/.test(data.telefono)) {
-      errores.push('El teléfono debe contener solo números (máx. 20 dígitos).');
-    }
-
-    if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-      errores.push('El correo electrónico no tiene un formato válido.');
-    }
-
-    if (!data.idespecialidad) {
-      errores.push('Debe seleccionar una especialidad.');
-    }
-
-    return errores;
-  },
-
   buscarPorId: async (req, res) => {
+
     try {
+      
+      console.log('estoy buscando por Id');
       const { id } = req.params;
       const medico = await Medico.findByPk(id, {
         attributes: ['idmedico', 'apellidonombres', 'matricula', 'telefono', 'email', 'idespecialidad'],
@@ -93,14 +33,16 @@ const medicosController = {
       console.error('Error al buscar médico:', error);
       res.status(500).json({ 
         success: false,
-        error: 'Error interno del servidor' 
+        error: error.message 
       });
     }
   },
 
   buscarPorMatricula: async (req, res) => {
+
     try {
       const { matricula } = req.params;
+
       const medico = await Medico.findOne({
         where: { matricula },
         paranoid: false,
@@ -110,6 +52,11 @@ const medicosController = {
           attributes: ['idespecialidad', 'denominacion']
         }
       });
+      
+      console.log('estoy buscando por matricula');
+
+      console.log(medico);
+
       
       if (!medico) {
         return res.status(404).json({ 
@@ -126,22 +73,60 @@ const medicosController = {
       console.error('Error al buscar médico:', error);
       res.status(500).json({ 
         success: false,
-        error: 'Error interno del servidor' 
+        error: error.message 
       });
     }
   },
+ validarMedico = (data, esActualizacion = false) => {
+    const errores = [];
+    
+    // Validación de apellidos y nombres
+    if (!data.apellidonombres || data.apellidonombres.trim() === '') {
+      errores.push('El Apellido y Nombres es obligatorio.');
+    } else if (!/^[a-zA-ZÁÉÍÓÚáéíóúÑñ\s]+$/.test(data.apellidonombres)) {
+      errores.push('El Apellido y Nombres solo debe contener letras y espacios.');
+    }
+
+    // Validación de matrícula (solo en creación)
+    if (!esActualizacion) {
+      if (!data.matricula || data.matricula.trim() === '') {
+        errores.push('La matrícula es obligatoria.');
+      } else if (!validarMatricula(data.matricula)) { // Asume que tienes esta función
+        errores.push('La matrícula no tiene un formato válido.');
+      }
+    }
+
+    // Validación de teléfono
+    if (data.telefono && !/^\d{1,20}$/.test(data.telefono)) {
+      errores.push('El teléfono debe contener solo números (máx. 20 dígitos).');
+    }
+
+    // Validación de email
+    if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      errores.push('El correo electrónico no tiene un formato válido.');
+    }
+
+    // Validación de especialidad
+    if (!data.idespecialidad) {
+      errores.push('Debe seleccionar una especialidad.');
+    }
+
+    return errores;
+  },
+
 
   crearMedico: async (req, res) => {
     try {
       const { apellidonombres, matricula, telefono, email, idespecialidad } = req.body;
 
-      const errores = medicosController.validarMedico(req.body);
+      const errores = validarMedico(req.body);
       if (errores.length > 0) {
         return res.status(400).json({
           success: false,
           errors: errores
         });
       }
+
       const medicoExistente = await Medico.findOne({ 
         where: { matricula } 
       });
@@ -180,7 +165,7 @@ const medicosController = {
       const { matricula } = req.params;
       const datosActualizados = req.body;
 
-      const errores = medicosController.validarMedico(datosActualizados, true);
+      const errores = validarMedico(datosActualizados, true);
       if (errores.length > 0) {
         return res.status(400).json({
           success: false,
@@ -236,7 +221,7 @@ const medicosController = {
       console.error('Error al obtener médicos:', error);
       res.status(500).json({ 
         success: false,
-        error: 'Error al obtener médicos' 
+        error: 'Error al obtener médicos: ' + error.message 
       });
     }
   },
@@ -244,6 +229,7 @@ const medicosController = {
   eliminar: async (req, res) => {
     try {
       const { id } = req.params;
+
       const medico = await Medico.findByPk(id);
 
       if (!medico) {
@@ -263,7 +249,7 @@ const medicosController = {
       console.error('Error al eliminar médico:', error);
       res.status(500).json({
         success: false,
-        error: 'Error interno del servidor'
+        error: error.message
       });
     }
   },
@@ -271,6 +257,7 @@ const medicosController = {
   reactivar: async (req, res) => {
     try {
       const { id } = req.params;
+
       const medico = await Medico.findOne({
         where: { idmedico: id },
         paranoid: false
@@ -298,14 +285,15 @@ const medicosController = {
         medico: {
           idmedico: medico.idmedico,
           apellidonombres: medico.apellidonombres,
-          matricula: medico.matricula
+          matricula: medico.matricula,
+          deletedAt: null
         }
       });
     } catch (error) {
       console.error('Error al reactivar médico:', error);
       res.status(500).json({
         success: false,
-        error: 'Error interno del servidor'
+        error: error.message
       });
     }
   },
@@ -319,7 +307,6 @@ const medicosController = {
           attributes: ['denominacion']
         }],
         attributes: [
-          'idmedico',
           'apellidonombres',
           'matricula',
           'telefono',
@@ -327,6 +314,8 @@ const medicosController = {
         ],
         order: [['apellidonombres', 'ASC']]
       });
+      console.log("Listado de médicos:");
+      console.log(medicos);
       return medicos;
     } catch (error) {
       console.error('Error al obtener médicos:', error);

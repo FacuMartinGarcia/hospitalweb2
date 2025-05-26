@@ -13,7 +13,7 @@ router.get('/:documento', pacientesController.buscarPorDocumento);
 router.post('/', pacientesController.crearPaciente);
 router.put('/:documento', pacientesController.actualizarPaciente);
 router.delete('/:documento', pacientesController.eliminarPaciente);
-router.post('/:documento/reactivar', pacientesController.reactivarPaciente);
+// router.post('/:documento/reactivar', pacientesController.reactivarPaciente);
 
 
 

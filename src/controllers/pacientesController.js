@@ -130,10 +130,10 @@ const pacientesController = {
         }
       }
 
-      if (datosPaciente.contactoemergencia && datosPaciente.contactoemergencia.trim().length < 3) {
+      if (datosPaciente.contactoemergencia && !/^[\d\s()+-]{3,30}$/.test(datosPaciente.contactoemergencia)) {
         return res.status(400).json({ 
           success: false,
-          error: 'El contacto de emergencia debe tener al menos 3 caracteres' 
+          error: 'El contacto de emergencia debe tener entre 3 y 30 caracteres y puede incluir números, espacios, paréntesis, + y -'
         });
       }
 
@@ -159,20 +159,28 @@ const pacientesController = {
   listarPacientes: async (req, res) => {
     try {
       const { page = 1, limit = 10, search = '' } = req.query;
-      const offset = (page - 1) * limit;
+
+      const pageNum = parseInt(page);
+      const limitNum = parseInt(limit);
+
+      if (isNaN(pageNum) || isNaN(limitNum) || pageNum <= 0 || limitNum <= 0) {
+        return res.status(400).json({ success: false, error: 'Parámetros de paginación inválidos' });
+      }
+
+      const offset = (pageNum - 1) * limitNum;
 
       const whereClause = {};
-      if (search) {
+      if (search.trim()) {
         whereClause[Op.or] = [
-          { apellidonombres: { [Op.like]: `%${search}%` } },
-          { documento: { [Op.like]: `%${search}%` } }
+          { apellidonombres: { [Op.like]: `%${search.trim()}%` } },
+          { documento: { [Op.like]: `%${search.trim()}%` } }
         ];
       }
 
       const { count, rows } = await Paciente.findAndCountAll({
         where: whereClause,
-        limit: parseInt(limit),
-        offset: parseInt(offset),
+        limit: limitNum,
+        offset: offset,
         order: [['apellidonombres', 'ASC']],
         attributes: [
           'idpaciente', 
@@ -189,8 +197,8 @@ const pacientesController = {
         success: true,
         pacientes: rows,
         total: count,
-        totalPages: Math.ceil(count / limit),
-        currentPage: parseInt(page)
+        totalPages: Math.ceil(count / limitNum),
+        currentPage: pageNum
       });
 
     } catch (error) {
@@ -268,13 +276,12 @@ const pacientesController = {
         }
       }
 
-      if (datosPaciente.contactoemergencia && datosPaciente.contactoemergencia.trim().length < 3) {
+      if (datosPaciente.contactoemergencia && !/^[\d\s()+-]{3,30}$/.test(datosPaciente.contactoemergencia)) {
         return res.status(400).json({ 
           success: false,
-          error: 'El contacto de emergencia debe tener al menos 3 caracteres' 
+          error: 'El contacto de emergencia debe tener entre 3 y 30 caracteres y puede incluir números, espacios, paréntesis, + y -'
         });
       }
-
 
       const paciente = await Paciente.findOne({ where: { documento } });
       if (!paciente) {
@@ -341,45 +348,6 @@ const pacientesController = {
 
     } catch (error) {
       console.error('Error al eliminar paciente:', error);
-      return res.status(500).json({ 
-        success: false, 
-        error: 'Error interno del servidor' 
-      });
-    }
-  },
-
-  reactivarPaciente: async (req, res) => {
-    try {
-      const { documento } = req.params;
-
-      const paciente = await Paciente.findOne({ 
-        where: { documento },
-        paranoid: false // Buscar incluso entre los que eliminamos
-      });
-
-      if (!paciente) {
-        return res.status(404).json({ 
-          success: false, 
-          error: 'Paciente no encontrado' 
-        });
-      }
-
-      if (!paciente.deletedAt) {
-        return res.status(400).json({ 
-          success: false, 
-          error: 'El paciente no está eliminado' 
-        });
-      }
-
-      await paciente.restore();
-
-      return res.status(200).json({
-        success: true,
-        mensaje: 'Paciente reactivado correctamente'
-      });
-
-    } catch (error) {
-      console.error('Error al reactivar paciente:', error);
       return res.status(500).json({ 
         success: false, 
         error: 'Error interno del servidor' 
