@@ -93,8 +93,9 @@ const infraestructuraController = {// Método 1: Obtener hab
         idinternacion: cama.idinternacion || null,
         fechadesde: cama.fechadesde ? new Date(cama.fechadesde).toLocaleString('es-AR') : null
       }));
-
-      res.render('listarCamasOcupadas', { camas });
+      console.log('esoy aqui');
+      console.log(camas);
+      res.render('listarcamasocupadas', { camas });
 
     } catch (error) {
       console.error('Error en listarCamasOcupadasView:', error.message);

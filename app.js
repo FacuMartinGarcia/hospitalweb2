@@ -47,6 +47,9 @@ app.use('/api/pacientes', pacientesRoutes);
 app.use('/api/unidades', unidadesRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 
+// Vista HTML desde infraestructura
+app.use('/infraestructura', infraestructuraRoutes);
+
 
 // Rutas de login
 app.use('/login', loginRoutes);
