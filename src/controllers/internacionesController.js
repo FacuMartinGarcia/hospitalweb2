@@ -1,6 +1,6 @@
 const db = require('../models');
 const { Op } = require('sequelize');
-const { Internacion, Medico, Paciente, Origen, Diagnostico } = db;
+const { Internacion, Medico, Paciente, Origen, Diagnostico, InternacionCama, InternacionCirugia, InternacionEstudio, InternacionEvenfermeria, InternacionEvmedica, InternacionMedicamento, InternacionTerapia } = db;
 
 const internacionesController = {
   obtenerPorPaciente: async (req, res) => {
@@ -67,6 +67,52 @@ const internacionesController = {
       res.status(500).json({ success: false, message: 'Error al cancelar la internación' });
     }
   },
+  cancelarInternacionControlada: async (req, res) => {
+    try {
+      const idinternacion = parseInt(req.params.id);
+      const internacion = await Internacion.findByPk(idinternacion);
+  
+      if (!internacion) {
+        return res.status(404).json({ success: false, message: 'Internación no encontrada' });
+      }
+  
+      // Verificar existencia de registros relacionados con etiquetas legibles
+      const relaciones = [
+        { modelo: InternacionCama, nombre: 'internacion_cama', etiqueta: 'Asignación de cama' },
+        { modelo: InternacionCirugia, nombre: 'internacion_cirugias', etiqueta: 'Cirugía registrada' },
+        { modelo: InternacionEstudio, nombre: 'internacion_estudios', etiqueta: 'Estudio realizado' },
+        { modelo: InternacionEvenfermeria, nombre: 'internacion_evenfermeria', etiqueta: 'Evolucione de enfermería' },
+        { modelo: InternacionEvmedica, nombre: 'internacion_evmedica', etiqueta: 'Evolucione médica' },
+        { modelo: InternacionMedicamento, nombre: 'internacion_medicamentos', etiqueta: 'Medicamento administrado' },
+        { modelo: InternacionTerapia, nombre: 'internacion_terapias', etiqueta: 'Terapia registrada' }
+      ];
+  
+      const relacionadas = [];
+  
+      for (const rel of relaciones) {
+        const count = await rel.modelo.count({ where: { idinternacion } });
+        if (count > 0) {
+          relacionadas.push(rel.etiqueta); 
+        }
+      }
+  
+      if (relacionadas.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: `No se puede eliminar la internación. El paciente tiene información relacionada a la internación: ${relacionadas.join(', ')}.`
+        });
+      }
+  
+      // No hay registros relacionados, se puede eliminar
+      await internacion.destroy();
+      return res.status(200).json({ success: true, message: 'Internación eliminada exitosamente' });
+  
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ success: false, message: 'Error al cancelar la internación' });
+    }
+  },
+  
 
   crear: async (req, res) => {
     try {

@@ -9,7 +9,7 @@ const Estudio = require('./Estudio');
 const Habitacion = require('./Habitacion');
 const Internacion = require('./Internacion');
 const InternacionCama = require('./InternacionCama');
-const InternacionCirurgia = require('./InternacionCirugia');
+const InternacionCirugia = require('./InternacionCirugia');
 const InternacionEstudio = require('./InternacionEstudio');
 const InternacionEvenfermeria = require('./InternacionEvenfermeria');
 const InternacionEvmedica = require('./InternacionEvmedica');
@@ -33,9 +33,9 @@ Enfermero.associate({ InternacionEvenfermeria });
 Especialidad.associate({ Medico });
 Estudio.associate({ InternacionEstudio });
 Habitacion.associate({ Ala, Unidad, Cama });
-Internacion.associate({ Paciente, Origen, Medico, Diagnostico, InternacionCama,InternacionCirurgia, InternacionEvmedica, InternacionEvenfermeria, InternacionEstudio, InternacionMedicamento, InternacionTerapia });
+Internacion.associate({ Paciente, Origen, Medico, Diagnostico, InternacionCama,InternacionCirugia, InternacionEvmedica, InternacionEvenfermeria, InternacionEstudio, InternacionMedicamento, InternacionTerapia });
 InternacionCama.associate({Internacion, Cama});
-InternacionCirurgia.associate({ Internacion, Medico, TipoCirugia});
+InternacionCirugia.associate({ Internacion, Medico, TipoCirugia});
 InternacionEstudio.associate({ Internacion, Medico, Estudio });
 InternacionEvenfermeria.associate({ Internacion, Enfermero });
 InternacionEvmedica.associate({ Internacion, Medico, Diagnostico });
@@ -45,7 +45,7 @@ Medicamento.associate({ InternacionMedicamento, ClasificacionTerapeutica });
 Medico.associate({ Internacion, InternacionEvmedica, InternacionTerapia, Especialidad });
 Origen.associate({ Internacion });
 Paciente.associate({ Cobertura, Internacion });
-TipoCirugia.associate({ InternacionCirurgia });
+TipoCirugia.associate({ InternacionCirugia });
 TipoTerapia.associate({ InternacionTerapia });
 Unidad.associate({ Habitacion });
 
@@ -64,7 +64,7 @@ module.exports = {
   Habitacion,
   Internacion,
   InternacionCama,
-  InternacionCirurgia,
+  InternacionCirugia,
   InternacionEstudio,
   InternacionEvenfermeria,
   InternacionEvmedica,

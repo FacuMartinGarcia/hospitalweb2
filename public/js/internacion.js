@@ -116,26 +116,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     btnCancelarAdmision.addEventListener("click", async () => {
             
-            /*
-            TERMINAR LA FUNCION PARA VERIFICAR REGISTROS RELACIONADOS;
-            TABLAS: 
-            internacion_estudios, terapias, cirugias, evmedica, evenfermeria,medicamentos, cama?
-            const tieneRegistrosAsociados = await verificarRegistrosAsociados(idinternacion);
-            
-            if (tieneRegistrosAsociados) {
-                Swal.fire({
-                    title: 'No se puede cancelar',
-                    html: `Esta admisión tiene registros asociados en el sistema.<br>
-                        <small>Elimine primero los registros relacionados antes de cancelar.</small>`,
-                    icon: 'error',
-                    confirmButtonText: 'Entendido'
-                });
-                return;
-            }
-            */
         Swal.fire({
             title: '¿Cancelar admisión?',
-            html: `Esta acción <strong>eliminará permanentemente</strong> el registro de admisión.<br>
+            html: `Esta acción <strong>eliminará permanentemente</strong> el registro de internación.<br>
                 <small>ID: ${idinternacionRecuperada}</small>`,
             icon: 'warning',
             showCancelButton: true,
@@ -148,7 +131,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const response = await fetch(`/api/internaciones/${idinternacionRecuperada}/cancelarAdmision`, {
+                    const response = await fetch(`/api/internaciones/${idinternacionRecuperada}/cancelarInternacion`, {
                         method: 'DELETE',
                         headers: {
                             'Content-Type': 'application/json'
@@ -160,14 +143,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                     if (data.success) {
                         Swal.fire({
                             title: '¡Cancelada!',
-                            text: 'La admisión fue cancelada exitosamente.',
+                            text: 'La internación fue cancelada exitosamente.',
                             icon: 'success',
                             confirmButtonText: 'Cerrar'
                         }).then(() => {
-                            location.reload(); // O reemplazar esto por lógica que limpie la UI sin recargar
+                            location.reload(); 
                         });
                     } else {
-                        throw new Error(data.message || 'No se pudo cancelar la admisión.');
+                        throw new Error(data.message || 'No se pudo cancelar la internación.');
                     }
                 } catch (error) {
                     Swal.fire({
@@ -176,7 +159,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         icon: 'error',
                         confirmButtonText: 'Cerrar'
                     });
-                    console.error('Error cancelando admisión:', error);
+                    console.error('Error cancelando internación:', error);
                 }
             }
         });

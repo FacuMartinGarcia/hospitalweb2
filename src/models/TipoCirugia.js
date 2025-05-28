@@ -18,7 +18,7 @@ const TipoCirugia = sequelize.define('TipoCirugia', {
 });
 
 TipoCirugia.associate = (models) => {
-  TipoCirugia.hasMany(models.InternacionCirurgia, { foreignKey: 'idtipocirugia' });
+  TipoCirugia.hasMany(models.InternacionCirugia, { foreignKey: 'idtipocirugia' });
 };
 
 module.exports = TipoCirugia;

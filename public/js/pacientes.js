@@ -78,35 +78,43 @@ function validarDatos(form) {
         let fechaNac = new Date(fechanacimiento);
         let hoy = new Date();
         let hace150años = new Date(hoy.getFullYear() - 150, hoy.getMonth(), hoy.getDate());
-
+    
         if (fechaNac > hoy) {
             mostrarMensaje('La fecha de nacimiento no puede ser futura.', 0);
             return false;
         }
-
+    
         if (fechaNac < hace150años) {
             mostrarMensaje('La fecha de nacimiento no puede ser mayor a 150 años atrás.', 0);
             return false;
         }
     }
-
+    
     if (fechafallecimiento) {
         let fechaFal = new Date(fechafallecimiento);
         let hoy = new Date();
         let hace30dias = new Date(hoy);
         hace30dias.setDate(hoy.getDate() - 30);
-
+    
         if (fechaFal > hoy) {
             mostrarMensaje('La fecha de fallecimiento no puede ser futura.', 0);
             return false;
         }
-
+    
         if (fechaFal < hace30dias) {
             mostrarMensaje('La fecha de fallecimiento no puede ser anterior a 30 días.', 0);
             return false;
         }
+    
+        if (fechanacimiento) {
+            let fechaNac = new Date(fechanacimiento);
+            if (fechaFal < fechaNac) {
+                mostrarMensaje('La fecha de fallecimiento no puede ser anterior a la fecha de nacimiento.', 0);
+                return false;
+            }
+        }
     }
-
+    
     if (contacto !== "") {
         if (!/^[a-zA-ZÁÉÍÓÚáéíóúÑñ0-9\s\-\(\)]+$/.test(contacto)) {
             mostrarMensaje('El contacto de emergencia solo puede contener letras, números, espacios, guiones y paréntesis.', 0);
