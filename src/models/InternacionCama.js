@@ -34,7 +34,6 @@ const InternacionCama = sequelize.define('InternacionCama', {
   }
 }, {
   tableName: 'internacion_cama',
-  paranoid: true, 
   timestamps: true 
 });
 

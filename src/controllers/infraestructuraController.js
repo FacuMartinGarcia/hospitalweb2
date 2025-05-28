@@ -1,8 +1,6 @@
 const sequelize = require('../../config/db');
 const { QueryTypes } = require('sequelize');
 
-console.log('🔍 Entró al controlador listarCamasPorPacienteInternacion');
-
 const infraestructuraController = {
   obtenerHabitacionesCompatibles: async (req, res) => {
 
@@ -76,8 +74,8 @@ const infraestructuraController = {
         JOIN infra_habitaciones h ON c.idhabitacion = h.idhabitacion 
         JOIN infra_alas a ON h.idala = a.idala 
         JOIN infra_unidades u ON h.idunidad = u.idunidad 
-        LEFT JOIN internacion_cama ic ON ic.idcama = c.idcama AND ic.deletedAt IS NULL AND ic.fechahasta IS NULL 
-        LEFT JOIN internacion i ON ic.idinternacion = i.idinternacion AND i.deletedAt IS NULL 
+        LEFT JOIN internacion_cama ic ON ic.idcama = c.idcama AND ic.fechahasta IS NULL 
+        LEFT JOIN internacion i ON ic.idinternacion = i.idinternacion 
         LEFT JOIN pacientes p ON i.idpaciente = p.idpaciente 
         ORDER BY u.denominacion, a.denominacion, h.nombrehabitacion, c.numerocama;
       `, {
@@ -106,7 +104,6 @@ const infraestructuraController = {
   },
  listarCamasPorPacienteInternacion: async (req, res) => {
 
-   console.log('🔍 Entró al controlador listarCamasPorPacienteInternacion');
    const { idinternacion } = req.query;
 
     if (!idinternacion) {
@@ -129,7 +126,6 @@ const infraestructuraController = {
         JOIN internacion i ON ic.idinternacion = i.idinternacion
         WHERE 
             i.idinternacion = :idinternacion 
-            AND ic.deletedAt IS NULL
         ORDER BY ic.fechadesde;
       `, {
         replacements: {
