@@ -198,101 +198,100 @@ const internacionesController = {
     }
   },
 
-  async anularUltimaAsignacionCama(req, res) {
-    try {
-      const idinternacion = req.params.id;
-      console.log("🔍 Buscando historial de asignaciones para internación:", idinternacion);
+async anularUltimaAsignacionCama(req, res) {
 
-      const historial = await db.InternacionCama.findAll({
-        where: { idinternacion },
-        order: [['fechadesde', 'DESC']],
-        include: [{ model: db.Cama, as: 'cama' }]
-      });
+  try {
 
-      console.log("📋 Historial:", historial.map(h => ({
-        id: h.idintercama,
-        cama: h.idcama,
-        desde: h.fechadesde,
-        hasta: h.fechahasta
-      })));
+    const idinternacion = req.params.id;
+    const historial = await db.InternacionCama.findAll({
+      where: { idinternacion },
+      order: [['fechadesde', 'DESC']],
+      include: [{ model: db.Cama, as: 'cama' }]
+    });
 
-      if (!historial || historial.length === 0) {
-        const mensaje = '❌ No hay asignaciones de cama registradas.';
-        console.log(mensaje);
-        return res.status(404).json({ success: false, message: mensaje });
-      }
 
-      const ultima = historial[0];
+    if (!historial || historial.length === 0) {
+      const mensaje = 'No hay asignaciones de cama registradas.';
+      console.log(mensaje);
+      return res.status(404).json({ success: false, message: mensaje });
+    }
 
-      // Verificar si fue asignada hoy
-      const hoyString = new Date().toISOString().split('T')[0];
-      const asignacionString = new Date(ultima.fechadesde).toISOString().split('T')[0];
+    const ultima = historial[0];
 
-      const mismaFecha = hoyString === asignacionString;
+    // Verificar que no hayan pasado 2 o más días desde la asignación
+    const hoy = new Date();
+    const fechaAsignacion = new Date(ultima.fechadesde);
 
-      if (!mismaFecha) {
-        const mensaje = '⚠️ La asignación no es de hoy. Solo se puede anular la asignación realizada el día de hoy.';
-        console.log(mensaje);
-        return res.status(400).json({ success: false, message: mensaje });
-      }
+    hoy.setHours(0, 0, 0, 0);
+    fechaAsignacion.setHours(0, 0, 0, 0);
 
-      if (historial.length === 1) {
-        console.log("✅ Única asignación, se elimina sin reactivar otra.");
-        await ultima.destroy();
-        return res.json({
-          success: true,
-          message: 'Única asignación anulada correctamente.'
-        });
-      }
+    const diferenciaMilisegundos = hoy - fechaAsignacion;
+    const diferenciaDias = diferenciaMilisegundos / (1000 * 60 * 60 * 24);
 
-      const anterior = historial[1];
+    if (diferenciaDias >= 2) {
+      const mensaje = 'Solo se puede anular una asignación si no han pasado más de 2 días.';
+      console.log(mensaje);
+      return res.status(400).json({ success: false, message: mensaje });
+    }
 
-      if (!anterior) {
-        const mensaje = '❌ No se encontró la asignación anterior.';
-        console.log(mensaje);
-        return res.status(500).json({ success: false, message: mensaje });
-      }
-
-      console.log("🔎 Verificando si la cama anterior fue usada por otro paciente...");
-
-      const fueOcupada = await db.InternacionCama.findOne({
-        where: {
-          idcama: anterior.idcama,
-          idinternacion: { [Op.ne]: idinternacion },
-          fechadesde: {
-            [Op.gt]: anterior.fechahasta || anterior.fechadesde
-          }
-        }
-      });
-
-      if (fueOcupada) {
-        const mensaje = '🚫 La cama anterior fue asignada a otro paciente después de la internación. No se puede reactivar.';
-        console.log(mensaje);
-        return res.status(400).json({ success: false, message: mensaje });
-      }
-
-      // Todo OK: anular última asignación y reactivar anterior
-      console.log("✅ Anulando última asignación y reactivando la anterior...");
+    if (historial.length === 1) {
+      console.log("Única asignación, se elimina sin reactivar otra.");
       await ultima.destroy();
-
-      anterior.fechahasta = null;
-      await anterior.save();
-
       return res.json({
         success: true,
-        message: 'Asignación actual anulada y se reactivó la anterior.',
-        data: { reactivada: anterior }
-      });
-
-    } catch (error) {
-      console.error('❗ Error en anularUltimaAsignacionCama:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Error inesperado al intentar anular la asignación.',
-        error: error.message
+        message: 'Única asignación anulada correctamente.'
       });
     }
-  },
+
+    const anterior = historial[1];
+
+    if (!anterior) {
+      const mensaje = 'No se encontró la asignación anterior.';
+      console.log(mensaje);
+      return res.status(500).json({ success: false, message: mensaje });
+    }
+
+    console.log("Verificando si la cama anterior fue usada por otro paciente...");
+
+    const fueOcupada = await db.InternacionCama.findOne({
+      where: {
+        idcama: anterior.idcama,
+        idinternacion: { [Op.ne]: idinternacion },
+        fechadesde: {
+          [Op.gt]: anterior.fechahasta || anterior.fechadesde
+        }
+      }
+    });
+
+    if (fueOcupada) {
+      const mensaje = 'La cama anterior fue asignada a otro paciente después de la internación. No se puede reactivar.';
+      console.log(mensaje);
+      return res.status(400).json({ success: false, message: mensaje });
+    }
+
+    // Todo OK: anular última asignación y reactivar anterior
+    console.log("Anulando última asignación y reactivando la anterior...");
+    await ultima.destroy();
+
+    anterior.fechahasta = null;
+    await anterior.save();
+
+    return res.json({
+      success: true,
+      message: 'Asignación actual anulada y se reactivó la anterior.',
+      data: { reactivada: anterior }
+    });
+
+  } catch (error) {
+    console.error('Error en anularUltimaAsignacionCama:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error inesperado al intentar anular la asignación.',
+      error: error.message
+    });
+  }
+},
+
 
   async liberarCama(req, res) {
       try {

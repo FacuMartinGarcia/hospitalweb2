@@ -75,15 +75,11 @@ const Internacion = sequelize.define('Internacion', {
   updatedAt: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
-  },
-  deletedAt: {
-    type: DataTypes.DATE,
-    allowNull: true
   }
 }, {
   tableName: 'internacion',
   timestamps: true,
-  paranoid: true
+  paranoid: false
 });
 
 Internacion.associate = (models) => {

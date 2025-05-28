@@ -57,4 +57,8 @@ const Enfermero = sequelize.define('Enfermero', {
   ],
 });
 
+Enfermero.associate = (models) => {
+  Enfermero.hasMany(models.InternacionEvenfermeria, { foreignKey: 'idenfermero' });
+}
+
 module.exports = Enfermero;

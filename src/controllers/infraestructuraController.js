@@ -93,8 +93,6 @@ const infraestructuraController = {
         idinternacion: cama.idinternacion || null,
         fechadesde: cama.fechadesde ? new Date(cama.fechadesde).toLocaleString('es-AR') : null
       }));
-      console.log('esoy aqui');
-      console.log(camas);
       res.render('listarcamasocupadas', { camas });
 
     } catch (error) {
@@ -126,7 +124,7 @@ const infraestructuraController = {
         JOIN internacion i ON ic.idinternacion = i.idinternacion
         WHERE 
             i.idinternacion = :idinternacion 
-        ORDER BY ic.fechadesde;
+        ORDER BY ic.fechadesde, idintercama DESC;
       `, {
         replacements: {
           idinternacion: parseInt(idinternacion, 10),

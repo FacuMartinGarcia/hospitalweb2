@@ -1,24 +1,24 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../../config/db');
 
-const TipoCirugia = sequelize.define('TipoCirugia', {
-  idtipocirugia: {
+const TipoTerapia = sequelize.define('TipoTerapia', {
+  idtipoterapia: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true
   },
-  denominacioncirugia: {
+  denominacionterapia: {
     type: DataTypes.STRING(100),
     allowNull: false,
     unique: true
   }
 }, {
-  tableName: 'tipocirugias',
+  tableName: 'tipoterapias',
   timestamps: false
 });
 
-TipoCirugia.associate = (models) => {
-  TipoCirugia.hasMany(models.InternacionCirurgia, { foreignKey: 'idtipocirugia' });
+TipoTerapia.associate = (models) => {
+  TipoTerapia.hasMany(models.InternacionTerapia, { foreignKey: 'idtipoterapia' });
 };
 
-module.exports = TipoCirugia;
+module.exports = TipoTerapia;

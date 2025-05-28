@@ -509,19 +509,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             formInternacion.reset();
             seccionInternacion.style.display = "none";
-            
 
-            //limpiarDatosPaciente();
-            /*
-            inputDocumento.disabled = false;
-            inputDocumento.value = "";
-            inputDocumento.focus();
-            btnBuscarPaciente.textContent = "Buscar";
-            pacienteSeleccionado = null;
-            */
             await verificarInternaciones(pacienteSeleccionado);
-            //const internaciones = await obtenerInternaciones(pacienteSeleccionado.idpaciente);
-            //mostrarInternaciones(internaciones);    
+ 
             btnAsignarCama.click();
 
 
@@ -768,10 +758,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             data.camas.forEach(cama => {
                 const fila = document.createElement('tr');
                 fila.innerHTML = `
-                <td class="text-center">${new Date(cama.fechadesde).toLocaleDateString()}</td>
-                <td>${cama.unidad}</td>
-                <td>${cama.habitacion}</td>
-                <td class="text-center">${cama.cama}</td>
+                    <td class="text-center">${formatearFecha(cama.fechadesde)}</td>
+                    <td>${cama.unidad}</td>
+                    <td>${cama.habitacion}</td>
+                    <td class="text-center">${cama.cama}</td>
                 `;
                 tbody.appendChild(fila);
             });
@@ -782,8 +772,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    function formatearFecha(iso) {
+        if (!iso) return '';
+            const [a, m, d] = iso.split("T")[0].split("-");
+        return `${d}/${m}/${a}`;
+    }
 
-        async function cargarOrigenes() {
+
+    async function cargarOrigenes() {
         try {
             const response = await fetch(API_URL_ORIGENES);
             if (!response.ok) throw new Error("Error al cargar orígenes");

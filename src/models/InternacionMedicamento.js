@@ -30,7 +30,7 @@ const InternacionMedicamento = sequelize.define('InternacionMedicamento', {
   }
 }, {
   tableName: 'internacion_medicamentos',
-  paranoid: true,
+  paranoid: false,
   timestamps: true
 });
 
