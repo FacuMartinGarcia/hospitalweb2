@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const mensajeBusqueda = document.getElementById("mensajes");
 
-   // btnRegistrarInternacion.addEventListener("click", registrarInternacion);
+    btnRegistrarInternacion.addEventListener("click", registrarInternacion);
 
     
     let pacienteSeleccionado = null;

@@ -1,7 +1,9 @@
 const sequelize = require('../../config/db');
 const { QueryTypes } = require('sequelize');
 
-const infraestructuraController = {// Método 1: Obtener hab
+console.log('🔍 Entró al controlador listarCamasPorPacienteInternacion');
+
+const infraestructuraController = {
   obtenerHabitacionesCompatibles: async (req, res) => {
 
     const { idunidad, sexo } = req.query;
@@ -103,7 +105,9 @@ const infraestructuraController = {// Método 1: Obtener hab
     }
   },
  listarCamasPorPacienteInternacion: async (req, res) => {
-    const { idinternacion } = req.query;
+
+   console.log('🔍 Entró al controlador listarCamasPorPacienteInternacion');
+   const { idinternacion } = req.query;
 
     if (!idinternacion) {
       return res.status(400).json({ success: false, message: 'Faltan numero de internacion' });
