@@ -192,8 +192,6 @@ const enfermeroController = {
   reactivarEnfermero: async (req, res) => {
     try {
       const { matricula } = req.params;
-
-      console.log("Matrícula recibida para reactivar:", matricula);
       const enfermero = await Enfermero.findOne({
         where: { matricula },
         paranoid: false 

@@ -241,10 +241,10 @@ const medicosController = {
     }
   },
 
-  eliminar: async (req, res) => {
+  eliminarMedico: async (req, res) => {
     try {
-      const { id } = req.params;
-      const medico = await Medico.findByPk(id);
+      const { matricula } = req.params;
+      const medico = await Medico.findOne({ where: { matricula } });
 
       if (!medico) {
         return res.status(404).json({
@@ -259,6 +259,7 @@ const medicosController = {
         success: true,
         message: 'Médico eliminado correctamente'
       });
+      
     } catch (error) {
       console.error('Error al eliminar médico:', error);
       res.status(500).json({
@@ -268,11 +269,11 @@ const medicosController = {
     }
   },
 
-  reactivar: async (req, res) => {
+  reactivarMedico: async (req, res) => {
     try {
-      const { id } = req.params;
+      const { matricula} = req.params;
       const medico = await Medico.findOne({
-        where: { idmedico: id },
+        where: { matricula },
         paranoid: false
       });
 

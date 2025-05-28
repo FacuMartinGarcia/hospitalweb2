@@ -5,10 +5,10 @@ const medicosController = require('../controllers/medicosController');
 
 router.get('/:matricula', medicosController.buscarPorMatricula);
 router.get('/:id', medicosController.buscarPorId);
-router.post('/:id/reactivar', medicosController.reactivar); 
 router.post('/', medicosController.crearMedico);
 router.get('/', medicosController.listarMedicos);
 router.put('/:matricula', medicosController.actualizarMedico);
-router.delete('/:id', medicosController.eliminar);
+router.put('/:matricula/reactivar', medicosController.reactivarMedico); 
+router.delete('/:matricula', medicosController.eliminarMedico);
 
 module.exports = router;

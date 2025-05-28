@@ -207,7 +207,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     btnCancelarUltimaAsignacion.addEventListener("click", async () => {
-
         try {
             const result = await Swal.fire({
                 title: '¿Está seguro?',
@@ -222,35 +221,44 @@ document.addEventListener("DOMContentLoaded", async () => {
                 focusCancel: true
             });
 
-            if (result.isConfirmed) {
+            if (!result.isConfirmed) return;
 
-                btnCancelarUltimaAsignacion.disabled = true;
-                btnCancelarUltimaAsignacion.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+            btnCancelarUltimaAsignacion.disabled = true;
+            btnCancelarUltimaAsignacion.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
 
-                const response = await fetch(`/api/internaciones/${idinternacionRecuperada}/ultima-cama`, {
-                    method: 'DELETE'
-                });
+            const response = await fetch(`/api/internaciones/${idinternacionRecuperada}/ultima-cama`, {
+                method: 'DELETE'
+            });
 
-                if (!response.ok) throw new Error('Error al cancelar la asignación');
+            const data = await response.json();
 
-                await Swal.fire({
-                    title: '¡Éxito!',
-                    text: 'La última asignación de cama fue cancelada',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                });
-
-                await cargarCamasAsignadas(idinternacionRecuperada);
+            if (!response.ok) {
+                throw new Error(data.message || 'Error al cancelar la asignación');
             }
+
+            await Swal.fire({
+                title: '¡Éxito!',
+                text: data.message || 'La última asignación fue anulada correctamente.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+
+            await cargarCamasAsignadas(idinternacionRecuperada);
+
         } catch (error) {
             console.error('Error al cancelar asignación:', error);
-            Swal.fire('Error', 'No se pudo cancelar la asignación', 'error');
+            await Swal.fire({
+                title: 'Error',
+                text: error.message || 'No se pudo cancelar la asignación',
+                icon: 'error'
+            });
         } finally {
             btnCancelarUltimaAsignacion.disabled = false;
             btnCancelarUltimaAsignacion.innerHTML = '<i class="fas fa-undo me-2"></i>Cancelar Última Asignación';
         }
     });
+
 
     async function cargarCamasAsignadas(idinternacion) {
         try {

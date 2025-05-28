@@ -1,4 +1,5 @@
 const db = require('../models');
+const { Op } = require('sequelize');
 const { Internacion, Medico, Paciente, Origen, Diagnostico } = db;
 
 const internacionesController = {
@@ -200,6 +201,7 @@ const internacionesController = {
   async anularUltimaAsignacionCama(req, res) {
     try {
       const idinternacion = req.params.id;
+      console.log("🔍 Buscando historial de asignaciones para internación:", idinternacion);
 
       const historial = await db.InternacionCama.findAll({
         where: { idinternacion },
@@ -207,40 +209,70 @@ const internacionesController = {
         include: [{ model: db.Cama, as: 'cama' }]
       });
 
+      console.log("📋 Historial:", historial.map(h => ({
+        id: h.idintercama,
+        cama: h.idcama,
+        desde: h.fechadesde,
+        hasta: h.fechahasta
+      })));
+
       if (!historial || historial.length === 0) {
-        return res.status(404).json({
-          success: false,
-          message: 'No hay asignaciones de cama registradas'
-        });
+        const mensaje = '❌ No hay asignaciones de cama registradas.';
+        console.log(mensaje);
+        return res.status(404).json({ success: false, message: mensaje });
       }
 
       const ultima = historial[0];
 
+      // Verificar si fue asignada hoy
+      const hoyString = new Date().toISOString().split('T')[0];
+      const asignacionString = new Date(ultima.fechadesde).toISOString().split('T')[0];
+
+      const mismaFecha = hoyString === asignacionString;
+
+      if (!mismaFecha) {
+        const mensaje = '⚠️ La asignación no es de hoy. Solo se puede anular la asignación realizada el día de hoy.';
+        console.log(mensaje);
+        return res.status(400).json({ success: false, message: mensaje });
+      }
+
       if (historial.length === 1) {
+        console.log("✅ Única asignación, se elimina sin reactivar otra.");
         await ultima.destroy();
         return res.json({
           success: true,
-          message: 'Única asignación anulada correctamente'
+          message: 'Única asignación anulada correctamente.'
         });
       }
 
       const anterior = historial[1];
 
+      if (!anterior) {
+        const mensaje = '❌ No se encontró la asignación anterior.';
+        console.log(mensaje);
+        return res.status(500).json({ success: false, message: mensaje });
+      }
+
+      console.log("🔎 Verificando si la cama anterior fue usada por otro paciente...");
+
       const fueOcupada = await db.InternacionCama.findOne({
         where: {
           idcama: anterior.idcama,
-          idinternacion: { [db.Sequelize.Op.ne]: idinternacion },
-          fechadesde: { [db.Sequelize.Op.gt]: anterior.fechahasta }
+          idinternacion: { [Op.ne]: idinternacion },
+          fechadesde: {
+            [Op.gt]: anterior.fechahasta || anterior.fechadesde
+          }
         }
       });
 
       if (fueOcupada) {
-        return res.status(400).json({
-          success: false,
-          message: 'No se puede anular porque la cama anterior fue ocupada por otro paciente'
-        });
+        const mensaje = '🚫 La cama anterior fue asignada a otro paciente después de la internación. No se puede reactivar.';
+        console.log(mensaje);
+        return res.status(400).json({ success: false, message: mensaje });
       }
 
+      // Todo OK: anular última asignación y reactivar anterior
+      console.log("✅ Anulando última asignación y reactivando la anterior...");
       await ultima.destroy();
 
       anterior.fechahasta = null;
@@ -248,15 +280,15 @@ const internacionesController = {
 
       return res.json({
         success: true,
-        message: 'Asignación actual anulada y se reactivó la anterior',
+        message: 'Asignación actual anulada y se reactivó la anterior.',
         data: { reactivada: anterior }
-    });
+      });
 
     } catch (error) {
-      console.error('Error en anularUltimaAsignacionCama:', error);
+      console.error('❗ Error en anularUltimaAsignacionCama:', error);
       return res.status(500).json({
         success: false,
-        message: 'Error al anular la última asignación',
+        message: 'Error inesperado al intentar anular la asignación.',
         error: error.message
       });
     }
