@@ -445,7 +445,7 @@ function desbloquearCamposFormulario() {
     const campos = [
         "apellidonombres", "fechanacimiento", "sexo",
         "direccion", "telefono", "email", "idcobertura",
-        "contactoemergencia", "fechafallecimiento", "actadefuncion"
+        "contactoemergencia" //, "fechafallecimiento", "actadefuncion"
     ];
     
     campos.forEach(id => {

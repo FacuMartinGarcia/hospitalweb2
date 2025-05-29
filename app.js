@@ -62,7 +62,8 @@ app.set('views', './views');
 
 // Rutas para vistas
 app.get('/', (req, res) => {
-  res.render('index');
+  res.render('layout');
+  //res.render('index');
 });
 
 app.get('/layout', (req, res) => {

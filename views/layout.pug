@@ -14,27 +14,39 @@ html(lang="es")
         background: linear-gradient(to right, #4facfe, #00f2fe);
       }
 
+      .navbar-dark .navbar-nav .nav-link {
+        color: white;
+      }
+
       .navbar-nav .dropdown-menu {
         background-color: #1c1c1c;
         border: none;
       }
+
       .dropdown-menu a {
         color: white;
       }
+
       .dropdown-menu a:hover {
         background-color: rgba(224, 219, 219, 0.87);
+        color: black;
       }
-      .navbar-dark .navbar-nav .nav-link {
-        color: white;
+
+      .navbar-brand-centered {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        font-weight: bold;
       }
 
     block extraHead
 
   body
-    // Encabezado con navbar
-    nav.navbar.navbar-expand-lg.navbar-dark.bg-dark
-      .container-fluid
-        a.navbar-brand(href="#") Admisión Hospitalaria
+    // Navbar superior
+    nav.navbar.navbar-expand-lg.navbar-dark.bg-dark.position-relative
+      .container-fluid.position-relative
+
+        // Menú a la izquierda
         button.navbar-toggler(type="button", data-bs-toggle="collapse", data-bs-target="#navbarNav")
           span.navbar-toggler-icon
 
@@ -57,64 +69,41 @@ html(lang="es")
                 li
                   a.dropdown-item(href="/pacientes") Legajos
                 li
-                  a.dropdown-item(href="/pacienteslistado") Listado / Búsquedas
-                li
-                  a.dropdown-item(href="/infraestructura/camas-ocupadas") Historia Clínica
+                  a.dropdown-item(href="/pacienteslistado") Listados / Búsquedas
 
-            // Internaciones
-            li.nav-item
-              a.nav-link(href="/internacion") Registro de Admisión
-
-            // Enfermería
-            li.nav-item
-              a.nav-link(href="/enfermeria/evaluaciones") Evaluaciones de Pacientes
-
-            // Registro Médico
+            // Internación
             li.nav-item.dropdown
-              a.nav-link.dropdown-toggle(href="#", role="button", data-bs-toggle="dropdown") Registro Médico
+              a.nav-link.dropdown-toggle(href="#", role="button", data-bs-toggle="dropdown") Internación
               ul.dropdown-menu
                 li
-                  a.dropdown-item(href="/atencionmedica") Evaluaciones Médicas
+                  a.dropdown-item(href="/internacion") Admisión - Asignación de Camas
                 li
-                  a.dropdown-item(href="/registro/medicamentos") Dispensación de Medicamentos
-                li
-                  a.dropdown-item(href="/registro/analisis") Análisis y Estudios
-                li
-                  a.dropdown-item(href="/registro/cirugias") Cirugías
-                li
-                  a.dropdown-item(href="/registro/terapias") Terapias
+                  a.dropdown-item(href="/infraestructura/camas-ocupadas") Ocupación de Camas del Nosocomio
 
-            // Nomencladores
-            li.nav-item.dropdown
-              a.nav-link.dropdown-toggle(href="#", role="button", data-bs-toggle="dropdown") Nomencladores
-              ul.dropdown-menu
-                li
-                  a.dropdown-item(href="/nomencladores/obras-sociales") Obras Sociales
-                li
-                  a.dropdown-item(href="/nomencladores/especialidades") Especialidades Médicas
-                li
-                  a.dropdown-item(href="/nomencladores/diagnosticos") Diagnósticos
-                li
-                  a.dropdown-item(href="/nomencladores/medicamentos") Medicamentos
-                li
-                  a.dropdown-item(href="/nomencladores/clasificaciones") Clasificaciones Terapéuticas
-                li
-                  a.dropdown-item(href="/nomencladores/origenes") Orígenes de Consultas
-                li
-                  a.dropdown-item(href="/nomencladores/tipos-estudios") Tipos de Estudios
+        // Título centrado
+        a.navbar-brand.text-white.navbar-brand-centered(href="#") Admisión Hospitalaria
 
-          span.text-white.ms-auto.d-none.d-lg-inline#fechaHora
+        // Hora a la derecha
+        span.text-white.position-absolute.end-0.me-3#fechaHora
 
-    // Área de contenido
+    // Contenido principal
     .container.mt-4
       block content
-    
+
     script(src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js")
     script.
       function actualizarFechaHora() {
         const fechaHoraElement = document.getElementById("fechaHora");
         const fecha = new Date();
-        const opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+        const opciones = {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit'
+        };
         fechaHoraElement.textContent = fecha.toLocaleDateString('es-ES', opciones);
       }
       setInterval(actualizarFechaHora, 1000);
