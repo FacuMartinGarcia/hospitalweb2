@@ -1,4 +1,4 @@
-//require('dotenv').config();
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const session = require('express-session');
@@ -125,7 +125,7 @@ sequelize.sync()
 .then(() => {
   console.log('Base de datos sincronizada correctamente');
 
-  // Solo iniciar el servidor si no se está usando como módulo (Vercel)
+  // Solo iniciar el servidor si no se está usando como módulo
   if (require.main === module) {
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
