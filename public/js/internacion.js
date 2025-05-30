@@ -330,6 +330,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             edadTexto = `${edad} años`;
         }
 
+        
+
         const sexoTexto = paciente.sexo === 'M' ? 'Masculino' : (paciente.sexo === 'F' ? 'Femenino' : 'Sin datos');
         const coberturaNombre = (paciente.cobertura && paciente.cobertura.denominacion)
             ? paciente.cobertura.denominacion

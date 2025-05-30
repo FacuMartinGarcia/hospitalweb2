@@ -129,12 +129,16 @@ const pacientesController = {
         }
       }
 
-      if (datosPaciente.contactoemergencia && !/^[\d\s()+-]{3,30}$/.test(datosPaciente.contactoemergencia)) {
+      if (
+        datosPaciente.contactoemergencia &&
+        (datosPaciente.contactoemergencia.length < 3 || datosPaciente.contactoemergencia.length > 50)
+      ) {
         return res.status(400).json({ 
           success: false,
-          error: 'El contacto de emergencia debe tener entre 3 y 30 caracteres y puede incluir números, espacios, paréntesis, + y -'
+          error: 'El contacto de emergencia debe tener entre 3 y 50 caracteres'
         });
       }
+
 
       const existente = await Paciente.findOne({ where: { documento } });
       if (existente) {
@@ -272,15 +276,19 @@ const pacientesController = {
             success: false,
             error: 'La fecha de fallecimiento no puede ser anterior a 30 días' 
           });
+          }
         }
-      }
 
-      if (datosPaciente.contactoemergencia && !/^[\d\s()+-]{3,30}$/.test(datosPaciente.contactoemergencia)) {
-        return res.status(400).json({ 
-          success: false,
-          error: 'El contacto de emergencia debe tener entre 3 y 30 caracteres y puede incluir números, espacios, paréntesis, + y -'
-        });
-      }
+        if (
+          datosPaciente.contactoemergencia &&
+          (datosPaciente.contactoemergencia.length < 3 || datosPaciente.contactoemergencia.length > 50)
+        ) {
+          return res.status(400).json({ 
+            success: false,
+            error: 'El contacto de emergencia debe tener entre 3 y 50 caracteres'
+          });
+        }
+
 
       const paciente = await Paciente.findOne({ where: { documento } });
       if (!paciente) {

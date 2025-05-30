@@ -30,9 +30,11 @@ block content
                 td= paciente.documento
                 td
                   if paciente.fechanacimiento
-                    = paciente.fechanacimiento
-                  else
-                    | No registrada
+                    - const fecha = new Date(paciente.fechanacimiento);
+                    - const dia = String(fecha.getDate()).padStart(2, '0');
+                    - const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                    - const anio = fecha.getFullYear();
+                    = `${dia}/${mes}/${anio}`
                 td
                   if paciente.cobertura
                     = paciente.cobertura.denominacion
