@@ -1,7 +1,6 @@
 const { Op } = require('sequelize');
 const db = require('../models'); 
 const { Paciente, Cobertura } = db;
-//const Internacion = require('../models/internacion');
 
 const pacientesController = {
   buscarPorDocumento: async (req, res) => {
