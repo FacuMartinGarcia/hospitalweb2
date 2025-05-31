@@ -610,7 +610,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         `;
 
         const { value: idunidad } = await Swal.fire({
-            title: 'Unidad de Internción',
+            title: 'Unidad de Internación',
             html: generarSelectUnidades(unidadesData.unidades),
             focusConfirm: false,
             preConfirm: () => {
