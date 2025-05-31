@@ -115,18 +115,8 @@ function validarDatos(form) {
         }
     }
     
-    if (contacto !== "") {
-        if (!/^[a-zA-ZÁÉÍÓÚáéíóúÑñ0-9\s\-\(\)]+$/.test(contacto)) {
-            mostrarMensaje('El contacto de emergencia solo puede contener letras, números, espacios, guiones y paréntesis.', 0);
-            form.contactoemergencia.focus();
-            return false;
-        }
-
-        if (contacto.length < 3) {
-            mostrarMensaje('El contacto de emergencia debe tener al menos 3 caracteres.', 0);
-            form.contactoemergencia.focus();
-            return false;
-        }
+    if (contacto && (contacto.length < 3 || contacto.length > 30)) {
+        mostrarMensaje('El contacto de emergencia debe tener entre 3 y 30 caracteres', 0);
     }
 
     return true;
@@ -182,7 +172,6 @@ btnBuscar.addEventListener("click", async () => {
         
 
     } catch (error) {
-        console.error('Error en búsqueda:', error);
         Swal.fire({
             title: 'Error',
             text: 'Hubo un problema al realizar la búsqueda.',
@@ -266,8 +255,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 }); 
 
-
-
 async function buscarPaciente(documento) {
     try {
         if (!validarDocumento(documento)) return null;
@@ -278,11 +265,9 @@ async function buscarPaciente(documento) {
             }
             throw new Error('Error en la respuesta del servidor');
         }
-
         const data = await response.json();
         return data;
     } catch (error) {
-        console.log('Error al buscar paciente:', error);
         return null;
     }
 }
@@ -331,7 +316,6 @@ async function guardarPaciente(paciente, esEdicion = false) {
         return responseData;
 
     } catch (error) {
-        console.error('Error en guardarPaciente:', error);
         
         let errorMessage = error.message;
         if (error.message.includes('Failed to fetch')) {

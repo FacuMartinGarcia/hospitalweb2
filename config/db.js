@@ -1,4 +1,4 @@
-require('dotenv').config(); 
+//require('dotenv').config(); 
 const { Sequelize } = require('sequelize');
 
 /*
@@ -6,7 +6,6 @@ const sequelize = new Sequelize('hospital', 'root', '', {
   host: 'localhost',
   dialect: 'mysql',
 });
-
 */
 
 
@@ -22,11 +21,8 @@ const sequelize = new Sequelize(
   }
 );
 
-
-
-module.exports = sequelize;
-
 sequelize.authenticate()
   .then(() => console.log('✅ Conexión exitosa a Railway'))
   .catch(err => console.error('❌ Error de conexión:', err));
-  
+
+module.exports = sequelize;

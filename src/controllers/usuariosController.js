@@ -1,4 +1,7 @@
-const Usuario = require('../models/usuario');
+const db = require('../models'); 
+const { Usuario } = db;
+
+
 
 const usuariosController = {
   listar: async (req, res) => {

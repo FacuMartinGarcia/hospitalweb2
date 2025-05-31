@@ -83,15 +83,13 @@ block content
               label.form-label(for="diagnostico") Diagnóstico:
               select#iddiagnostico.form-select(name="iddiagnostico", required)
                 option(value="") Seleccione...
-
           .row.mb-3
             .col-md-6
               label.form-label(for="fechaingreso") Fecha de admisión:
-              input.form-control#fechaingreso(type="date", name="fechaingreso", required)
+              input.form-control#fechaingreso(type="date", name="fechaingreso", required disabled)
             .col-md-6
               label.form-label(for="horaingreso") Hora de admisión:
-              input.form-control#horaingreso(type="time", name="horaingreso", required)
-
+              input.form-control#horaingreso(type="time", name="horaingreso", required disabled)
           .mb-3
             label.form-label(for="observaciones") Observaciones:
             textarea.form-control#observaciones(name="observaciones", rows="3")
