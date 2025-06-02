@@ -18,7 +18,6 @@ build/
 Thumbs.db
 
 # Archivos de bases de datos locales o backups
-*.sql
 *.bak
 *.zip
 
