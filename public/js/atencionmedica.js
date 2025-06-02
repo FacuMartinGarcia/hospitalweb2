@@ -326,7 +326,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 datosMedicamentos.forEach(item => {
                     const option = document.createElement('option');
                     option.value = item.idmedicamento;
-                    option.textContent = item.denominacion;
+                    option.textContent = item.nombremedicamento + " - " + item.presentacion;
                     medicamentoPrescripcion.appendChild(option);
             });
         } catch (error) {
