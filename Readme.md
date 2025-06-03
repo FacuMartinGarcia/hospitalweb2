@@ -60,10 +60,6 @@ el sistema informa el detalle completo de su asignación (Unidad / Ala / Habitac
    npm init -y
    node --watch app.js
 
-Acceso al video de muestra:
-https://vimeo.com/1089680089/a134ca2139
 
-Repositorio Railway:
-https://hospitalweb2-production.up.railway.app
 
 
