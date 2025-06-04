@@ -6,6 +6,7 @@ const sequelize = require('./config/db');
 const { obtenerPacientes } = require('./src/controllers/pacientesController');
 
 // Importar rutas
+const atencionMedicaRoutes = require('./src/routes/atencionmedicaRoutes');
 const coberturasRoutes = require('./src/routes/coberturasRoutes');
 const diagnosticosRoutes = require('./src/routes/diagnosticosRoutes');
 const enfermerosRoutes = require('./src/routes/enfermerosRoutes');
@@ -36,6 +37,7 @@ app.use(session({
 }));
 
 // Rutas de API
+app.use('/api/atencionmedica', atencionMedicaRoutes);
 app.use('/api/coberturas', coberturasRoutes);
 app.use('/api/enfermeros', enfermerosRoutes);
 app.use('/api/especialidades', especialidadesRoutes);
@@ -85,10 +87,14 @@ app.get('/enfermeros', (req, res) => {
 app.get('/internacion', (req, res) => {
   res.render('internacion');
 });
+
 app.get('/atencionmedica', (req, res) => {
   res.render('atencionmedica');
 });
 
+app.get('/atencionenfermeria', (req, res) => {
+  res.render('atencionenfermeria');
+});
 app.get('/listarcamasocupadas', (req, res) => {
   res.render('listarcamasocupadas');   
 })

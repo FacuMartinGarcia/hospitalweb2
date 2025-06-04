@@ -24,173 +24,158 @@ block content
       background-color: #007bff;
       color: white;
     }
+    .navegacion-secciones {
+      background-color: #f5e9ff; 
+      border: 1px solid #ccc;
+      border-radius: 10px;
+    }
+
 
   .card.shadow.mb-4
     .card-body
-      h2.text-center.h5.mb-4 Admisión de Pacientes para Internación
+      h2.text-center.h5.mb-4 Registros de atención médica durante la Internación
 
-      .row.mb-3
-        .col-md-8
-          input.form-control#documento.text-center.fw-bold.fs-5(
-            type="text", 
-            placeholder="Ingrese aquí el n° de documento", 
-            required, 
-            autocomplete="off"
-          )
-        .col-md-4
-          button.btn.btn-primary.w-100(type="button", id="btnBuscarPaciente") Buscar Paciente
-
-      #mensajePaciente.text-danger.mt-2.text-center
-      #datosPaciente
+      include componentes/_busquedaPaciente.pug
       #datosInternacion
 
-      // Nuevo campo de Médico para la sesión de atención
-      .row.mb-4
-        .col-md-6.offset-md-3
-          label.fw-bold.mb-1.text-center.d-block Médico:
-          select.form-select#medicoSesion
-            option(value="") Seleccione médico
-
-  .card.shadow
-    .card-body
-      h2.text-center.h5.mb-4 Atención Médica - Registro Detallado
-
-      .row.mb-4
-        each seccion, index in ['evaluaciones', 'prescripciones', 'estudios', 'cirugias', 'terapias']
-          .col
-            button.btn.btn-lg.btn-outline-primary.btn-block.w-100(
-              type="button", 
-              data-seccion=seccion
-            )= seccion.charAt(0).toUpperCase() + seccion.slice(1)
-
-      // Secciones
-      // 1. Evaluaciones
-      form.seccion.seccion-1#evaluaciones
-        h3.titulo-seccion Evaluaciones
-
-        // Fila 1: Fecha y Diagnóstico
-        .row.mb-2
-          .col-md-3
-            input.form-control(type="date", id="fechaEvaluacion")
-          .col-md-9
-            select.form-select#diagnosticoEvaluacion
-              option(value="") Seleccione diagnóstico
-
-        // Fila 2: Observaciones
-        .row.mb-2
-          .col-md-12
-            input.form-control(type="text", placeholder="Observaciones", id="observacionesEvaluacion")
-
-        .text-end.mb-2
-          button.btn.btn-success#btnRegistrarEvaluacion(type="submit") Registrar Evaluación
-
-        table.table.table-bordered.table-sm.tabla
-          thead
-            tr
-              th Fecha
-              th Médico
-              th Diagnóstico
-              th Observaciones
-              th Acciones
-          tbody#tablaEvaluaciones
-
-      // 2. Prescripciones
-      form.seccion.seccion-2#prescripciones
-        h3.titulo-seccion Prescripción de Medicamentos
-        .row.mb-2
-          .col-md-3
-            input.form-control(type="date", id="fechaPrescripcion")
-          .col-md-3
-            select.form-select#medicamentoPrescripcion
-              option(value="") Seleccione medicamento
-          .col-md-1
-            input.form-control(type="number", placeholder="Cantidad", id="cantidadPrescripcion")
-          .col-md-5
-            input.form-control(type="text", placeholder="Observaciones", id="observacionesPrescripcion")
-        .text-end.mb-2
-          button.btn.btn-success#btnRegistrarPrescripcion(type="submit") Registrar Prescripción
-        table.table.table-bordered.table-sm.tabla
-          thead
-            tr
-              th Fecha
-              th Médico
-              th Medicamento
-              th Cantidad
-              th Observaciones
-              th Acciones
-          tbody#tablaPrescripciones
-
-      // 3. Estudios
-      form.seccion.seccion-1#estudios
-        h3.titulo-seccion Estudios Solicitados
-        .row.mb-2
-          .col-md-3
-            input.form-control(type="date", id="fechaSolicitudEstudios")
-          .col-md-3
-            select.form-select#tipoEstudio
-              option(value="") Tipo de estudio
+  #contenedorAtencionMedica(style="display: none;")
+    // CARD 1: Médico y fecha
+    .card.shadow.mb-4
+      .card-body
+        .row
           .col-md-6
-            input.form-control(type="text", placeholder="Observaciones", id="observacionesEstudios")
-        .text-end.mb-2
-          button.btn.btn-success#btnRegistrarEstudio(type="submit") Registrar Estudio
-        table.table.table-bordered.table-sm.tabla
-          thead
-            tr
-              th Fecha Solicitud
-              th Médico
-              th Tipo Estudio
-              th Observaciones
-              th Acciones
-          tbody#tablaEstudios
-
-      // 4. Cirugías
-      form.seccion.seccion-2#cirugias
-        h3.titulo-seccion Cirugías
-        .row.mb-2
-          .col-md-3
-            input.form-control(type="date", id="fechaSolicitudCirugia")
-          .col-md-3
-            select.form-select#tipoCirugia
-              option(value="") Tipo de cirugía
+            label.fw-bold.mb-1 Médico:
+            select.form-select#medicoSesion
+              option(value="") Seleccione médico
           .col-md-6
-            input.form-control(type="text", placeholder="Observaciones", id="observacionesCirugia")
-        .text-end.mb-2
-          button.btn.btn-success#btnRegistrarCirugia(type="submit") Registrar Cirugía
-        table.table.table-bordered.table-sm.tabla
-          thead
-            tr
-              th Fecha Solicitud
-              th Médico
-              th Tipo de Cirugía
-              th Observaciones
-              th Acciones
-          tbody#tablaCirugias
+            label.fw-bold.mb-1 Fecha de Atención:
+            input.form-control(type="text", id="fechaAtencion", readonly, value=fechaHoy)
 
-      // 5. Terapias
-      form.seccion.seccion-1#terapias
-        h3.titulo-seccion Terapias
-        .row.mb-2
-          .col-md-3
-            input.form-control(type="date", id="fechaSolicitudTerapia")
-          .col-md-3
-            select.form-select#tipoTerapia
-              option(value="") Tipo de terapia
-          .col-md-6
-            input.form-control(type="text", placeholder="Observaciones", id="observacionesTerapia")
-        .text-end.mb-2
-          button.btn.btn-success#btnRegistrarTerapia(type="submit") Registrar Terapia
-        table.table.table-bordered.table-sm.tabla
-          thead
-            tr
-              th Fecha Solicitud
-              th Médico
-              th Tipo de Terapia
-              th Observaciones
-              th Acciones
-          tbody#tablaTerapias
+    // CARD 2: Botones de navegación
+    .card.shadow.mb-4.navegacion-secciones
+      .card-body
+        .row.justify-content-center.g-3
+          each seccion, index in ['evaluaciones', 'prescripciones', 'estudios', 'cirugias', 'terapias']
+            .col-md-2.col-sm-4.col-6
+              button.btn.btn-outline-primary.w-100(
+                type="button", 
+                data-seccion=seccion
+              )= seccion.charAt(0).toUpperCase() + seccion.slice(1)
 
+    // SECCIONES DINÁMICAS
+    // 1. Evaluaciones
+    form.seccion.seccion-1#evaluaciones
+      h3.titulo-seccion Evaluaciones
+      .row.mb-2
+        .col-md-12
+          select.form-select#diagnosticoEvaluacion
+            option(value="") Seleccione diagnóstico
+      .row.mb-2
+        .col-md-12
+          input.form-control(type="text", placeholder="Observaciones", id="observacionesEvaluacion")
+      .text-end.mb-2
+        button.btn.btn-success#btnRegistrarEvaluacion(type="submit") Registrar Evaluación
+      table.table.table-bordered.table-sm.tabla
+        thead
+          tr
+            th Fecha
+            th Médico
+            th Diagnóstico
+            th Observaciones
+            th Acciones
+        tbody#tablaEvaluaciones
+
+    // 2. Prescripciones
+    form.seccion.seccion-2#prescripciones
+      h3.titulo-seccion Prescripción de Medicamentos
+      .row.mb-2
+        .col-md-3
+          select.form-select#medicamentoPrescripcion
+            option(value="") Seleccione medicamento
+        .col-md-1
+          input.form-control(type="number", placeholder="Cantidad", id="cantidadPrescripcion")
+        .col-md-8
+          input.form-control(type="text", placeholder="Observaciones", id="observacionesPrescripcion", style="text-transform: uppercase;")
+      .text-end.mb-2
+        button.btn.btn-success#btnRegistrarPrescripcion(type="submit") Registrar Prescripción
+      table.table.table-bordered.table-sm.tabla
+        thead
+          tr
+            th Fecha
+            th Médico
+            th Medicamento
+            th Cantidad
+            th Observaciones
+            th Acciones
+        tbody#tablaPrescripciones
+
+    // 3. Estudios
+    form.seccion.seccion-1#estudios
+      h3.titulo-seccion Estudios Solicitados
+      .row.mb-2
+        .col-md-3
+          select.form-select#tipoEstudio
+            option(value="") Tipo de estudio
+        .col-md-9
+          input.form-control(type="text", placeholder="Observaciones", id="observacionesEstudios", style="text-transform: uppercase;")
+      .text-end.mb-2
+        button.btn.btn-success#btnRegistrarEstudio(type="submit") Registrar Estudio
+      table.table.table-bordered.table-sm.tabla
+        thead
+          tr
+            th Fecha Solicitud
+            th Médico
+            th Tipo Estudio
+            th Observaciones
+            th Acciones
+        tbody#tablaEstudios
+
+    // 4. Cirugías
+    form.seccion.seccion-2#cirugias
+      h3.titulo-seccion Cirugías
+      .row.mb-2
+        .col-md-3
+          select.form-select#tipoCirugia
+            option(value="") Tipo de cirugía
+        .col-md-9
+          input.form-control(type="text", placeholder="Observaciones", id="observacionesCirugia")
+      .text-end.mb-2
+        button.btn.btn-success#btnRegistrarCirugia(type="submit") Registrar Cirugía
+      table.table.table-bordered.table-sm.tabla
+        thead
+          tr
+            th Fecha Solicitud
+            th Médico
+            th Tipo de Cirugía
+            th Observaciones
+            th Acciones
+        tbody#tablaCirugias
+
+    // 5. Terapias
+    form.seccion.seccion-1#terapias
+      h3.titulo-seccion Terapias
+      .row.mb-2
+        .col-md-3
+          select.form-select#tipoTerapia
+            option(value="") Tipo de terapia
+        .col-md-9
+          input.form-control(type="text", placeholder="Observaciones", id="observacionesTerapia")
+      .text-end.mb-2
+        button.btn.btn-success#btnRegistrarTerapia(type="submit") Registrar Terapia
+      table.table.table-bordered.table-sm.tabla
+        thead
+          tr
+            th Fecha Solicitud
+            th Médico
+            th Tipo de Terapia
+            th Observaciones
+            th Acciones
+        tbody#tablaTerapias
+  
+  #mensajes.text-danger.mt-3.text-center
   script(src="https://cdn.jsdelivr.net/npm/sweetalert2@11")
   script(type="module", src="/js/atencionmedica.js")
+  
   script.
     document.addEventListener('DOMContentLoaded', () => {
       const botones = document.querySelectorAll('button[data-seccion]');

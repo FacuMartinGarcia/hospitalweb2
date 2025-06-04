@@ -1,0 +1,46 @@
+extends layout
+
+block content
+
+  style.
+    .seccion {
+      padding: 1.5rem;
+      border-radius: 10px;
+      margin-bottom: 2rem;
+    }
+    .seccion-1 {
+      background-color: #f0f4f8;
+    }
+    .seccion-2 {
+      background-color: #e8f0ff;
+    }
+    .titulo-seccion {
+      text-align: center;
+      font-weight: bold;
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+    .tabla th {
+      background-color: #007bff;
+      color: white;
+    }
+
+  .card.shadow.mb-4
+    .card-body
+      h2.text-center.h5.mb-4 Registros de atención médica durante la Internación
+
+      include componentes/_busquedaPaciente.pug
+
+      #datosInternacion
+
+      .row.mb-4
+        .col-md-6
+          label.fw-bold.mb-1.text-center.d-block Médico:
+          select.form-select#medicoSesion
+            option(value="") Seleccione médico
+        .col-md-6
+          label.fw-bold.mb-1.text-center.d-block Fecha de Atención:
+          input.form-control(type="text", id="fechaAtencion", readonly, value=fechaHoy)
+
+  script(type="module", src="/js/atencionenfermeria.js")
+  script(src='https://cdn.jsdelivr.net/npm/sweetalert2@11')
