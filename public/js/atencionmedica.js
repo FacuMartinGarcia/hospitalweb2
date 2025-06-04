@@ -6,6 +6,7 @@ const API_URL_MEDICOS = '/api/medicos';
 const API_URL_ORIGENES = '/api/origenes';
 const API_URL_DIAGNOSTICOS = '/api/diagnosticos';
 const API_URL_MEDICAMENTOS = '/api/medicamentos';
+const API_URL_ATENCIONMEDICAMENTOS = '/api/atencionmedica/medicamentos';
 
 let datosMedicos = [];
 let datosOrigenes = [];
@@ -102,7 +103,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         const cantidad = document.getElementById('cantidadPrescripcion')?.value;
         const observaciones = document.getElementById('observacionesPrescripcion')?.value;
 
-        console.log(idinternacionRecuperada);
 
         if (!idmedicamento) {
             mostrarMensaje('Debe seleccionar un medicamento de la lista', 0);
@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         try {
-            const res = await fetch('/atencion/medicamentos', {
+            const res = await fetch('/api/atencionmedica/medicamentos', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -136,7 +136,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             });
 
-            const data = await res.json();
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Error ${res.status}: ${text}`);
+            }
+
+           const data = await res.json();
+
+            console.log("respuesta de registrar prescripcion", data);
 
             if (data.success) {
                 Swal.fire('Éxito', 'Prescripción registrada correctamente.', 'success');
@@ -155,7 +163,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function cargarPrescripciones(idinternacionRecuperada) {
         try {
-            const res = await fetch(`/atencion/medicamentos/${idinternacionRecuperada}`);
+            const res = await fetch(`/medicamentos/${idinternacionRecuperada}`);
             const data = await res.json();
 
             const tbody = document.getElementById('tablaPrescripciones');

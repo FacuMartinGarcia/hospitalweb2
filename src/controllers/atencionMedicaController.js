@@ -15,8 +15,9 @@ const atencionMedicaController = {
   registrarMedicamento: async (req, res) => {
     const { idinternacion, idmedico, idmedicamento, cantidad, observacionesme } = req.body;
 
-    console.log(req.body)
-
+    console.log("Registrar medicamento:", req.body);
+    
+    
     try {
 
       if (!idinternacion || !idmedico || !idmedicamento || cantidad === undefined) {
