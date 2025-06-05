@@ -3,15 +3,10 @@ const { InternacionEvmedica, InternacionMedicamento, InternacionTerapia, Interna
     Medicamento, Medico, TipoCirugia, TipoTerapia, Internacion} = db;
    
 const { Op } = require('sequelize');
+const { transformarFechaArgentina, obtenerFechaArgentina } = require('../utils/fecha');
 
-function obtenerFechaArgentina() {
-  const hoy = new Date();
-  return hoy.toISOString().split('T')[0]; 
-}
 
 const atencionMedicaController = {
-
-
   registrarMedicamento: async (req, res) => {
     const { idinternacion, idmedico, idmedicamento, cantidad, observacionesme } = req.body;
 
@@ -67,19 +62,49 @@ const atencionMedicaController = {
       const medicamentos = await InternacionMedicamento.findAll({
         where: { idinternacion },
         include: [
-          { model: Medicamento, as: 'medicamento', attributes: ['idmedicamento', 'denominacion'] },
-          { model: Medico, as: 'medico', attributes: ['idmedico', 'apellido', 'nombre'] }
+          { model: Medicamento, as: 'medicamento', attributes: ['idmedicamento', 'nombremedicamento', 'presentacion'] },
+          { model: Medico, as: 'medico', attributes: ['idmedico', 'apellidonombres'] }
         ],
         order: [['fechaprescripcion', 'DESC']]
       });
 
-      return res.json({ success: true, data: medicamentos });
+      const resultado = medicamentos.map(m => ({
+          id: m.id,
+          idinternacion: m.idinternacion,
+          cantidad: m.cantidad,
+          observacionesme: m.observacionesme,
+          fechaprescripcion: transformarFechaArgentina(m.fechaprescripcion),
+          medico: m.medico.apellidonombres,
+          medicamento: m.medicamento,
+          presentacion: m.medicamento.presentacion
+      }));
+
+
+      return res.json({ success: true, data: resultado });
 
     } catch (error) {
       console.error('Error al listar medicamentos:', error);
       return res.status(500).json({ success: false, message: 'Error interno: ' + error.message });
     }
+  },
+
+  eliminarMedicamento: async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const registro = await InternacionMedicamento.findByPk(id);
+      if (!registro) {
+        return res.status(404).json({ success: false, message: 'Registro no encontrado.' });
+      }
+
+      await registro.destroy();
+      return res.json({ success: true, message: 'Medicamento eliminado correctamente.' });
+    } catch (error) {
+      console.error('Error al eliminar medicamento:', error);
+      return res.status(500).json({ success: false, message: 'Error interno: ' + error.message });
+    }
   }
-};
+
+  };
 
 module.exports = atencionMedicaController;
