@@ -1,5 +1,5 @@
 const db = require('../models'); 
-const { InternacionEvmedica, InternacionMedicamento, InternacionTerapia, InternacionCirugia, InternacionEstudio, Estudio,
+const { InternacionEvmedica, InternacionMedicamento, InternacionEstudio, InternacionTerapia, InternacionCirugia,  Estudio,
     Medicamento, Medico, TipoCirugia, TipoTerapia, Internacion} = db;
    
 const { Op } = require('sequelize');
@@ -9,9 +9,6 @@ const { transformarFechaArgentina, obtenerFechaArgentina } = require('../utils/f
 const atencionMedicaController = {
   registrarMedicamento: async (req, res) => {
     const { idinternacion, idmedico, idmedicamento, cantidad, observacionesme } = req.body;
-
-    console.log("Registrar medicamento:", req.body);
-    
     
     try {
 
@@ -47,6 +44,44 @@ const atencionMedicaController = {
 
     } catch (error) {
       console.error('Error al registrar medicamento:', error);
+      return res.status(500).json({ success: false, message: 'Error interno: ' + error.message });
+    }
+  },
+
+  registrarEstudio: async (req, res) => {
+    const { idinternacion, idmedico, idestudio, observacioneses } = req.body;
+
+    console.log("Registrar estudio:", req.body);
+    
+    
+    try {
+
+      if (!idinternacion || !idmedico || !idestudio == undefined) {
+        return res.status(400).json({ success: false, message: 'Faltan campos obligatorios.' });
+      }
+
+      const medico = await Medico.findByPk(idmedico);
+      if (!medico) {
+        return res.status(404).json({ success: false, message: 'Médico no encontrado.' });
+      }
+
+      const estudio = await Estudio.findByPk(idestudio);
+      if (!estudio) {
+        return res.status(404).json({ success: false, message: 'Estudio no encontrado.' });
+      }
+
+      const nuevo = await InternacionEstudio.create({
+        idinternacion,
+        idmedico,
+        idestudio,
+        fechaestudio: obtenerFechaArgentina(),
+        observacioneses: observacioneses ? observacioneses.toUpperCase() : null
+      });
+
+      return res.json({ success: true, data: nuevo });
+
+    } catch (error) {
+      console.error('Error al registrar estudio:', error);
       return res.status(500).json({ success: false, message: 'Error interno: ' + error.message });
     }
   },

@@ -153,23 +153,22 @@ block content
 
       // 3. Estudios
       form.seccion.seccion-1#estudios
-        h3.titulo-seccion Estudios Solicitados
+        h3.titulo-seccion Estudios / Análisis Solicitados
         .row.mb-2
           .col-md-3
             select.form-select#tipoEstudio
               option(value="") Tipo de estudio
           .col-md-9
-            input.form-control(type="text", placeholder="Observaciones", id="observacionesEstudios", style="text-transform: uppercase;")
+            input.form-control(type="text", id="observacionesEstudios", style="text-transform: uppercase;")
         .text-end.mb-2
           button.btn.btn-success#btnRegistrarEstudio(type="submit") Registrar Estudio
         table.table.table-bordered.table-sm.tabla
           thead
             tr
-              th Fecha Solicitud
-              th Médico
+              th(class="text-center col-fecha") Fecha
+              th(class="col-medico") Médico
               th Tipo Estudio
-              th Observaciones
-              th Acciones
+              th(class="col-observaciones") Observaciones
           tbody#tablaEstudios
 
       // 4. Cirugías

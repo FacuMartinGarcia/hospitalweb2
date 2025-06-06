@@ -7,7 +7,7 @@ const API_URL_MEDICOS = '/api/medicos';
 const API_URL_ESTUDIOS = '/api/estudios';
 const API_URL_DIAGNOSTICOS = '/api/diagnosticos';
 const API_URL_MEDICAMENTOS = '/api/medicamentos';
-const API_URL_ATENCIONMEDICAMENTOS = '/api/atencionmedica/medicamentos';
+
 
 let datosMedicos = [];
 let datosEstudios = [];
@@ -181,6 +181,93 @@ document.addEventListener("DOMContentLoaded", async () => {
                 await cargarPrescripciones(idInternacionRecuperada);
             } else {
                 Swal.fire('Error', data.message || 'No se pudo registrar la prescripción.', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            Swal.fire('Error', 'Error al conectar con el servidor.', 'error');
+        }
+    });
+
+    document.getElementById('btnRegistrarEstudio').addEventListener('click', async (e) => {
+
+        e.preventDefault();
+
+        const idinternacion = document.getElementById('datosInternacion')?.dataset?.id || idInternacionRecuperada;
+        const idmedico = document.getElementById('medicoSesion')?.value;
+        const idestudio = document.getElementById('tipoEstudio')?.value;
+        const observaciones = document.getElementById('observacionesEstudios')?.value;
+
+        if (!idmedico) {
+            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un médico de la lista', 0);
+            medicoSesion.focus();
+            return;
+        }
+
+        if (!idestudio) {
+            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un estudio de la lista', 0);
+            tipoEstudio.focus();
+            return;
+        }
+
+        if (!idinternacion) {
+            mostrarMensaje('#mensajesSeccion', 'Falta información clave en la ficha (internación)', 0);
+            return;
+        }
+
+        const confirmacion = await Swal.fire({
+            title: 'Confirmar Solicitud de Estudio',
+            html: `
+            <div style="color: red; font-weight: bold; margin-bottom: 1rem;">
+                Va a ingresar un pedido de estudio / análisis.<br>
+                Este registro no podrá ser modificado, ni eliminado.
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <strong>Estudio:</strong> ${tipoEstudio.options[tipoEstudio.selectedIndex].text}<br>
+                <strong>Observación:</strong> ${observaciones || '-'}
+            </div>
+            <strong>¿Está seguro de ingresar el registro?</strong>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, registrar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true, 
+            focusCancel: true     
+        });
+
+        if (!confirmacion.isConfirmed) {
+            return;
+        }
+
+        
+        try {
+            const res = await fetch('/api/atencionmedica/estudios', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                idinternacion,
+                idmedico,
+                idestudio,
+                observacioneses: observaciones ? observaciones.toUpperCase() : ''
+            })
+            });
+
+            
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Error ${res.status}: ${text}`);
+            }
+
+            const data = await res.json();
+
+            if (data.success) {
+                Swal.fire('Éxito', 'Prescripción registrada correctamente.', 'success');
+                document.getElementById('tipoEstudio').value = '';
+                document.getElementById('observacionesEstudios').value = '';
+                await cargarPrescripciones(idInternacionRecuperada);
+            } else {
+                Swal.fire('Error', data.message || 'No se pudo registrar el estudio.', 'error');
             }
         } catch (err) {
             console.error(err);
