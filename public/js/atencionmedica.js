@@ -7,12 +7,16 @@ const API_URL_MEDICOS = '/api/medicos';
 const API_URL_ESTUDIOS = '/api/estudios';
 const API_URL_DIAGNOSTICOS = '/api/diagnosticos';
 const API_URL_MEDICAMENTOS = '/api/medicamentos';
+const API_URL_TIPOSCIRUGIAS = '/api/tiposcirugias';
+const API_URL_TIPOANESTESIAS = '/api/tipoanestesias';
 
 
 let datosMedicos = [];
 let datosEstudios = [];
 let datosDiagnosticos = [];
 let datosMedicamentos = [];
+let datosCirugias = [];
+let datosAnestesias  = [];
 let idInternacionRecuperada = 0;
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -22,12 +26,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     const datosPaciente = document.getElementById("datosPaciente");
     const seccionInternacion = document.getElementById("seccionInternacion");
     const datosInternacion = document.getElementById("datosInternacion");
-    const mensajeBusqueda = document.getElementById("mensajes");
-    
 
-    const medicoSesion = document.getElementById('medicoSesion');
-    const medicamentoPrescripcion = document.getElementById('medicamentoPrescripcion');
-    const cantidadPrescripcion = document.getElementById('cantidadPrescripcion');
+    
+    // Medicamentos
+    //const medicoSesion = document.getElementById('medicoSesion');
+    //const medicamentoPrescripcion = document.getElementById('medicamentoPrescripcion');
+   // const cantidadPrescripcion = document.getElementById('cantidadPrescripcion');
+
+    // Estudios
+    //const tipoEstudio = document.getElementById('tipoEstudio');
+    //const observacionesEstudios = document.getElementById('observacionesEstudios');
+
 
     // Evaluaciones medicas
     const formEvaluaciones = document.getElementById('evaluaciones');
@@ -42,6 +51,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     await cargarDiagnosticos();
     await cargarMedicamentos();
     await cargarEstudios();
+    await cargarCirugias();
+
 
     btnBuscarPaciente.addEventListener("click", () => {
                 
@@ -97,11 +108,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         e.preventDefault();
 
-        const idinternacion = document.getElementById('datosInternacion')?.dataset?.id || idInternacionRecuperada;
         const idmedico = document.getElementById('medicoSesion')?.value;
         const idmedicamento = document.getElementById('medicamentoPrescripcion')?.value;
         const cantidad = document.getElementById('cantidadPrescripcion')?.value;
         const observaciones = document.getElementById('observacionesPrescripcion')?.value;
+        
 
         if (!idmedico) {
             mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un médico de la lista', 0);
@@ -122,7 +133,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        if (!idinternacion) {
+        if (!idInternacionRecuperada) {
             mostrarMensaje('#mensajesSeccion', 'Falta información clave en la ficha (internación)', 0);
             return;
         }
@@ -131,7 +142,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             title: 'Confirmar Prescripción',
             html: `
             <div style="color: red; font-weight: bold; margin-bottom: 1rem;">
-                Va a ingresar un pedido de medicación.<br>
+                Va a ingresar registro de medicación.<br>
                 Este registro no podrá ser modificado, ni eliminado.
             </div>
             <div style="margin-bottom: 1rem;">
@@ -153,12 +164,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
+    
+
         try {
             const res = await fetch('/api/atencionmedica/medicamentos', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                idinternacion,
+                idinternacion: idInternacionRecuperada, 
+                fechaprescripcion: new Date().toISOString().split('T')[0],
                 idmedico,
                 idmedicamento,
                 cantidad: cantidadNum,
@@ -188,11 +202,133 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
+
+
+    document.getElementById('btnRegistrarCirugia').addEventListener('click', async (e) => {
+
+        e.preventDefault();
+
+        const idmedico = document.getElementById('medicoSesion')?.value;
+        const idtipocirugia = document.getElementById('tipoCirugia')?.value;
+        const observaciones = document.getElementById('observacionesEstudios')?.value;
+
+        if (!idmedico) {
+            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un médico de la lista', 0);
+            medicoSesion.focus();
+            return;
+        }
+
+        if (!idtipocirugia) {
+            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un tipo de cirugia de la lista', 0);
+            tipoEstudio.focus();
+            return;
+        }
+
+        if (!idInternacionRecuperada) {
+            mostrarMensaje('#mensajesSeccion', 'Falta información clave en la ficha (internación)', 0);
+            return;
+        }
+
+        const confirmacion = await Swal.fire({
+            title: 'Confirmar Cirugia',
+            html: `
+            <div style="color: red; font-weight: bold; margin-bottom: 1rem;">
+                Va a ingresar una práctica quirúrgica.<br>
+                Este registro no podrá ser modificado, ni eliminado.
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <strong>Estudio:</strong> ${tipoCirugia.options[tipoCirugia.selectedIndex].text}<br>
+                <strong>Observación:</strong> ${observaciones || '-'}
+            </div>
+            <strong>¿Está seguro de ingresar el registro?</strong>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, registrar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true, 
+            focusCancel: true     
+        });
+
+        if (!confirmacion.isConfirmed) {
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/atencionmedica/estudios', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                idinternacion: idInternacionRecuperada, 
+                fechaestudio: new Date().toISOString().split('T')[0],
+                idmedico,
+                idestudio,
+                observacioneses: observaciones ? observaciones.toUpperCase() : ''
+            })
+            });
+
+            
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Error ${res.status}: ${text}`);
+            }
+
+            const data = await res.json();
+            
+            if (data.success) {
+                Swal.fire('Éxito', 'Solicitud registrada correctamente.', 'success');
+                document.getElementById('tipoEstudio').value = '';
+                document.getElementById('observacionesEstudios').value = '';
+                console.log("estoy por llamar a cargar el combo estudios");
+                await cargarEstudiosSolicitados(idInternacionRecuperada);
+            } else {
+                Swal.fire('Error', data.message || 'No se pudo registrar el estudio.', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            Swal.fire('Error', 'Error al conectar con el servidor.', 'error');
+        }
+    });
+ 
+
+    async function cargarPrescripciones(idInternacionRecuperada) {
+        try {
+            const res = await fetch(`/api/atencionmedica/medicamentos/${idInternacionRecuperada}`);
+            const data = await res.json();
+
+            const tbody = document.getElementById('tablaMedicamentos');
+            tbody.innerHTML = '';
+
+            if (data.success && data.data.length > 0) {
+                data.data.forEach(p => {
+                    const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                        <td class="text-center col-fecha">${p.fechaprescripcion}</td>
+                        <td>${p.medico}</td>
+                        <td class="col-medicamento">${p.medicamento.nombremedicamento} ${p.medicamento.presentacion}</td>
+                        <td class="text-center col-cantidad">${p.cantidad}</td>
+                        <td class="col-observaciones">${p.observacionesme || ''}</td>
+                        `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center">No hay prescripciones registradas.</td></tr>`;
+            }
+        } catch (error) {
+            console.error('Error al cargar prescripciones:', error);
+        }
+    }
+
+    //
+    //                        APARTADO DE ESTUDIOS
+    //
+
     document.getElementById('btnRegistrarEstudio').addEventListener('click', async (e) => {
 
         e.preventDefault();
 
-        const idinternacion = document.getElementById('datosInternacion')?.dataset?.id || idInternacionRecuperada;
+        //const idinternacion = document.getElementById('datosInternacion')?.dataset?.id || idInternacionRecuperada;
         const idmedico = document.getElementById('medicoSesion')?.value;
         const idestudio = document.getElementById('tipoEstudio')?.value;
         const observaciones = document.getElementById('observacionesEstudios')?.value;
@@ -209,7 +345,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        if (!idinternacion) {
+        if (!idInternacionRecuperada) {
             mostrarMensaje('#mensajesSeccion', 'Falta información clave en la ficha (internación)', 0);
             return;
         }
@@ -239,13 +375,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        
         try {
             const res = await fetch('/api/atencionmedica/estudios', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                idinternacion,
+                idinternacion: idInternacionRecuperada, 
+                fechaestudio: new Date().toISOString().split('T')[0],
                 idmedico,
                 idestudio,
                 observacioneses: observaciones ? observaciones.toUpperCase() : ''
@@ -260,12 +396,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
             const data = await res.json();
-
+            
             if (data.success) {
-                Swal.fire('Éxito', 'Prescripción registrada correctamente.', 'success');
+                Swal.fire('Éxito', 'Solicitud registrada correctamente.', 'success');
                 document.getElementById('tipoEstudio').value = '';
                 document.getElementById('observacionesEstudios').value = '';
-                await cargarPrescripciones(idInternacionRecuperada);
+                console.log("estoy por llamar a cargar el combo estudios");
+                await cargarEstudiosSolicitados(idInternacionRecuperada);
             } else {
                 Swal.fire('Error', data.message || 'No se pudo registrar el estudio.', 'error');
             }
@@ -274,8 +411,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             Swal.fire('Error', 'Error al conectar con el servidor.', 'error');
         }
     });
-
-
+    
     async function cargarPrescripciones(idInternacionRecuperada) {
         try {
             const res = await fetch(`/api/atencionmedica/medicamentos/${idInternacionRecuperada}`);
@@ -303,6 +439,36 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.error('Error al cargar prescripciones:', error);
         }
     }
+
+    async function cargarEstudiosSolicitados(idInternacionRecuperada) {
+       
+        try {
+            const res = await fetch(`/api/atencionmedica/estudios/${idInternacionRecuperada}`);
+            const data = await res.json();
+        
+            const tbody = document.getElementById('tablaEstudios');
+            tbody.innerHTML = '';
+
+            if (data.success && data.data.length > 0) {
+                data.data.forEach(p => {
+                    const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                        <td class="text-center col-fecha">${p.fechaestudio}</td>
+                        <td>${p.medico}</td>
+                        <td class="col-tipoestudio">${p.estudio}</td>
+                        <td class="col-observaciones">${p.observacioneses || ''}</td>
+                        `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center">No hay pedidos de estudios registrados.</td></tr>`;
+            }
+        } catch (error) {
+            console.error('Error al cargar pedidos de estudios:', error);
+        }
+    }
+
+
 
     formEvaluaciones.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -396,6 +562,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     async function mostrarAdmision(internacion) {
         
         idInternacionRecuperada = internacion.idinternacion;
+
         datosInternacion.innerHTML = `
             <div class="card border shadow-sm mb-3 bg-light-subtle" style="background-color:rgb(149, 196, 223);">
                 <div class="card-body">
@@ -425,7 +592,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         `;
         document.getElementById('contenedorAtencionMedica').style.display = 'block';
         //Una vez que recupera la internacion, debemos traer los datos de las tablas
-        await cargarPrescripciones(idInternacionRecuperada)
+        await cargarPrescripciones(idInternacionRecuperada);
+        await cargarEstudiosSolicitados(idInternacionRecuperada);
 
     }
 
@@ -514,6 +682,42 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
         } catch (error) {
             console.error("Error al cargar tipos de estudos:", error);
+        }
+    }
+
+    async function cargarCirugias() {
+        try {
+            const response = await fetch(API_URL_TIPOSCIRUGIAS);
+            if (!response.ok) throw new Error("Error al cargar los tipos de cirugias");
+            datosCirugias = await response.json();
+
+            datosCirugias.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.idtipocirugia;
+                option.textContent = item.denominacioncirugia;
+                tipoCirugia.appendChild(option);
+            });
+        } catch (error) {
+            console.error("Error al cargar tipos de cirugias:", error);
+        }
+    }
+
+    async function cargarTiposAnestesia() {
+        try {
+            const response = await fetch(API_URL_TIPOANESTESIAS);
+            if (!response.ok) throw new Error("Error al cargar los tipos de anestesia");
+            datosAnestesias = await response.json();
+
+            const tipoAnestesia = document.getElementById('tipoAnestesia');
+            
+            datosAnestesias.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.idtipoanestesia;
+                option.textContent = item.denominacionanestesia;
+                tipoAnestesia.appendChild(option);
+            });
+        } catch (error) {
+            console.error("Error al cargar tipos de anestesia:", error);
         }
     }
 

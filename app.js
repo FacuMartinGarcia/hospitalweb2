@@ -18,6 +18,8 @@ const medicosRoutes = require('./src/routes/medicosRoutes');
 const medicamentosRoutes = require('./src/routes/medicamentosRoutes');
 const origenesRoutes = require('./src/routes/origenesRoutes');
 const pacientesRoutes = require('./src/routes/pacientesRoutes');
+const tiposAnestesiasRoutes = require ('./src/routes/tiposAnestesiaRoutes');
+const tiposCirugiasRoutes = require('./src/routes/tiposCirugiasRoutes');
 const unidadesRoutes = require('./src/routes/unidadesRoutes');
 const usuariosRoutes = require('./src/routes/usuariosRoutes');
 const loginRoutes = require('./src/routes/loginRoutes');
@@ -50,6 +52,8 @@ app.use('/api/medicos', medicosRoutes);
 app.use('/api/medicamentos', medicamentosRoutes);
 app.use('/api/origenes', origenesRoutes);
 app.use('/api/pacientes', pacientesRoutes);
+app.use('/api/tiposanestesias', tiposAnestesiasRoutes)
+app.use('/api/tiposcirugias', tiposCirugiasRoutes);
 app.use('/api/unidades', unidadesRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 

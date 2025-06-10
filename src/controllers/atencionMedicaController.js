@@ -1,14 +1,14 @@
 const db = require('../models'); 
-const { InternacionEvmedica, InternacionMedicamento, InternacionEstudio, InternacionTerapia, InternacionCirugia,  Estudio,
+const { InternacionEvmedica, InternacionMedicamento, InternacionEstudio, InternacionCirugia, InternacionTerapia,  Estudio,
     Medicamento, Medico, TipoCirugia, TipoTerapia, Internacion} = db;
    
-const { Op } = require('sequelize');
+//const { Op } = require('sequelize');
 const { transformarFechaArgentina, obtenerFechaArgentina } = require('../utils/fecha');
 
 
 const atencionMedicaController = {
   registrarMedicamento: async (req, res) => {
-    const { idinternacion, idmedico, idmedicamento, cantidad, observacionesme } = req.body;
+    const { idinternacion, idmedico, idmedicamento, fechaprescripcion, cantidad, observacionesme } = req.body;
     
     try {
 
@@ -35,7 +35,7 @@ const atencionMedicaController = {
         idinternacion,
         idmedico,
         idmedicamento,
-        fechaprescripcion: obtenerFechaArgentina(),
+        fechaprescripcion,
         cantidad: cantidadInt,
         observacionesme: observacionesme ? observacionesme.toUpperCase() : null
       });
@@ -49,10 +49,7 @@ const atencionMedicaController = {
   },
 
   registrarEstudio: async (req, res) => {
-    const { idinternacion, idmedico, idestudio, observacioneses } = req.body;
-
-    console.log("Registrar estudio:", req.body);
-    
+    const { idinternacion, idmedico, fechaestudio, idestudio, observacioneses } = req.body;
     
     try {
 
@@ -74,7 +71,7 @@ const atencionMedicaController = {
         idinternacion,
         idmedico,
         idestudio,
-        fechaestudio: obtenerFechaArgentina(),
+        fechaestudio,
         observacioneses: observacioneses ? observacioneses.toUpperCase() : null
       });
 
@@ -86,7 +83,44 @@ const atencionMedicaController = {
     }
   },
 
+  registrarCirugia: async (req, res) => {
+    const { idinternacion, idmedico, fechacirugia, idtipocirugia, observaciones } = req.body;
+    
+    try {
+
+      if (!idinternacion || !idmedico || !idtipocirugia == undefined) {
+        return res.status(400).json({ success: false, message: 'Faltan campos obligatorios.' });
+      }
+
+      const medico = await Medico.findByPk(idmedico);
+      if (!medico) {
+        return res.status(404).json({ success: false, message: 'Médico no encontrado.' });
+      }
+
+      const cirugia = await Estudio.findByPk(idtipocirugia);
+      if (!cirugia) {
+        return res.status(404).json({ success: false, message: 'Tipo de Cirugia no encontrado.' });
+      }
+
+      const nuevo = await InternacionCirugia.create({
+        idinternacion,
+        idmedico,
+        idtipocirugia,
+        fechacirugia,
+        observaciones: observaciones ? observaciones.toUpperCase() : null
+      });
+
+      return res.json({ success: true, data: nuevo });
+
+    } catch (error) {
+      console.error('Error al registrar cirugia:', error);
+      return res.status(500).json({ success: false, message: 'Error interno: ' + error.message });
+    }
+  },
+
+
   listarMedicamentosPorInternacion: async (req, res) => {
+
     const { idinternacion } = req.params;
 
     try {
@@ -100,7 +134,7 @@ const atencionMedicaController = {
           { model: Medicamento, as: 'medicamento', attributes: ['idmedicamento', 'nombremedicamento', 'presentacion'] },
           { model: Medico, as: 'medico', attributes: ['idmedico', 'apellidonombres'] }
         ],
-        order: [['fechaprescripcion', 'DESC']]
+        order: [['idintermedicamentos', 'DESC']]
       });
 
       const resultado = medicamentos.map(m => ({
@@ -119,6 +153,76 @@ const atencionMedicaController = {
 
     } catch (error) {
       console.error('Error al listar medicamentos:', error);
+      return res.status(500).json({ success: false, message: 'Error interno: ' + error.message });
+    }
+  },
+
+  listarEstudiosPorInternacion: async (req, res) => {
+
+    const { idinternacion } = req.params;
+
+    try {
+      if (!idinternacion) {
+        return res.status(400).json({ success: false, message: 'Falta el id de internación.' });
+      }
+
+      const estudios = await InternacionEstudio.findAll({
+        where: { idinternacion },
+        include: [
+          { model: Estudio, as: 'estudio', attributes: ['idestudio', 'denominacion'] },
+          { model: Medico, as: 'medico', attributes: ['idmedico', 'apellidonombres'] }
+        ],
+        order: [['fechaestudio', 'DESC']]
+      });
+
+      const resultado = estudios.map(e => ({
+          id: e.idinterestudios,
+          idinternacion: e.idinternacion,
+          observacioneses: e.observacioneses,
+          fechaestudio: transformarFechaArgentina(e.fechaestudio),
+          medico: e.medico.apellidonombres,
+          estudio: e.estudio.denominacion
+      }));
+
+      return res.json({ success: true, data: resultado });
+
+    } catch (error) {
+      console.error('Error al listar estudios:', error);
+      return res.status(500).json({ success: false, message: 'Error interno: ' + error.message });
+    }
+  },
+
+    listarCirugiasPorInternacion: async (req, res) => {
+
+    const { idinternacion } = req.params;
+
+    try {
+      if (!idinternacion) {
+        return res.status(400).json({ success: false, message: 'Falta el id de internación.' });
+      }
+
+      const cirugias = await InternacionCirugia.findAll({
+        where: { idinternacion },
+        include: [
+          { model: TipoCirugia, as: 'cirugia', attributes: ['idcirugia', 'denominacioncirugia'] },
+          { model: Medico, as: 'medico', attributes: ['idmedico', 'apellidonombres'] }
+        ],
+        order: [['fechacirugia', 'DESC']]
+      });
+
+      const resultado = cirugias.map(e => ({
+          id: e.idinterestudios,
+          idinternacion: e.idinternacion,
+          observaciones: e.observaciones,
+          fechacirugia: transformarFechaArgentina(e.fechacirugia),
+          medico: e.medico.apellidonombres,
+          estudio: e.cirugia.denominacioncirugia
+      }));
+
+      return res.json({ success: true, data: resultado });
+
+    } catch (error) {
+      console.error('Error al listar cirugias:', error);
       return res.status(500).json({ success: false, message: 'Error interno: ' + error.message });
     }
   },

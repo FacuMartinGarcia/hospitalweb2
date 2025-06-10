@@ -38,6 +38,14 @@ const InternacionCirugia = sequelize.define('InternacionCirugia', {
   observaciones: {
     type: DataTypes.TEXT,
     allowNull: true
+  },
+  idtipoanestesia: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'tipoanestesias',
+      key: 'idtipoanestesia'
+    }
   }
 }, {
   tableName: 'internacion_cirugias',
@@ -56,6 +64,10 @@ InternacionCirugia.associate = (models) => {
   InternacionCirugia.belongsTo(models.TipoCirugia, {
     foreignKey: 'idtipocirugia',
     as: 'tipocirugia'
+  });
+  InternacionCirugia.belongsTo(models.TipoAnestesia, {
+    foreignKey: 'idtipoanestesia',
+    as: 'tipoanestesia'
   });
 };
 

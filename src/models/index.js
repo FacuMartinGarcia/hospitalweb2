@@ -19,6 +19,7 @@ const Medicamento = require('./Medicamento');
 const Medico = require('./Medico');
 const Origen = require('./Origen');
 const Paciente = require('./Paciente');
+const TipoAnestesia = require('./TipoAnestesia');
 const TipoCirugia = require('./TipoCirugia');
 const TipoTerapia = require('./TipoTerapia');
 const Unidad = require('./Unidad');
@@ -35,7 +36,7 @@ Estudio.associate({ InternacionEstudio });
 Habitacion.associate({ Ala, Unidad, Cama });
 Internacion.associate({ Paciente, Origen, Medico, Diagnostico, InternacionCama,InternacionCirugia, InternacionEvmedica, InternacionEvenfermeria, InternacionEstudio, InternacionMedicamento, InternacionTerapia });
 InternacionCama.associate({Internacion, Cama});
-InternacionCirugia.associate({ Internacion, Medico, TipoCirugia});
+InternacionCirugia.associate({ Internacion, Medico, TipoCirugia, TipoAnestesia});
 InternacionEstudio.associate({ Internacion, Medico, Estudio });
 InternacionEvenfermeria.associate({ Internacion, Enfermero });
 InternacionEvmedica.associate({ Internacion, Medico, Diagnostico });
@@ -45,6 +46,7 @@ Medicamento.associate({ InternacionMedicamento, ClasificacionTerapeutica });
 Medico.associate({ Internacion, InternacionEvmedica, InternacionTerapia, Especialidad });
 Origen.associate({ Internacion });
 Paciente.associate({ Cobertura, Internacion });
+TipoAnestesia.associate({InternacionCirugia});
 TipoCirugia.associate({ InternacionCirugia });
 TipoTerapia.associate({ InternacionTerapia });
 Unidad.associate({ Habitacion });
@@ -74,6 +76,7 @@ module.exports = {
   Medico,
   Origen,
   Paciente,
+  TipoAnestesia,
   TipoCirugia,
   TipoTerapia,
   Unidad
