@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const tipoAnestesiaController = require('../controllers/tipoanestesiaController');
+const tiposAnestesiaController = require('../controllers/tiposAnestesiaController');
 
 
-router.get('/', tipoAnestesiaController.listar);
+router.get('/', tiposAnestesiaController.listar);
 
 module.exports = router;

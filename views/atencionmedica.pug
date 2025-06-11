@@ -69,6 +69,41 @@ block content
       width: 30%;
     }
 
+    .form-label {
+      font-weight: 500;
+      margin-bottom: 0.3rem;
+      color: #495057;
+    }
+
+    textarea.form-control {
+      min-height: 38px;
+      resize: vertical;
+    }
+
+    .form-select {
+      cursor: pointer;
+    }
+
+    .form-label {
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .btn-registrar {
+      min-width: 180px;
+      padding: 0.5rem 1.5rem;
+      font-weight: 500;
+    }
+
+    .mb-3 {
+      margin-bottom: 1.2rem !important;
+    }
+
+    .mb-4 {
+      margin-bottom: 1.8rem !important;
+    }
+
 
   .card.shadow.mb-4
     .card-body
@@ -140,82 +175,102 @@ block content
             input.form-control(type="text", id="observacionesPrescripcion", style="text-transform: uppercase;")
 
         .text-end.mb-3
-          button.btn.btn-success#btnRegistrarPrescripcion(type="submit") Registrar Prescripción
+          button.btn.btn-success.btn-registrar#btnRegistrarPrescripcion(type="submit") Registrar Medicamento
         table.table.table-bordered.table-sm.tabla
           thead
             tr
               th(class="text-center col-fecha") Fecha
               th(class="col-medico") Médico
               th(class="col-medicamento") Medicamento
-              th(class="text-center col-cantidad") Cantidad
+              th(class="text-center col-cantidad") Cantidad 
               th(class="col-observaciones") Observaciones
           tbody#tablaMedicamentos
 
-      // 3. Estudios
+      // 3. Estudios 
       form.seccion.seccion-1#estudios
-        h3.titulo-seccion Estudios / Análisis 
-        .row.mb-2
-          .col-md-3
+        h3.titulo-seccion.mb-4 Estudios / Análisis 
+        .row.mb-3
+          .col-md-4
+            label.form-label.text-center.w-100(for="tipoEstudio") Tipo de estudio:
             select.form-select#tipoEstudio
-              option(value="") Tipo de estudio
-          .col-md-9
+              option(value="") Seleccione tipo de estudio
+          .col-md-8
+            label.form-label.text-center.w-100(for="observacionesEstudios") Observaciones:
             input.form-control(type="text", id="observacionesEstudios", style="text-transform: uppercase;")
-        .text-end.mb-2
-          button.btn.btn-success#btnRegistrarEstudio(type="submit") Registrar Estudio
+
+        .row.mb-4
+          .col-12
+            .d-flex.justify-content-end
+              button.btn.btn-success.btn-registrar#btnRegistrarEstudio(type="submit") Registrar Estudio
+        
         table.table.table-bordered.table-sm.tabla
           thead
             tr
               th(class="text-center col-fecha") Fecha
               th(class="col-medico") Médico
-              th Tipo Estudio
+              th Tipo de Estudio
               th(class="col-observaciones") Observaciones
           tbody#tablaEstudios
 
       // 4. Cirugías
       form.seccion.seccion-2#cirugias
-        h3.titulo-seccion Cirugías
-        .row.mb-2
-          .col-md-3
-            select.form-select#tipoCirugia
-              option(value="") Tipo de cirugía
-          .col-md-3
-            select.form-select#tipoAnestesia
-              option(value="") Tipo de anestesia
+        h3.titulo-seccion.mb-4 Cirugías
+        .row.mb-3
           .col-md-6
-            input.form-control(type="text", placeholder="Observaciones", id="observacionesCirugia")
-        .text-end.mb-2
-          button.btn.btn-success#btnRegistrarCirugia(type="submit") Registrar Cirugía
+            label.form-label.text-center.w-100(for="tipoCirugia") Tipo de cirugía:
+            select.form-select#tipoCirugia
+              option(value="") Seleccione tipo de cirugía
+          .col-md-6
+            label.form-label.text-center.w-100(for="tipoAnestesia") Tipo de anestesia:
+            select.form-select#tipoAnestesia
+              option(value="") Seleccione tipo de anestesia
+
+        .row.mb-3
+          .col-md-12
+            label.form-label.text-center.w-100(for="observacionesCirugia") Observaciones:
+            textarea.form-control(id="observacionesCirugia", rows="2", style="text-transform: uppercase;")
+
+        .row.mb-4
+          .col-12
+            .d-flex.justify-content-end
+              button.btn.btn-success.btn-registrar#btnRegistrarCirugia(type="submit") Registrar Cirugía
+        
         table.table.table-bordered.table-sm.tabla
           thead
             tr
               th(class="text-center col-fecha") Fecha
               th(class="col-medico") Médico
-              th Tipo Cirugía
-              th Tipo Anestesia
+              th Tipo de Cirugía
+              th Tipo de Anestesia
               th(class="col-observaciones") Observaciones
           tbody#tablaCirugias
 
       // 5. Terapias
       form.seccion.seccion-1#terapias
-        h3.titulo-seccion Terapias
-        .row.mb-2
-          .col-md-3
+        h3.titulo-seccion.mb-4 Terapias
+        .row.mb-3
+          .col-md-4
+            label.form-label.text-center.w-100(for="tipoTerapia") Tipo de terapia:
             select.form-select#tipoTerapia
-              option(value="") Tipo de terapia
-          .col-md-9
-            input.form-control(type="text", placeholder="Observaciones", id="observacionesTerapia")
-        .text-end.mb-2
-          button.btn.btn-success#btnRegistrarTerapia(type="submit") Registrar Terapia
+              option(value="") Seleccione tipo de terapia
+          .col-md-8
+            label.form-label.text-center.w-100(for="observacionesTerapia") Observaciones:
+            textarea.form-control(id="observacionesTerapia", rows="2", style="text-transform: uppercase;")
+
+        .row.mb-4
+          .col-12
+            .d-flex.justify-content-end
+              button.btn.btn-success.btn-registrar#btnRegistrarTerapia(type="submit") Registrar Terapia
+        
         table.table.table-bordered.table-sm.tabla
           thead
             tr
-              th Fecha Solicitud
-              th Médico
+              th(class="text-center col-fecha") Fecha Solicitud
+              th(class="col-medico") Médico
               th Tipo de Terapia
-              th Observaciones
-              th Acciones
+              th(class="col-observaciones") Observaciones
+              th(class="text-center col-acciones") Acciones
           tbody#tablaTerapias
-
 
   script(src="https://cdn.jsdelivr.net/npm/sweetalert2@11")
   script(type="module", src="/js/atencionmedica.js")

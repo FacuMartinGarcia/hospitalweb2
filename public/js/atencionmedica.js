@@ -1,14 +1,14 @@
 import { buscarPaciente } from './buscarPaciente.js';
-import { mostrarMensaje } from './utils.js';
+import { mostrarMensaje, getFechaLocal } from './utils.js';
 
-const API_URL_PACIENTES = '/api/pacientes';
-const API_URL_INTERNACIONES = '/api/internaciones';
+//const API_URL_PACIENTES = '/api/pacientes';
+//const API_URL_INTERNACIONES = '/api/internaciones';
 const API_URL_MEDICOS = '/api/medicos';
 const API_URL_ESTUDIOS = '/api/estudios';
 const API_URL_DIAGNOSTICOS = '/api/diagnosticos';
 const API_URL_MEDICAMENTOS = '/api/medicamentos';
 const API_URL_TIPOSCIRUGIAS = '/api/tiposcirugias';
-const API_URL_TIPOANESTESIAS = '/api/tipoanestesias';
+const API_URL_TIPOSANESTESIAS = '/api/tiposanestesias';
 
 
 let datosMedicos = [];
@@ -16,17 +16,19 @@ let datosEstudios = [];
 let datosDiagnosticos = [];
 let datosMedicamentos = [];
 let datosCirugias = [];
-let datosAnestesias  = [];
+let datosAnestesias = [];
 let idInternacionRecuperada = 0;
 
 document.addEventListener("DOMContentLoaded", async () => {
 
+    //formEvaluaciones = document.getElementById('evaluaciones');
     const inputDocumento = document.getElementById("documento");
     const btnBuscarPaciente = document.getElementById("btnBuscarPaciente");
     const datosPaciente = document.getElementById("datosPaciente");
-    const seccionInternacion = document.getElementById("seccionInternacion");
+    //const seccionInternacion = document.getElementById("seccionInternacion");
     const datosInternacion = document.getElementById("datosInternacion");
 
+    const tipoAnestesia = document.getElementById('tipoAnestesia');    
     
     // Medicamentos
     //const medicoSesion = document.getElementById('medicoSesion');
@@ -37,13 +39,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     //const tipoEstudio = document.getElementById('tipoEstudio');
     //const observacionesEstudios = document.getElementById('observacionesEstudios');
 
-
+    
     // Evaluaciones medicas
-    const formEvaluaciones = document.getElementById('evaluaciones');
+    /*
+    
     const fechaEvaluacion = document.getElementById('fechaEvaluacion');
     const medicoEvaluacion = document.getElementById('medicoEvaluacion');
     const diagnosticoEvaluacion = document.getElementById('diagnosticoEvaluacion');
     const observacionesEvaluacion = document.getElementById('observacionesEvaluacion');
+    */
 
     let pacienteSeleccionado = null;
 
@@ -52,6 +56,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     await cargarMedicamentos();
     await cargarEstudios();
     await cargarCirugias();
+    await cargarTiposAnestesias();
 
 
     btnBuscarPaciente.addEventListener("click", () => {
@@ -101,9 +106,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     }
  
-    //
-    //                        APARTADO DE PRESCRIPCION DE MEDICACION
-    //
     document.getElementById('btnRegistrarPrescripcion').addEventListener('click', async (e) => {
 
         e.preventDefault();
@@ -139,7 +141,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         const confirmacion = await Swal.fire({
-            title: 'Confirmar Prescripción',
+            title: 'Confirmar Medicamento',
             html: `
             <div style="color: red; font-weight: bold; margin-bottom: 1rem;">
                 Va a ingresar registro de medicación.<br>
@@ -172,7 +174,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 idinternacion: idInternacionRecuperada, 
-                fechaprescripcion: new Date().toISOString().split('T')[0],
+                fechaprescripcion: getFechaLocal(),
                 idmedico,
                 idmedicamento,
                 cantidad: cantidadNum,
@@ -202,14 +204,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-
-
-    document.getElementById('btnRegistrarCirugia').addEventListener('click', async (e) => {
+    document.getElementById('btnRegistrarEstudio').addEventListener('click', async (e) => {
 
         e.preventDefault();
 
         const idmedico = document.getElementById('medicoSesion')?.value;
-        const idtipocirugia = document.getElementById('tipoCirugia')?.value;
+        const idestudio = document.getElementById('tipoEstudio')?.value;
         const observaciones = document.getElementById('observacionesEstudios')?.value;
 
         if (!idmedico) {
@@ -218,12 +218,102 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        if (!idtipocirugia) {
-            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un tipo de cirugia de la lista', 0);
+        if (!idestudio) {
+            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un estudio de la lista', 0);
             tipoEstudio.focus();
             return;
         }
 
+        if (!idInternacionRecuperada) {
+            mostrarMensaje('#mensajesSeccion', 'Falta información clave en la ficha (internación)', 0);
+            return;
+        }
+
+        const confirmacion = await Swal.fire({
+            title: 'Confirmar Registro de Estudio',
+            html: `
+            <div style="color: red; font-weight: bold; margin-bottom: 1rem;">
+                Va a ingresar un registro de estudio / análisis.<br>
+                Este registro no podrá ser modificado, ni eliminado.
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <strong>Estudio:</strong> ${tipoEstudio.options[tipoEstudio.selectedIndex].text}<br>
+                <strong>Observación:</strong> ${observaciones || '-'}
+            </div>
+            <strong>¿Está seguro de ingresar el registro?</strong>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, registrar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true, 
+            focusCancel: true     
+        });
+
+        if (!confirmacion.isConfirmed) {
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/atencionmedica/estudios', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                idinternacion: idInternacionRecuperada, 
+                fechaestudio: new Date().toISOString().split('T')[0],
+                idmedico,
+                idestudio,
+                observacioneses: observaciones ? observaciones.toUpperCase() : ''
+            })
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Error ${res.status}: ${text}`);
+            }
+
+            const data = await res.json();
+            
+            if (data.success) {
+                Swal.fire('Éxito', 'Estudio/Análisis registrado correctamente.', 'success');
+                document.getElementById('tipoEstudio').value = '';
+                document.getElementById('observacionesEstudios').value = '';
+                await cargarTablaEstudios(idInternacionRecuperada);
+            } else {
+                Swal.fire('Error', data.message || 'No se pudo registrar el estudio.', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            Swal.fire('Error', 'Error al conectar con el servidor.', 'error');
+        }
+    });
+ 
+    document.getElementById('btnRegistrarCirugia').addEventListener('click', async (e) => {
+
+        e.preventDefault();
+
+        const idmedico = document.getElementById('medicoSesion')?.value;
+        const idcirugia = document.getElementById('tipoCirugia')?.value;
+        const idtipoanestesia = document.getElementById('tipoAnestesia')?.value;
+        const observaciones = document.getElementById('observacionescirugia')?.value;
+
+        if (!idmedico) {
+            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un médico de la lista', 0);
+            medicoSesion.focus();
+            return;
+        }
+
+        if (!idcirugia) {
+            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un estudio de la lista', 0);
+            tipoCirugia.focus();
+            return;
+        }
+
+        if (!idtipoanestesia) {
+            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un estudio de la lista', 0);
+            tipoAnestesia.focus();
+            return;
+        }
         if (!idInternacionRecuperada) {
             mostrarMensaje('#mensajesSeccion', 'Falta información clave en la ficha (internación)', 0);
             return;
@@ -260,10 +350,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 idinternacion: idInternacionRecuperada, 
-                fechaestudio: new Date().toISOString().split('T')[0],
+                fechacirugia: getFechaLocal(),
                 idmedico,
-                idestudio,
-                observacioneses: observaciones ? observaciones.toUpperCase() : ''
+                idcirugia,
+                idtipoanestesia,
+                observaciones: observaciones ? observaciones.toUpperCase() : ''
             })
             });
 
@@ -277,11 +368,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             const data = await res.json();
             
             if (data.success) {
-                Swal.fire('Éxito', 'Solicitud registrada correctamente.', 'success');
-                document.getElementById('tipoEstudio').value = '';
-                document.getElementById('observacionesEstudios').value = '';
-                console.log("estoy por llamar a cargar el combo estudios");
-                await cargarEstudiosSolicitados(idInternacionRecuperada);
+                Swal.fire('Éxito', 'Cirugia registrada correctamente.', 'success');
+                document.getElementById('tipoCirugia').value = '';
+                document.getElementById('tipoAnestesia').value = '';
+                document.getElementById('observacionesCirugia').value = '';
+                await cargarTablaCirugias(idInternacionRecuperada);
             } else {
                 Swal.fire('Error', data.message || 'No se pudo registrar el estudio.', 'error');
             }
@@ -320,99 +411,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    //
-    //                        APARTADO DE ESTUDIOS
-    //
 
-    document.getElementById('btnRegistrarEstudio').addEventListener('click', async (e) => {
-
-        e.preventDefault();
-
-        //const idinternacion = document.getElementById('datosInternacion')?.dataset?.id || idInternacionRecuperada;
-        const idmedico = document.getElementById('medicoSesion')?.value;
-        const idestudio = document.getElementById('tipoEstudio')?.value;
-        const observaciones = document.getElementById('observacionesEstudios')?.value;
-
-        if (!idmedico) {
-            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un médico de la lista', 0);
-            medicoSesion.focus();
-            return;
-        }
-
-        if (!idestudio) {
-            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un estudio de la lista', 0);
-            tipoEstudio.focus();
-            return;
-        }
-
-        if (!idInternacionRecuperada) {
-            mostrarMensaje('#mensajesSeccion', 'Falta información clave en la ficha (internación)', 0);
-            return;
-        }
-
-        const confirmacion = await Swal.fire({
-            title: 'Confirmar Solicitud de Estudio',
-            html: `
-            <div style="color: red; font-weight: bold; margin-bottom: 1rem;">
-                Va a ingresar un pedido de estudio / análisis.<br>
-                Este registro no podrá ser modificado, ni eliminado.
-            </div>
-            <div style="margin-bottom: 1rem;">
-                <strong>Estudio:</strong> ${tipoEstudio.options[tipoEstudio.selectedIndex].text}<br>
-                <strong>Observación:</strong> ${observaciones || '-'}
-            </div>
-            <strong>¿Está seguro de ingresar el registro?</strong>
-            `,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, registrar',
-            cancelButtonText: 'Cancelar',
-            reverseButtons: true, 
-            focusCancel: true     
-        });
-
-        if (!confirmacion.isConfirmed) {
-            return;
-        }
-
-        try {
-            const res = await fetch('/api/atencionmedica/estudios', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                idinternacion: idInternacionRecuperada, 
-                fechaestudio: new Date().toISOString().split('T')[0],
-                idmedico,
-                idestudio,
-                observacioneses: observaciones ? observaciones.toUpperCase() : ''
-            })
-            });
-
-            
-
-            if (!res.ok) {
-                const text = await res.text();
-                throw new Error(`Error ${res.status}: ${text}`);
-            }
-
-            const data = await res.json();
-            
-            if (data.success) {
-                Swal.fire('Éxito', 'Solicitud registrada correctamente.', 'success');
-                document.getElementById('tipoEstudio').value = '';
-                document.getElementById('observacionesEstudios').value = '';
-                console.log("estoy por llamar a cargar el combo estudios");
-                await cargarEstudiosSolicitados(idInternacionRecuperada);
-            } else {
-                Swal.fire('Error', data.message || 'No se pudo registrar el estudio.', 'error');
-            }
-        } catch (err) {
-            console.error(err);
-            Swal.fire('Error', 'Error al conectar con el servidor.', 'error');
-        }
-    });
-    
-    async function cargarPrescripciones(idInternacionRecuperada) {
+    async function cargarTablaMedicamentos(idInternacionRecuperada) {
         try {
             const res = await fetch(`/api/atencionmedica/medicamentos/${idInternacionRecuperada}`);
             const data = await res.json();
@@ -433,14 +433,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                     tbody.appendChild(tr);
                 });
             } else {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center">No hay prescripciones registradas.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center">No hay medicamentos registrados.</td></tr>`;
             }
         } catch (error) {
             console.error('Error al cargar prescripciones:', error);
         }
     }
 
-    async function cargarEstudiosSolicitados(idInternacionRecuperada) {
+    async function cargarTablaEstudios(idInternacionRecuperada) {
        
         try {
             const res = await fetch(`/api/atencionmedica/estudios/${idInternacionRecuperada}`);
@@ -461,16 +461,43 @@ document.addEventListener("DOMContentLoaded", async () => {
                     tbody.appendChild(tr);
                 });
             } else {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center">No hay pedidos de estudios registrados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center">No hay estudios registrados.</td></tr>`;
             }
         } catch (error) {
             console.error('Error al cargar pedidos de estudios:', error);
         }
     }
 
+    async function cargarTablaCirugias(idInternacionRecuperada) {
+       
+        try {
+            const res = await fetch(`/api/atencionmedica/cirugias/${idInternacionRecuperada}`);
+            const data = await res.json();
+        
+            const tbody = document.getElementById('tablaCirugias');
+            tbody.innerHTML = '';
 
+            if (data.success && data.data.length > 0) {
+                data.data.forEach(p => {
+                    const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                        <td class="text-center col-fecha">${p.fechacirugia}</td>
+                        <td>${p.medico}</td>
+                        <td class="col-tipoestudio">${p.estudio}</td>
+                        <td class="col-tipoestudio">${p.anestesia}</td>
+                        <td class="col-observaciones">${p.observaciones || ''}</td>
+                        `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center">No hay cirugias registradas.</td></tr>`;
+            }
+        } catch (error) {
+            console.error('Error al cargar cirugias:', error);
+        }
+    }
 
-    formEvaluaciones.addEventListener('submit', async (e) => {
+    document.getElementById('btnRegistrarEvaluacion').addEventListener('click', async (e) => {
         e.preventDefault();
 
         if (!diagnosticoEvaluacion.value) {
@@ -592,8 +619,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         `;
         document.getElementById('contenedorAtencionMedica').style.display = 'block';
         //Una vez que recupera la internacion, debemos traer los datos de las tablas
-        await cargarPrescripciones(idInternacionRecuperada);
-        await cargarEstudiosSolicitados(idInternacionRecuperada);
+        await cargarTablaMedicamentos(idInternacionRecuperada);
+        await cargarTablaEstudios(idInternacionRecuperada);
+        await cargarTablaCirugias(idInternacionRecuperada);
 
     }
 
@@ -627,7 +655,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 option.value = item.idmedico;
                 option.textContent = item.apellidonombres;
                 medicoSesion.appendChild(option);
-                medicoSesion.appendChild(option.cloneNode(true));
             });
         } catch (error) {
             
@@ -640,7 +667,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             const response = await fetch(API_URL_DIAGNOSTICOS);
             if (!response.ok) throw new Error("Error al cargar diagnósticos");
             datosDiagnosticos = await response.json();
-
             datosDiagnosticos.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.iddiagnostico;
@@ -657,7 +683,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             const response = await fetch(API_URL_MEDICAMENTOS);
             if (!response.ok) throw new Error("Error al cargar medicamentos");
             datosMedicamentos = await response.json();
-
             datosMedicamentos.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.idmedicamento;
@@ -673,7 +698,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             const response = await fetch(API_URL_ESTUDIOS);
             if (!response.ok) throw new Error("Error al cargar los tipos de estudios");
             datosEstudios = await response.json();
-
             datosEstudios.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.idestudio;
@@ -690,7 +714,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             const response = await fetch(API_URL_TIPOSCIRUGIAS);
             if (!response.ok) throw new Error("Error al cargar los tipos de cirugias");
             datosCirugias = await response.json();
-
             datosCirugias.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.idtipocirugia;
@@ -702,14 +725,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    async function cargarTiposAnestesia() {
+    async function cargarTiposAnestesias() {
         try {
-            const response = await fetch(API_URL_TIPOANESTESIAS);
+            const response = await fetch(API_URL_TIPOSANESTESIAS);
             if (!response.ok) throw new Error("Error al cargar los tipos de anestesia");
             datosAnestesias = await response.json();
-
-            const tipoAnestesia = document.getElementById('tipoAnestesia');
-            
             datosAnestesias.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.idtipoanestesia;

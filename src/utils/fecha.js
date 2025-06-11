@@ -6,16 +6,15 @@ function transformarFechaArgentina(fecha) {
   return `${dia}/${mes}/${anio}`;
 }
 
-function obtenerFechaArgentina2() {
-  const hoy = new Date();
-  const fechaArg = new Date(hoy.toLocaleString('es-AR', {
-    timeZone: 'America/Argentina/Buenos_Aires'
-  }));
-  
-  fechaArg.setHours(0, 0, 0, 0);
-  
-  return fechaArg.toISOString().split('T')[0]; 
+
+function getFechaArgentina() {
+    const ahora = new Date();
+    // Ajustar a UTC-3 (Argentina)
+    ahora.setHours(ahora.getHours() - 3); // ¡Importante si el servidor usa UTC!
+    return ahora.toISOString().split('T')[0]; // Formato ISO (YYYY-MM-DD)
 }
+
+module.exports = { getFechaArgentina };
 
 function obtenerFechaArgentina() {
   const ahora = new Date();

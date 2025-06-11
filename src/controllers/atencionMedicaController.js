@@ -1,6 +1,6 @@
 const db = require('../models'); 
 const { InternacionEvmedica, InternacionMedicamento, InternacionEstudio, InternacionCirugia, InternacionTerapia,  Estudio,
-    Medicamento, Medico, TipoCirugia, TipoTerapia, Internacion} = db;
+    Medicamento, Medico, TipoCirugia, TipoAnestesia, TipoTerapia, Internacion} = db;
    
 //const { Op } = require('sequelize');
 const { transformarFechaArgentina, obtenerFechaArgentina } = require('../utils/fecha');
@@ -35,7 +35,7 @@ const atencionMedicaController = {
         idinternacion,
         idmedico,
         idmedicamento,
-        fechaprescripcion,
+        fechaprescripcion: fechaprescripcion || getFechaArgentina(),
         cantidad: cantidadInt,
         observacionesme: observacionesme ? observacionesme.toUpperCase() : null
       });
@@ -84,11 +84,11 @@ const atencionMedicaController = {
   },
 
   registrarCirugia: async (req, res) => {
-    const { idinternacion, idmedico, fechacirugia, idtipocirugia, observaciones } = req.body;
+    const { idinternacion, idmedico, fechacirugia, idtipocirugia, idtipoanestesia, observaciones } = req.body;
     
     try {
 
-      if (!idinternacion || !idmedico || !idtipocirugia == undefined) {
+      if (!idinternacion || !idmedico || !idtipocirugia == undefined || !idtipoanestesia == undefined ) {
         return res.status(400).json({ success: false, message: 'Faltan campos obligatorios.' });
       }
 
@@ -106,6 +106,7 @@ const atencionMedicaController = {
         idinternacion,
         idmedico,
         idtipocirugia,
+        idtipoanestesia,
         fechacirugia,
         observaciones: observaciones ? observaciones.toUpperCase() : null
       });
@@ -172,7 +173,7 @@ const atencionMedicaController = {
           { model: Estudio, as: 'estudio', attributes: ['idestudio', 'denominacion'] },
           { model: Medico, as: 'medico', attributes: ['idmedico', 'apellidonombres'] }
         ],
-        order: [['fechaestudio', 'DESC']]
+        order: [['idinterestudios', 'DESC']]
       });
 
       const resultado = estudios.map(e => ({
@@ -192,8 +193,7 @@ const atencionMedicaController = {
     }
   },
 
-    listarCirugiasPorInternacion: async (req, res) => {
-
+  listarCirugiasPorInternacion: async (req, res) => {
     const { idinternacion } = req.params;
 
     try {
@@ -204,26 +204,43 @@ const atencionMedicaController = {
       const cirugias = await InternacionCirugia.findAll({
         where: { idinternacion },
         include: [
-          { model: TipoCirugia, as: 'cirugia', attributes: ['idcirugia', 'denominacioncirugia'] },
-          { model: Medico, as: 'medico', attributes: ['idmedico', 'apellidonombres'] }
+          { 
+            model: TipoCirugia, 
+            as: 'tipocirugia', 
+            attributes: ['idtipocirugia', 'denominacioncirugia'] 
+          },
+          { 
+            model: Medico, 
+            as: 'medico', 
+            attributes: ['idmedico', 'apellidonombres'] 
+          },
+          { 
+            model: TipoAnestesia, 
+            as: 'tipoanestesia',
+            attributes: ['idtipoanestesia', 'denominacionanestesia'] 
+          }
         ],
-        order: [['fechacirugia', 'DESC']]
+        order: [['idintercirugias', 'DESC']]
       });
 
       const resultado = cirugias.map(e => ({
-          id: e.idinterestudios,
-          idinternacion: e.idinternacion,
-          observaciones: e.observaciones,
-          fechacirugia: transformarFechaArgentina(e.fechacirugia),
-          medico: e.medico.apellidonombres,
-          estudio: e.cirugia.denominacioncirugia
+        id: e.idintercirugias, 
+        idinternacion: e.idinternacion,
+        observaciones: e.observaciones,
+        fechacirugia: transformarFechaArgentina(e.fechacirugia),
+        medico: e.medico.apellidonombres,
+        cirugia: e.tipocirugia.denominacioncirugia, 
+        anestesia: e.tipoanestesia.denominacionanestesia 
       }));
 
       return res.json({ success: true, data: resultado });
 
     } catch (error) {
       console.error('Error al listar cirugias:', error);
-      return res.status(500).json({ success: false, message: 'Error interno: ' + error.message });
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error interno: ' + error.message 
+      });
     }
   },
 

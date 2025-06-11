@@ -3,16 +3,15 @@ const { TipoAnestesia } = db;
 
 const tiposAnestesiaController = {
   listar: async (req, res) => {
+    console.log('estoy aqui');
     try {
       const anestesias = await TipoAnestesia.findAll({
         attributes: ['idtipoanestesia', 'denominacionanestesia'],
         order: [['denominacionanestesia', 'ASC']]
       });
 
-      res.json({
-        success: true,
-        data: anestesias
-      });
+      res.json(anestesias);
+      
     } catch (error) {
       console.error('Error al obtener tipos de anestesia:', error);
       res.status(500).json({

@@ -10,6 +10,7 @@ const tiposCirugiasController = {
       });
 
       res.json(cirugias);
+      
     } catch (error) {
       console.error('Error al obtener tipos de cirugias:', error);
       res.status(500).json({
