@@ -3,6 +3,7 @@ const router = express.Router();
 const internacionesController = require('../controllers/internacionesController');
 
 router.get('/paciente/:idpaciente/activas', internacionesController.existeInternacionActiva);
+router.get('/pacientecama/:idpaciente', internacionesController.verificarEstadoCamaPaciente);
 router.get('/paciente/:idpaciente', internacionesController.obtenerPorPaciente);
 router.post('/:id/camas', internacionesController.asignarCama);
 router.post('/', internacionesController.crear);

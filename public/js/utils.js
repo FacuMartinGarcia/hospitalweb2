@@ -19,6 +19,13 @@ export function getFechaLocal(formato = 'YYYY-MM-DD') {
   }
 }
 
+export function formatearFecha(iso) {
+    if (!iso) return '';
+        const [a, m, d] = iso.split("T")[0].split("-");
+    return `${d}/${m}/${a}`;
+}
+
+
 export function mostrarMensaje(selector, mensaje, tipo = 1) {
   const elemento = document.querySelector(selector);
   if (!elemento) return;

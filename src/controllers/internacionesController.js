@@ -1,6 +1,9 @@
 const db = require('../models');
 const { Op } = require('sequelize');
-const { Internacion, Medico, Paciente, Origen, Diagnostico, InternacionCama, InternacionCirugia, InternacionEstudio, InternacionEvenfermeria, InternacionEvmedica, InternacionMedicamento, InternacionTerapia } = db;
+const { Internacion, Medico, Paciente, Origen, Cama, Habitacion, Ala, Unidad,
+  Diagnostico, InternacionCama, InternacionCirugia, InternacionEstudio, 
+  InternacionEvenfermeria, InternacionEvmedica, InternacionMedicamento, 
+  InternacionTerapia } = db;
 
 const internacionesController = {
   obtenerPorPaciente: async (req, res) => {
@@ -171,7 +174,7 @@ const internacionesController = {
         });
       }
 
-      let cama = await db.Cama.findByPk(idcama);
+      let cama = await Cama.findByPk(idcama);
       if (!cama) {
         return res.status(404).json({ 
           success: false, 
@@ -179,8 +182,8 @@ const internacionesController = {
         });
       }
 
-      // Verificar que la cama no este ocupada
-      let camaOcupada = await db.InternacionCama.findOne({
+
+      let camaOcupada = await InternacionCama.findOne({
         where: {
           idcama,
           fechahasta: null
@@ -195,7 +198,7 @@ const internacionesController = {
       }
 
       // tenemos que ver que no tenga otra cana asignada
-      let camaAnterior = await db.InternacionCama.findOne({
+      let camaAnterior = await InternacionCama.findOne({
         where: {
           idinternacion,
           fechahasta: null
@@ -217,13 +220,13 @@ const internacionesController = {
         await camaAnterior.save();
       }
 
-      let nuevaAsignacion = await db.InternacionCama.create({
+      let nuevaAsignacion = await InternacionCama.create({
         idinternacion,
         idcama,
         fechadesde: ahora
       });
 
-      await db.Cama.update(
+      await Cama.update(
         { higienizada: false },
         { where: { idcama } }
       );
@@ -264,7 +267,7 @@ async anularUltimaAsignacionCama(req, res) {
 
     const ultima = historial[0];
 
-    // Verificar que no hayan pasado 2 o más días desde la asignación
+
     const hoy = new Date();
     const fechaAsignacion = new Date(ultima.fechadesde);
 
@@ -338,7 +341,6 @@ async anularUltimaAsignacionCama(req, res) {
   }
 },
 
-
   async liberarCama(req, res) {
       try {
           let { idintercama } = req.params;
@@ -387,19 +389,19 @@ async anularUltimaAsignacionCama(req, res) {
       try {
           let { idinternacion } = req.params;
 
-          let camas = await db.InternacionCama.findAll({
+          let camas = await InternacionCama.findAll({
               where: { idinternacion },
               include: [
                   {
-                      model: db.Cama,
+                      model: Cama,
                       as: 'cama',
                       include: [
                           {
-                              model: db.Habitacion,
+                              model: Habitacion,
                               as: 'habitacion',
                               include: [
                                   {
-                                      model: db.Ala,
+                                      model: Ala,
                                       as: 'ala'
                                   }
                               ]
@@ -448,10 +450,90 @@ async anularUltimaAsignacionCama(req, res) {
     }
   },
 
+  verificarEstadoCamaPaciente: async (req, res) => {
+    try {
+      const idpaciente = parseInt(req.params.idpaciente);
 
+      const internacionActiva = await Internacion.findOne({
+        where: {
+          idpaciente,
+          fechaalta: null
+        }
+      });
 
-  
+      if (!internacionActiva) {
+        return res.status(200).json({
+          success: true,
+          estaInternado: false,
+          tieneCama: false,
+          message: 'El paciente no tiene una internación activa'
+        });
+      }
 
+      const camaAsignada = await InternacionCama.findOne({
+        where: {
+          idinternacion: internacionActiva.idinternacion,
+          fechahasta: null
+        },
+        include: [{
+          model: Cama,
+          as: 'cama',
+          attributes: ['idcama', 'numerocama'],
+          include: [{
+            model: Habitacion,
+            as: 'habitacion',
+            attributes: ['nombrehabitacion'],
+            include: [
+              {
+                model: Ala,
+                as: 'ala',
+                attributes: ['denominacion']
+              },
+              {
+                model: Unidad,
+                as: 'unidad',
+                attributes: ['denominacion']
+              }
+            ]
+          }]
+        }]
+      });
+
+      if (!camaAsignada) {
+        return res.status(200).json({
+          success: true,
+          estaInternado: true,
+          tieneCama: false,
+          message: 'El paciente está internado pero no tiene cama asignada actualmente'
+        });
+      }
+
+      const cama = camaAsignada.cama;
+      const habitacion = cama.habitacion;
+      const ala = habitacion.ala;
+      const unidad = habitacion.unidad;
+
+      return res.status(200).json({
+        success: true,
+        estaInternado: true,
+        tieneCama: true,
+        camaAsignada: {
+          unidad: unidad.denominacion,
+          ala: ala.denominacion,
+          habitacion: habitacion.nombrehabitacion,
+          cama: cama.numerocama
+        }
+      });
+
+    } catch (error) {
+      console.error('Error en verificarEstadoCamaPaciente:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Error al verificar el estado de cama del paciente',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  },
 
   actualizar: async (req, res) => {
     try {

@@ -6,7 +6,7 @@ const sequelize = require('./config/db');
 const { obtenerPacientes } = require('./src/controllers/pacientesController');
 
 // Importar rutas
-const atencionMedicaRoutes = require('./src/routes/atencionmedicaRoutes');
+const atencionMedicaRoutes = require('./src/routes/atencionMedicaRoutes');
 const coberturasRoutes = require('./src/routes/coberturasRoutes');
 const diagnosticosRoutes = require('./src/routes/diagnosticosRoutes');
 const enfermerosRoutes = require('./src/routes/enfermerosRoutes');
@@ -18,8 +18,9 @@ const medicosRoutes = require('./src/routes/medicosRoutes');
 const medicamentosRoutes = require('./src/routes/medicamentosRoutes');
 const origenesRoutes = require('./src/routes/origenesRoutes');
 const pacientesRoutes = require('./src/routes/pacientesRoutes');
-const tiposAnestesiasRoutes = require ('./src/routes/tiposAnestesiaRoutes');
+const tiposAnestesiasRoutes = require ('./src/routes/tiposAnestesiasRoutes');
 const tiposCirugiasRoutes = require('./src/routes/tiposCirugiasRoutes');
+const tiposTerapiasRoutes = require('./src/routes/tiposTerapiasRoutes');
 const unidadesRoutes = require('./src/routes/unidadesRoutes');
 const usuariosRoutes = require('./src/routes/usuariosRoutes');
 const loginRoutes = require('./src/routes/loginRoutes');
@@ -54,6 +55,7 @@ app.use('/api/origenes', origenesRoutes);
 app.use('/api/pacientes', pacientesRoutes);
 app.use('/api/tiposanestesias', tiposAnestesiasRoutes)
 app.use('/api/tiposcirugias', tiposCirugiasRoutes);
+app.use('/api/tiposterapias', tiposTerapiasRoutes);
 app.use('/api/unidades', unidadesRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 

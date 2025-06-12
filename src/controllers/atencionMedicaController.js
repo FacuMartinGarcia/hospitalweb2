@@ -35,7 +35,7 @@ const atencionMedicaController = {
         idinternacion,
         idmedico,
         idmedicamento,
-        fechaprescripcion: fechaprescripcion || getFechaArgentina(),
+        fechaprescripcion: new Date(),
         cantidad: cantidadInt,
         observacionesme: observacionesme ? observacionesme.toUpperCase() : null
       });
@@ -71,7 +71,7 @@ const atencionMedicaController = {
         idinternacion,
         idmedico,
         idestudio,
-        fechaestudio,
+        fechaestudio: new Date(),
         observacioneses: observacioneses ? observacioneses.toUpperCase() : null
       });
 
@@ -97,7 +97,7 @@ const atencionMedicaController = {
         return res.status(404).json({ success: false, message: 'Médico no encontrado.' });
       }
 
-      const cirugia = await Estudio.findByPk(idtipocirugia);
+      const cirugia = await TipoCirugia.findByPk(idtipocirugia);
       if (!cirugia) {
         return res.status(404).json({ success: false, message: 'Tipo de Cirugia no encontrado.' });
       }
@@ -107,7 +107,7 @@ const atencionMedicaController = {
         idmedico,
         idtipocirugia,
         idtipoanestesia,
-        fechacirugia,
+        fechacirugia: new Date(),
         observaciones: observaciones ? observaciones.toUpperCase() : null
       });
 
@@ -115,6 +115,41 @@ const atencionMedicaController = {
 
     } catch (error) {
       console.error('Error al registrar cirugia:', error);
+      return res.status(500).json({ success: false, message: 'Error interno: ' + error.message });
+    }
+  },
+
+  registrarTerapia: async (req, res) => {
+    const { idinternacion, idmedico, fechaterapia, idtipoterapia, observaciones } = req.body;
+    
+    try {
+
+      if (!idinternacion || !idmedico || !idtipoterapia == undefined) {
+        return res.status(400).json({ success: false, message: 'Faltan campos obligatorios.' });
+      }
+
+      const medico = await Medico.findByPk(idmedico);
+      if (!medico) {
+        return res.status(404).json({ success: false, message: 'Médico no encontrado.' });
+      }
+
+      const tipoTerapia = await TipoTerapia.findByPk(idtipoterapia);
+      if (!tipoTerapia) {
+        return res.status(404).json({ success: false, message: 'Tipo de terapia no encontrado.' });
+      }
+
+      const nuevo = await InternacionTerapia.create({
+        idinternacion,
+        idmedico,
+        idtipoterapia,
+        fechaterapia,
+        observaciones: observaciones ? observaciones.toUpperCase() : null
+      });
+
+      return res.json({ success: true, data: nuevo });
+
+    } catch (error) {
+      console.error('Error al registrar terapia:', error);
       return res.status(500).json({ success: false, message: 'Error interno: ' + error.message });
     }
   },
@@ -142,8 +177,8 @@ const atencionMedicaController = {
           id: m.id,
           idinternacion: m.idinternacion,
           cantidad: m.cantidad,
-          observacionesme: m.observacionesme,
-          fechaprescripcion: transformarFechaArgentina(m.fechaprescripcion),
+          observacionesme: m.observacionesme || '',
+          fechaprescripcion: m.fechaprescripcion,
           medico: m.medico.apellidonombres,
           medicamento: m.medicamento,
           presentacion: m.medicamento.presentacion
@@ -179,8 +214,8 @@ const atencionMedicaController = {
       const resultado = estudios.map(e => ({
           id: e.idinterestudios,
           idinternacion: e.idinternacion,
-          observacioneses: e.observacioneses,
-          fechaestudio: transformarFechaArgentina(e.fechaestudio),
+          observacioneses: e.observacioneses || '',
+          fechaestudio: e.fechaestudio,
           medico: e.medico.apellidonombres,
           estudio: e.estudio.denominacion
       }));
@@ -226,11 +261,11 @@ const atencionMedicaController = {
       const resultado = cirugias.map(e => ({
         id: e.idintercirugias, 
         idinternacion: e.idinternacion,
-        observaciones: e.observaciones,
-        fechacirugia: transformarFechaArgentina(e.fechacirugia),
+        fechacirugia: e.fechacirugia,
         medico: e.medico.apellidonombres,
         cirugia: e.tipocirugia.denominacioncirugia, 
-        anestesia: e.tipoanestesia.denominacionanestesia 
+        anestesia: e.tipoanestesia.denominacionanestesia,
+        observaciones: e.observaciones || ''
       }));
 
       return res.json({ success: true, data: resultado });
@@ -241,6 +276,41 @@ const atencionMedicaController = {
         success: false, 
         message: 'Error interno: ' + error.message 
       });
+    }
+  },
+
+  listarTerapiasPorInternacion: async (req, res) => {
+
+    const { idinternacion } = req.params;
+
+    try {
+      if (!idinternacion) {
+        return res.status(400).json({ success: false, message: 'Falta el id de internación.' });
+      }
+
+      const terapias = await InternacionTerapia.findAll({
+        where: { idinternacion },
+        include: [
+          { model: TipoTerapia, as: 'tipoterapia', attributes: ['idtipoterapia', 'denominacionterapia'] },
+          { model: Medico, as: 'medico', attributes: ['idmedico', 'apellidonombres'] }
+        ],
+        order: [['idinterterapias', 'DESC']]
+      });
+
+      const resultado = terapias.map(e => ({
+          id: e.idinterestudios,
+          idinternacion: e.idinternacion,
+          fechaterapia: e.fechaterapia,
+          medico: e.medico.apellidonombres,
+          terapia: e.tipoterapia.denominacionterapia,
+          observaciones: e.observaciones || ''
+        }));
+
+      return res.json({ success: true, data: resultado });
+
+    } catch (error) {
+      console.error('Error al listar terapias:', error);
+      return res.status(500).json({ success: false, message: 'Error interno: ' + error.message });
     }
   },
 

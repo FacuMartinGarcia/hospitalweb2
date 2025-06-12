@@ -1,9 +1,8 @@
 const db = require('../models');
 const { TipoAnestesia } = db;
 
-const tiposAnestesiaController = {
+const tiposAnestesiasController = {
   listar: async (req, res) => {
-    console.log('estoy aqui');
     try {
       const anestesias = await TipoAnestesia.findAll({
         attributes: ['idtipoanestesia', 'denominacionanestesia'],
@@ -49,4 +48,4 @@ const tiposAnestesiaController = {
   }
 };
 
-module.exports = tiposAnestesiaController;
+module.exports = tiposAnestesiasController;

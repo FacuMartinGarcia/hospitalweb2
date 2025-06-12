@@ -1,14 +1,16 @@
 import { buscarPaciente } from './buscarPaciente.js';
-import { mostrarMensaje, getFechaLocal } from './utils.js';
+import { mostrarMensaje, formatearFecha } from './utils.js';
 
 //const API_URL_PACIENTES = '/api/pacientes';
 //const API_URL_INTERNACIONES = '/api/internaciones';
+
 const API_URL_MEDICOS = '/api/medicos';
 const API_URL_ESTUDIOS = '/api/estudios';
 const API_URL_DIAGNOSTICOS = '/api/diagnosticos';
 const API_URL_MEDICAMENTOS = '/api/medicamentos';
 const API_URL_TIPOSCIRUGIAS = '/api/tiposcirugias';
 const API_URL_TIPOSANESTESIAS = '/api/tiposanestesias';
+const API_URL_TIPOSTERAPIAS = '/api/tiposterapias';
 
 
 let datosMedicos = [];
@@ -17,6 +19,8 @@ let datosDiagnosticos = [];
 let datosMedicamentos = [];
 let datosCirugias = [];
 let datosAnestesias = [];
+let datosTerapias = [];
+
 let idInternacionRecuperada = 0;
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -50,13 +54,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     */
 
     let pacienteSeleccionado = null;
-
+    
     await cargarMedicos();
     await cargarDiagnosticos();
     await cargarMedicamentos();
     await cargarEstudios();
     await cargarCirugias();
     await cargarTiposAnestesias();
+    await cargarTiposTerapias();
 
 
     btnBuscarPaciente.addEventListener("click", () => {
@@ -174,7 +179,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 idinternacion: idInternacionRecuperada, 
-                fechaprescripcion: getFechaLocal(),
+                fechaprescripcion: new Date().toISOString().split('T')[0],
                 idmedico,
                 idmedicamento,
                 cantidad: cantidadNum,
@@ -194,7 +199,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 document.getElementById('medicamentoPrescripcion').value = '';
                 document.getElementById('cantidadPrescripcion').value = '';
                 document.getElementById('observacionesPrescripcion').value = '';
-                await cargarPrescripciones(idInternacionRecuperada);
+                await cargarTablaMedicamentos(idInternacionRecuperada);
             } else {
                 Swal.fire('Error', data.message || 'No se pudo registrar la prescripción.', 'error');
             }
@@ -293,9 +298,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         e.preventDefault();
 
         const idmedico = document.getElementById('medicoSesion')?.value;
-        const idcirugia = document.getElementById('tipoCirugia')?.value;
+        const idtipocirugia = document.getElementById('tipoCirugia')?.value;
         const idtipoanestesia = document.getElementById('tipoAnestesia')?.value;
-        const observaciones = document.getElementById('observacionescirugia')?.value;
+        const observaciones = document.getElementById('observacionesCirugia')?.value;
 
         if (!idmedico) {
             mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un médico de la lista', 0);
@@ -303,14 +308,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        if (!idcirugia) {
-            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un estudio de la lista', 0);
+        if (!idtipocirugia) {
+            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un tipo de cirugia de la lista', 0);
             tipoCirugia.focus();
             return;
         }
 
         if (!idtipoanestesia) {
-            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un estudio de la lista', 0);
+            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un tipo de anestesia de la lista', 0);
             tipoAnestesia.focus();
             return;
         }
@@ -327,7 +332,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 Este registro no podrá ser modificado, ni eliminado.
             </div>
             <div style="margin-bottom: 1rem;">
-                <strong>Estudio:</strong> ${tipoCirugia.options[tipoCirugia.selectedIndex].text}<br>
+                <strong>Cirugía:</strong> ${tipoCirugia.options[tipoCirugia.selectedIndex].text}<br>
                 <strong>Observación:</strong> ${observaciones || '-'}
             </div>
             <strong>¿Está seguro de ingresar el registro?</strong>
@@ -345,20 +350,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         try {
-            const res = await fetch('/api/atencionmedica/estudios', {
+            const res = await fetch('/api/atencionmedica/cirugias', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 idinternacion: idInternacionRecuperada, 
-                fechacirugia: getFechaLocal(),
+                fechacirugia: new Date().toISOString().split('T')[0],
                 idmedico,
-                idcirugia,
+                idtipocirugia,
                 idtipoanestesia,
                 observaciones: observaciones ? observaciones.toUpperCase() : ''
             })
             });
-
-            
 
             if (!res.ok) {
                 const text = await res.text();
@@ -381,36 +384,90 @@ document.addEventListener("DOMContentLoaded", async () => {
             Swal.fire('Error', 'Error al conectar con el servidor.', 'error');
         }
     });
- 
 
-    async function cargarPrescripciones(idInternacionRecuperada) {
-        try {
-            const res = await fetch(`/api/atencionmedica/medicamentos/${idInternacionRecuperada}`);
-            const data = await res.json();
+    document.getElementById('btnRegistrarTerapia').addEventListener('click', async (e) => {
 
-            const tbody = document.getElementById('tablaMedicamentos');
-            tbody.innerHTML = '';
+        e.preventDefault();
 
-            if (data.success && data.data.length > 0) {
-                data.data.forEach(p => {
-                    const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                        <td class="text-center col-fecha">${p.fechaprescripcion}</td>
-                        <td>${p.medico}</td>
-                        <td class="col-medicamento">${p.medicamento.nombremedicamento} ${p.medicamento.presentacion}</td>
-                        <td class="text-center col-cantidad">${p.cantidad}</td>
-                        <td class="col-observaciones">${p.observacionesme || ''}</td>
-                        `;
-                    tbody.appendChild(tr);
-                });
-            } else {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center">No hay prescripciones registradas.</td></tr>`;
-            }
-        } catch (error) {
-            console.error('Error al cargar prescripciones:', error);
+        const idmedico = document.getElementById('medicoSesion')?.value;
+        const idtipoterapia = document.getElementById('tipoTerapia')?.value;
+        const observaciones = document.getElementById('observacionesTerapia')?.value;
+
+        if (!idmedico) {
+            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un médico de la lista', 0);
+            medicoSesion.focus();
+            return;
         }
-    }
 
+        if (!idtipoterapia) {
+            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar una terapia de la lista', 0);
+            tipoEstudio.focus();
+            return;
+        }
+
+        if (!idInternacionRecuperada) {
+            mostrarMensaje('#mensajesSeccion', 'Falta información clave en la ficha (internación)', 0);
+            return;
+        }
+
+        const confirmacion = await Swal.fire({
+            title: 'Confirmar Registro de Terapia',
+            html: `
+            <div style="color: red; font-weight: bold; margin-bottom: 1rem;">
+                Va a ingresar un registro de terapia.<br>
+                Este registro no podrá ser modificado, ni eliminado.
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <strong>Terapia:</strong> ${tipoTerapia.options[tipoTerapia.selectedIndex].text}<br>
+                <strong>Observación:</strong> ${observaciones || '-'}
+            </div>
+            <strong>¿Está seguro de ingresar el registro?</strong>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, registrar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true, 
+            focusCancel: true     
+        });
+
+        if (!confirmacion.isConfirmed) {
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/atencionmedica/terapias', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                idinternacion: idInternacionRecuperada, 
+                fechaterapia: new Date().toISOString().split('T')[0],
+                idmedico,
+                idtipoterapia,
+                observaciones: observaciones ? observaciones.toUpperCase() : ''
+            })
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Error ${res.status}: ${text}`);
+            }
+
+            const data = await res.json();
+            
+            if (data.success) {
+                Swal.fire('Éxito', 'Terapia registrada correctamente.', 'success');
+                document.getElementById('tipoTerapia').value = '';
+                document.getElementById('observacionesTerapia').value = '';
+                await cargarTablaTerapias(idInternacionRecuperada);
+            } else {
+                Swal.fire('Error', data.message || 'No se pudo registrar la terapia.', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            Swal.fire('Error', 'Error al conectar con el servidor.', 'error');
+        }
+    });
 
     async function cargarTablaMedicamentos(idInternacionRecuperada) {
         try {
@@ -424,7 +481,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 data.data.forEach(p => {
                     const tr = document.createElement('tr');
                         tr.innerHTML = `
-                        <td class="text-center col-fecha">${p.fechaprescripcion}</td>
+                        <td class="text-center col-fecha">${formatearFecha(p.fechaprescripcion)}</td>
                         <td>${p.medico}</td>
                         <td class="col-medicamento">${p.medicamento.nombremedicamento} ${p.medicamento.presentacion}</td>
                         <td class="text-center col-cantidad">${p.cantidad}</td>
@@ -453,7 +510,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 data.data.forEach(p => {
                     const tr = document.createElement('tr');
                         tr.innerHTML = `
-                        <td class="text-center col-fecha">${p.fechaestudio}</td>
+                        <td class="text-center col-fecha">${formatearFecha(p.fechaestudio)}</td>
                         <td>${p.medico}</td>
                         <td class="col-tipoestudio">${p.estudio}</td>
                         <td class="col-observaciones">${p.observacioneses || ''}</td>
@@ -464,7 +521,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 tbody.innerHTML = `<tr><td colspan="4" class="text-center">No hay estudios registrados.</td></tr>`;
             }
         } catch (error) {
-            console.error('Error al cargar pedidos de estudios:', error);
+            console.error('Error al cargar estudios:', error);
         }
     }
 
@@ -481,9 +538,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 data.data.forEach(p => {
                     const tr = document.createElement('tr');
                         tr.innerHTML = `
-                        <td class="text-center col-fecha">${p.fechacirugia}</td>
+                        <td class="text-center col-fecha">${formatearFecha(p.fechacirugia)}</td>
                         <td>${p.medico}</td>
-                        <td class="col-tipoestudio">${p.estudio}</td>
+                        <td class="col-tipoestudio">${p.cirugia}</td>
                         <td class="col-tipoestudio">${p.anestesia}</td>
                         <td class="col-observaciones">${p.observaciones || ''}</td>
                         `;
@@ -494,6 +551,35 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         } catch (error) {
             console.error('Error al cargar cirugias:', error);
+        }
+    }
+
+    
+    async function cargarTablaTerapias(idInternacionRecuperada) {
+       
+        try {
+            const res = await fetch(`/api/atencionmedica/terapias/${idInternacionRecuperada}`);
+            const data = await res.json();
+        
+            const tbody = document.getElementById('tablaTerapias');
+            tbody.innerHTML = '';
+
+            if (data.success && data.data.length > 0) {
+                data.data.forEach(p => {
+                    const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                        <td class="text-center col-fecha">${formatearFecha(p.fechaterapia)}</td>
+                        <td>${p.medico}</td>
+                        <td class="col-tipoestudio">${p.terapia}</td>
+                        <td class="col-observaciones">${p.observaciones || ''}</td>
+                        `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center">No hay terapias registradas.</td></tr>`;
+            }
+        } catch (error) {
+            console.error('Error al cargar terapias:', error);
         }
     }
 
@@ -528,7 +614,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     },
                     body: JSON.stringify({
                         idinternacion: idInternacionRecuperada,
-                        fecha: fechaEvaluacion.value,
+                        fecha: new Date().toISOString().split('T')[0],
                         idmedico: medicoEvaluacion.value,
                         iddiagnostico: diagnosticoEvaluacion.value,
                         observaciones: observacionesEvaluacion.value.trim().toUpperCase()
@@ -551,6 +637,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     function mostrarDatosPaciente(paciente) {
+        
         let edadTexto = "Sin datos";
 
         if (paciente.fechanacimiento) {
@@ -586,44 +673,47 @@ document.addEventListener("DOMContentLoaded", async () => {
             </div>
         `;
     }
-    async function mostrarAdmision(internacion) {
-        
+   async function mostrarAdmision(internacion, datosInternacion, camaAsignada) { 
+    
         idInternacionRecuperada = internacion.idinternacion;
 
-        datosInternacion.innerHTML = `
-            <div class="card border shadow-sm mb-3 bg-light-subtle" style="background-color:rgb(149, 196, 223);">
-                <div class="card-body">
-                    <div class="row mb-2">
-                        <div class="col-md-6">
-                            <p><strong>Origen:</strong> ${internacion.origen.denominacion}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Médico:</strong> ${internacion.medico.apellidonombres}</p>
-                        </div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-md-12">
-                            <p><strong>Diagnóstico:</strong> ${internacion.diagnostico.descripcion}</p>
-                        </div>
-                    </div>
-                    <div class="row mb-2">
-                        <div class="col-md-6">
-                            <p><strong>Fecha Ingreso:</strong> ${internacion.fechaingreso}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Hora Ingreso:</strong> ${internacion.horaingreso}</p>
-                        </div>
-                    </div>
+datosInternacion.innerHTML = `
+    <div class="card border shadow-sm mb-3 bg-light-subtle" style="background-color:rgb(149, 196, 223);">
+        <div class="card-body text-center">
+            <div class="row mb-2 justify-content-center">
+                <div class="col">
+                    <p>
+                        <strong>Origen:</strong> ${internacion.origen.denominacion} - 
+                        <strong>Médico:</strong> ${internacion.medico.apellidonombres} - 
+                        <strong>Diagnóstico:</strong> ${internacion.diagnostico.descripcion}
+                    </p>
                 </div>
             </div>
-        `;
+            <div class="row mb-2 justify-content-center">
+                <div class="col">
+                    <p>
+                        <strong>Fecha Ingreso:</strong> ${internacion.fechaingreso} - 
+                        <strong>Hora:</strong> ${internacion.horaingreso} / 
+                        <strong>Unidad:</strong> ${camaAsignada.unidad} - 
+                        <strong>Ala:</strong> ${camaAsignada.ala} - 
+                        <strong>Habitación:</strong> ${camaAsignada.habitacion} - 
+                        <strong>Cama:</strong> ${camaAsignada.cama}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+`;
+
+
         document.getElementById('contenedorAtencionMedica').style.display = 'block';
-        //Una vez que recupera la internacion, debemos traer los datos de las tablas
+
         await cargarTablaMedicamentos(idInternacionRecuperada);
         await cargarTablaEstudios(idInternacionRecuperada);
         await cargarTablaCirugias(idInternacionRecuperada);
-
+        await cargarTablaTerapias(idInternacionRecuperada);
     }
+
 
     function resetearBusqueda() {
         inputDocumento.value = "";
@@ -738,6 +828,22 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
         } catch (error) {
             console.error("Error al cargar tipos de anestesia:", error);
+        }
+    }
+
+    async function cargarTiposTerapias() {
+        try {
+            const response = await fetch(API_URL_TIPOSTERAPIAS);
+            if (!response.ok) throw new Error("Error al cargar los tipos de terapias");
+            datosTerapias = await response.json();
+            datosTerapias.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.idtipoterapia;
+                option.textContent = item.denominacionterapia;
+                tipoTerapia.appendChild(option);
+            });
+        } catch (error) {
+            console.error("Error al cargar tipos de terapias:", error);
         }
     }
 

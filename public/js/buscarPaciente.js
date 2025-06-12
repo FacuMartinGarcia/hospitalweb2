@@ -1,7 +1,17 @@
 const API_URL_PACIENTES = '/api/pacientes';
 const API_URL_INTERNACIONES = '/api/internaciones';
 
-export async function buscarPaciente(documento, mostrarDatosPaciente, mostrarAdmision, limpiarDatosPaciente, bloquearDocumento, btnBuscarPaciente, inputDocumento, datosInternacion, manejarSinInternacionActiva) {
+export async function buscarPaciente(
+    documento,
+    mostrarDatosPaciente,
+    mostrarAdmision,
+    limpiarDatosPaciente,
+    bloquearDocumento,
+    btnBuscarPaciente,
+    inputDocumento,
+    datosInternacion,
+    manejarSinInternacionActiva
+) {
     try {
         const resultado = await buscarPacienteAPI(documento);
 
@@ -36,7 +46,19 @@ export async function buscarPaciente(documento, mostrarDatosPaciente, mostrarAdm
 
         const internacionActiva = await verificarInternaciones(pacienteSeleccionado);
         if (internacionActiva) {
-            mostrarAdmision(internacionActiva, datosInternacion);
+            const estadoCama = await verificarEstadoCamaPaciente(pacienteSeleccionado.idpaciente);
+
+            if (!estadoCama.tieneCama) {
+                Swal.fire({
+                    title: 'Paciente sin cama asignada',
+                    html: 'El paciente tiene una internación activa pero <strong>no tiene cama asignada</strong>. Asigne una cama para poder continuar.',
+                    icon: 'warning',
+                    confirmButtonText: 'Entendido'
+                });
+                return pacienteSeleccionado;
+            }
+
+            mostrarAdmision(internacionActiva, datosInternacion, estadoCama.camaAsignada);
             inputDocumento.disabled = true;
             btnBuscarPaciente.textContent = "Nueva búsqueda";
         } else {
@@ -56,7 +78,6 @@ export async function buscarPaciente(documento, mostrarDatosPaciente, mostrarAdm
     }
 }
 
-
 async function buscarPacienteAPI(documento) {
     const response = await fetch(`${API_URL_PACIENTES}/${documento}`);
     if (!response.ok) {
@@ -71,4 +92,10 @@ async function verificarInternaciones(paciente) {
     if (!response.ok) throw new Error('Error al verificar internaciones');
     const resultado = await response.json();
     return resultado && resultado.activa ? resultado.internacion : null;
+}
+
+async function verificarEstadoCamaPaciente(idpaciente) {
+    const response = await fetch(`${API_URL_INTERNACIONES}/pacientecama/${idpaciente}`);
+    if (!response.ok) throw new Error('Error al verificar estado de cama');
+    return await response.json();
 }
