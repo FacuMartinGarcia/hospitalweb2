@@ -19,11 +19,12 @@ const Medicamento = require('./Medicamento');
 const Medico = require('./Medico');
 const Origen = require('./Origen');
 const Paciente = require('./Paciente');
+const Rol = require ('./Rol');
 const TipoAnestesia = require('./TipoAnestesia');
 const TipoCirugia = require('./TipoCirugia');
 const TipoTerapia = require('./TipoTerapia');
 const Unidad = require('./Unidad');
-
+const Usuario = require('./Usuario');
 
 Ala.associate({ Habitacion });
 Cama.associate({ Habitacion, InternacionCama });
@@ -46,11 +47,12 @@ Medicamento.associate({ InternacionMedicamento, ClasificacionTerapeutica });
 Medico.associate({ Internacion, InternacionEvmedica, InternacionTerapia, Especialidad });
 Origen.associate({ Internacion });
 Paciente.associate({ Cobertura, Internacion });
+Rol.associate({ Usuario });
 TipoAnestesia.associate({InternacionCirugia});
 TipoCirugia.associate({ InternacionCirugia });
 TipoTerapia.associate({ InternacionTerapia });
 Unidad.associate({ Habitacion });
-
+Usuario.associate({ Rol });
 
 
 // Exportar los modelos
@@ -76,8 +78,10 @@ module.exports = {
   Medico,
   Origen,
   Paciente,
+  Rol,
   TipoAnestesia,
   TipoCirugia,
   TipoTerapia,
-  Unidad
+  Unidad,
+  Usuario
 };

@@ -1,8 +1,5 @@
-//const Origen = require('../models/origen');
 const db = require('../models'); 
 const { Origen } = db;
-
-
 
 const origenesController = {
   listar: async (req, res) => {

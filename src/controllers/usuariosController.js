@@ -1,14 +1,13 @@
 const db = require('../models'); 
-const { Usuario } = db;
-
-
+const { Usuario, Rol } = db;
 
 const usuariosController = {
   listar: async (req, res) => {
     try {
       const usuarios = await Usuario.findAll({
-        attributes: ['idusuario', 'aliasusuario', 'apellidonombres'],
-        order: [['apellidonombres', 'ASC']]
+        include: [{ model: Rol, as: 'rol', attributes: ['nombre'] }],
+        attributes: ['idusuario', 'nombre', 'usuario', 'matricula', 'activo'],
+        order: [['nombre', 'ASC']]
       });
 
       res.json(usuarios);
@@ -25,7 +24,8 @@ const usuariosController = {
     try {
       const { id } = req.params;
       const usuario = await Usuario.findByPk(id, {
-        attributes: ['idusuario', 'aliasusuario', 'apellidonombres']
+        include: [{ model: Rol, as: 'rol', attributes: ['nombre'] }],
+        attributes: ['idusuario', 'nombre', 'usuario', 'matricula', 'activo']
       });
 
       if (!usuario) {
@@ -35,155 +35,99 @@ const usuariosController = {
         });
       }
 
-      res.json({
-        success: true,
-        usuario
-      });
+      res.json({ success: true, usuario });
     } catch (error) {
       console.error('Error al buscar usuario:', error);
-      res.status(500).json({ 
-        success: false,
-        error: error.message 
-      });
+      res.status(500).json({ success: false, error: error.message });
     }
   },
 
   crear: async (req, res) => {
     try {
-      const { aliasusuario, apellidonombres, pass } = req.body;
+      const { nombre, usuario, password, idrol, matricula } = req.body;
 
-      if (!aliasusuario || !apellidonombres || !pass) {
+      if (!nombre || !usuario || !password || !idrol) {
         return res.status(400).json({
           success: false,
-          error: 'Todos los campos son requeridos'
+          error: 'Faltan campos requeridos'
         });
       }
+      console.log("matricula", matricula);
+      console.log("idrol", idrol);
 
-      const nuevoUsuario = await Usuario.create({ aliasusuario, apellidonombres, pass });
+      const nuevoUsuario = await Usuario.create({ nombre, usuario, password, idrol, matricula });
 
-      res.status(201).json({
-        success: true,
-        usuario: {
-          idusuario: nuevoUsuario.idusuario,
-          aliasusuario: nuevoUsuario.aliasusuario,
-          apellidonombres: nuevoUsuario.apellidonombres
-        }
-      });
+      res.status(201).json({ success: true, usuario: nuevoUsuario });
     } catch (error) {
       console.error('Error al crear usuario:', error);
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      res.status(500).json({ success: false, error: error.message });
     }
   },
 
   actualizar: async (req, res) => {
     try {
       const { id } = req.params;
-      const { aliasusuario, apellidonombres, pass } = req.body;
+      const { nombre, usuario, password, idrol, matricula, activo } = req.body;
 
-      const usuario = await Usuario.findByPk(id);
-
-      if (!usuario) {
-        return res.status(404).json({
-          success: false,
-          error: 'Usuario no encontrado'
-        });
+      const user = await Usuario.findByPk(id);
+      if (!user) {
+        return res.status(404).json({ success: false, error: 'Usuario no encontrado' });
       }
 
-      if (!aliasusuario || !apellidonombres || !pass) {
-        return res.status(400).json({
-          success: false,
-          error: 'Todos los campos son requeridos'
-        });
-      }
+      Object.assign(user, { nombre, usuario, password, idrol, matricula, activo });
+      await user.save();
 
-      usuario.aliasusuario = aliasusuario;
-      usuario.apellidonombres = apellidonombres;
-      usuario.pass = pass;
-
-      await usuario.save();
-
-      res.json({
-        success: true,
-        usuario: {
-          idusuario: usuario.idusuario,
-          aliasusuario: usuario.aliasusuario,
-          apellidonombres: usuario.apellidonombres
-        }
-      });
+      res.json({ success: true, usuario: user });
     } catch (error) {
       console.error('Error al actualizar usuario:', error);
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      res.status(500).json({ success: false, error: error.message });
     }
   },
 
   eliminar: async (req, res) => {
     try {
       const { id } = req.params;
-
       const usuario = await Usuario.findByPk(id);
 
       if (!usuario) {
-        return res.status(404).json({
-          success: false,
-          error: 'Usuario no encontrado'
-        });
+        return res.status(404).json({ success: false, error: 'Usuario no encontrado' });
       }
 
       await usuario.destroy();
 
-      res.json({
-        success: true,
-        message: 'Usuario eliminado correctamente'
-      });
+      res.json({ success: true, message: 'Usuario eliminado correctamente' });
     } catch (error) {
       console.error('Error al eliminar usuario:', error);
-      res.status(500).json({
-        success: false,
-        error: error.message
-      });
+      res.status(500).json({ success: false, error: error.message });
     }
   },
 
-   mostrarFormularioLogin: (req, res) => {
+  mostrarFormularioLogin: (req, res) => {
     res.render('index', { error: null });
   },
 
-procesarLogin: async (req, res) => {
-  const { usuario, password } = req.body;
+  procesarLogin: async (req, res) => {
+    const { usuario, password } = req.body;
 
-  try {
-    const usuarioEncontrado = await Usuario.findOne({
-      where: { aliasusuario: usuario }
-    });
+    try {
+      const usuarioEncontrado = await Usuario.findOne({ where: { usuario } });
 
-    if (!usuarioEncontrado || usuarioEncontrado.pass !== password) {
-      return res.render('index', {
-        error: 'Usuario o contraseña incorrectos'
-      });
-    }
+      if (!usuarioEncontrado || usuarioEncontrado.password !== password) {
+        return res.render('index', { error: 'Usuario o contraseña incorrectos' });
+      }
 
-    if (usuarioEncontrado) {
       req.session.usuario = {
         id: usuarioEncontrado.idusuario,
-        nombre: usuarioEncontrado.apellidonombres,
-        alias: usuarioEncontrado.aliasusuario
+        nombre: usuarioEncontrado.nombre,
+        alias: usuarioEncontrado.usuario,
+        rol: usuarioEncontrado.idrol
       };
-      console.log(req.session.usuario);
-      return res.redirect('/layout');
+      res.redirect('/layout');
+    } catch (error) {
+      console.error('Error en login:', error);
+      res.render('index', { error: 'Error del servidor' });
     }
-  } catch (error) {
-    console.error('Error en login:', error);
-    res.render('index', {
-      error: 'Ocurrió un error en el servidor'
-    });
-  }
-},
+  },
 
   logout: (req, res) => {
     req.session.destroy(() => {

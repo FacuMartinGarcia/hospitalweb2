@@ -4,16 +4,32 @@ const sequelize = require('../../config/db');
 const Rol = sequelize.define('Rol', {
   idrol: {
     type: DataTypes.INTEGER,
+    primaryKey: true,
     autoIncrement: true,
-    primaryKey: true
+    field: 'idrol'
   },
-  nombrerol: {
+  nombre: {
     type: DataTypes.STRING(50),
-    allowNull: false
+    allowNull: false,
+    unique: true,
+    validate: {
+      notEmpty: true
+    }
+  },
+  descripcion: {
+    type: DataTypes.TEXT,
+    allowNull: true
   }
 }, {
   tableName: 'roles',
-  timestamps: false 
+  timestamps: false
 });
+
+Rol.associate = (models) => {
+  Rol.hasMany(models.Usuario, {
+    foreignKey: 'idrol',
+    as: 'usuarios'
+  });
+};
 
 module.exports = Rol;

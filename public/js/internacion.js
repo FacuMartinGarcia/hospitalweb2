@@ -242,7 +242,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-
     async function cargarCamasAsignadas(idinternacion) {
         try {
 

@@ -1,12 +1,45 @@
 const db = require('../models'); 
-const { InternacionEvmedica, InternacionMedicamento, InternacionEstudio, InternacionCirugia, InternacionTerapia,  Estudio,
-    Medicamento, Medico, TipoCirugia, TipoAnestesia, TipoTerapia, Internacion} = db;
-   
-//const { Op } = require('sequelize');
+const { InternacionEvmedica, InternacionMedicamento, InternacionEstudio, InternacionCirugia, InternacionTerapia, Diagnostico,
+    Estudio, Medicamento, Medico, TipoCirugia, TipoAnestesia, TipoTerapia, Internacion} = db;
 const { transformarFechaArgentina, obtenerFechaArgentina } = require('../utils/fecha');
 
-
 const atencionMedicaController = {
+  
+  registrarEvaluacionMedica: async (req, res) => {
+    const { idinternacion, idmedico, fechaevaluacion, iddiagnostico, observacionesem } = req.body;
+    
+    try {
+
+      if (!idinternacion || !idmedico || !iddiagnostico == undefined) {
+        return res.status(400).json({ success: false, message: 'Faltan campos obligatorios.' });
+      }
+
+      const medico = await Medico.findByPk(idmedico);
+      if (!medico) {
+        return res.status(404).json({ success: false, message: 'Médico no encontrado.' });
+      }
+
+      const diagnostico = await Diagnostico.findByPk(iddiagnostico);
+      if (!diagnostico) {
+        return res.status(404).json({ success: false, message: 'Diagnostico no encontrado.' });
+      }
+
+      const nuevo = await InternacionEvmedica.create({
+        idinternacion,
+        idmedico,
+        iddiagnostico,
+        fechaevaluacion,
+        observacionesem: observacionesem ? observacionesem.toUpperCase() : null
+      });
+
+      return res.json({ success: true, data: nuevo });
+
+    } catch (error) {
+      console.error('Error al registrar evaluacion:', error);
+      return res.status(500).json({ success: false, message: 'Error interno: ' + error.message });
+    }
+  },
+
   registrarMedicamento: async (req, res) => {
     const { idinternacion, idmedico, idmedicamento, fechaprescripcion, cantidad, observacionesme } = req.body;
     
@@ -150,6 +183,41 @@ const atencionMedicaController = {
 
     } catch (error) {
       console.error('Error al registrar terapia:', error);
+      return res.status(500).json({ success: false, message: 'Error interno: ' + error.message });
+    }
+  },
+
+  listarEvaluacionesMedicasPorInternacion: async (req, res) => {
+
+    const { idinternacion } = req.params;
+
+    try {
+      if (!idinternacion) {
+        return res.status(400).json({ success: false, message: 'Falta el id de internación.' });
+      }
+
+      const evaluaciones = await InternacionEvmedica.findAll({
+        where: { idinternacion },
+        include: [
+          { model: Diagnostico, as: 'diagnostico', attributes: ['iddiagnostico', 'descripcion'] },
+          { model: Medico, as: 'medico', attributes: ['idmedico', 'apellidonombres'] }
+        ],
+        order: [['idinterevaluacionmedica', 'DESC']]
+      });
+
+      const resultado = evaluaciones.map(e => ({
+          id: e.idinterevaluacionmedica,
+          idinternacion: e.idinternacion,
+          fechaevaluacion: e.fechaevaluacion,
+          medico: e.medico.apellidonombres,
+          diagnostico: e.diagnostico.descripcion,
+          observacionesem: e.observacionesem || ''
+      }));
+
+      return res.json({ success: true, data: resultado });
+
+    } catch (error) {
+      console.error('Error al listar diagnosticos:', error);
       return res.status(500).json({ success: false, message: 'Error interno: ' + error.message });
     }
   },

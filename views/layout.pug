@@ -12,6 +12,7 @@ html(lang="es")
         height: 100%;
         margin: 0;
         background: linear-gradient(to right, #4facfe, #00f2fe);
+        padding-top: 70px;
       }
 
       .navbar-dark .navbar-nav .nav-link {
@@ -43,7 +44,7 @@ html(lang="es")
 
   body
     // Navbar superior
-    nav.navbar.navbar-expand-lg.navbar-dark.bg-dark.position-relative
+    nav.navbar.navbar-expand-lg.navbar-dark.bg-dark.fixed-top
       .container-fluid.position-relative
 
         // Menú a la izquierda
@@ -83,6 +84,13 @@ html(lang="es")
                   a.dropdown-item(href="/atencionmedica") Registro de Atención Médica
                 li
                   a.dropdown-item(href="/atencionenfermeria") Registro de Atención en Enfermería
+
+            // Sistema
+            li.nav-item.dropdown
+              a.nav-link.dropdown-toggle(href="#", role="button", data-bs-toggle="dropdown") Sistema
+              ul.dropdown-menu
+                li
+                  a.dropdown-item(href="/usuarios") Usuarios
 
         // Título centrado
         a.navbar-brand.text-white.navbar-brand-centered(href="#") Admisión Hospitalaria

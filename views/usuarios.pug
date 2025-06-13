@@ -1,0 +1,59 @@
+extends layout
+
+block extraHead
+  script(src="https://cdn.jsdelivr.net/npm/sweetalert2@11")
+  script(type="module", src="/js/usuarios.js")
+
+block content
+  .card.shadow
+    .card-body
+      h2.text-center.h5.mb-4 Administración de Usuarios
+
+      form#formUsuario
+        input(type="hidden", id="idusuario")
+
+        .row.mb-3
+          .col-md-4
+            label.form-label(for="nombre") Nombre completo:
+            input.form-control#nombre(type="text", required, autocomplete="off", style="text-transform: uppercase;")
+
+          .col-md-4
+            label.form-label(for="usuario") Usuario:
+            input.form-control#usuario(type="text", required, autocomplete="off")
+
+          .col-md-4
+            label.form-label(for="password") Contraseña:
+            input.form-control#password(type="password", required)
+
+        .row.mb-3
+          .col-md-4
+            label.form-label(for="idrol") Rol:
+            select.form-select#idrol(name="idrol", required)
+              option(value="") Seleccione un rol
+
+          .col-md-4
+            label.form-label(for="matricula") Matrícula:
+            input.form-control#matricula(type="text", autocomplete="off")
+
+          .col-md-4.d-flex.align-items-end
+            button.btn.btn-primary.w-100(type="submit", id="btnGuardar") Guardar usuario
+
+        #mensajes.text-danger.mt-2.text-center
+
+      hr.my-4
+
+      h5.text-center.mt-4 Lista de Usuarios
+
+      table.table.table-bordered.table-sm.text-center
+        thead
+          tr
+            th ID
+            th Nombre
+            th Usuario
+            th Rol
+            th Estado
+            th Acciones
+        tbody#tablaUsuarios
+
+      nav.mt-3.d-flex.justify-content-center
+        ul.pagination#paginacionUsuarios

@@ -25,33 +25,14 @@ let idInternacionRecuperada = 0;
 
 document.addEventListener("DOMContentLoaded", async () => {
 
-    //formEvaluaciones = document.getElementById('evaluaciones');
+
     const inputDocumento = document.getElementById("documento");
     const btnBuscarPaciente = document.getElementById("btnBuscarPaciente");
     const datosPaciente = document.getElementById("datosPaciente");
-    //const seccionInternacion = document.getElementById("seccionInternacion");
     const datosInternacion = document.getElementById("datosInternacion");
 
-    const tipoAnestesia = document.getElementById('tipoAnestesia');    
+    //const tipoAnestesia = document.getElementById('tipoAnestesia');    
     
-    // Medicamentos
-    //const medicoSesion = document.getElementById('medicoSesion');
-    //const medicamentoPrescripcion = document.getElementById('medicamentoPrescripcion');
-   // const cantidadPrescripcion = document.getElementById('cantidadPrescripcion');
-
-    // Estudios
-    //const tipoEstudio = document.getElementById('tipoEstudio');
-    //const observacionesEstudios = document.getElementById('observacionesEstudios');
-
-    
-    // Evaluaciones medicas
-    /*
-    
-    const fechaEvaluacion = document.getElementById('fechaEvaluacion');
-    const medicoEvaluacion = document.getElementById('medicoEvaluacion');
-    const diagnosticoEvaluacion = document.getElementById('diagnosticoEvaluacion');
-    const observacionesEvaluacion = document.getElementById('observacionesEvaluacion');
-    */
 
     let pacienteSeleccionado = null;
     
@@ -111,6 +92,91 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     }
  
+    document.getElementById('btnRegistrarEvaluacion').addEventListener('click', async (e) => {
+
+        e.preventDefault();
+
+        const idmedico = document.getElementById('medicoSesion')?.value;
+        const iddiagnostico = document.getElementById('diagnosticoEvaluacion')?.value;
+        const observaciones = document.getElementById('observacionesEvaluacion')?.value;
+
+        if (!idmedico) {
+            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un médico de la lista', 0);
+            medicoSesion.focus();
+            return;
+        }
+
+        if (!iddiagnostico) {
+            mostrarMensaje('#mensajesSeccion', 'Debe seleccionar un diagnostico de la lista', 0);
+            diagnosticoEvaluacion.focus();
+            return;
+        }
+
+        if (!idInternacionRecuperada) {
+            mostrarMensaje('#mensajesSeccion', 'Falta información clave en la ficha (internación)', 0);
+            return;
+        }
+
+        const confirmacion = await Swal.fire({
+            title: 'Confirmar Registro de Evaluación Médica',
+            html: `
+            <div style="color: red; font-weight: bold; margin-bottom: 1rem;">
+                Va a ingresar una nueva Evaluación Médica.<br>
+                Este registro no podrá ser modificado, ni eliminado.
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <strong>Diagnóstico:</strong> ${diagnosticoEvaluacion.options[diagnosticoEvaluacion.selectedIndex].text}<br>
+                <strong>Observación:</strong> ${observaciones || '-'}
+            </div>
+            <strong>¿Está seguro de ingresar el registro?</strong>
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, registrar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true, 
+            focusCancel: true     
+        });
+
+        if (!confirmacion.isConfirmed) {
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/atencionmedica/evaluacionesm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                idinternacion: idInternacionRecuperada, 
+                fechaevaluacion: new Date().toISOString().split('T')[0],
+                idmedico,
+                iddiagnostico,
+                observacionesem: observaciones ? observaciones.toUpperCase() : ''
+            })
+            });
+
+            if (!res.ok) {
+                const text = await res.text();
+                throw new Error(`Error ${res.status}: ${text}`);
+            }
+
+            const data = await res.json();
+            
+            if (data.success) {
+                Swal.fire('Éxito', 'Evaluación médica registrada correctamente.', 'success');
+                document.getElementById('diagnosticoEvaluacion').value = '';
+                document.getElementById('observacionesEvaluacion').value = '';
+                await cargarTablaEvaluaciones(idInternacionRecuperada);
+            } else {
+                Swal.fire('Error', data.message || 'No se pudo registrar la Evaluación Médica.', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            Swal.fire('Error', 'Error al conectar con el servidor.', 'error');
+        }
+    });
+
+
     document.getElementById('btnRegistrarPrescripcion').addEventListener('click', async (e) => {
 
         e.preventDefault();
@@ -469,6 +535,34 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
+    async function cargarTablaEvaluaciones(idInternacionRecuperada) {
+       
+        try {
+            const res = await fetch(`/api/atencionmedica/evaluacionesm/${idInternacionRecuperada}`);
+            const data = await res.json();
+        
+            const tbody = document.getElementById('tablaEvaluaciones');
+            tbody.innerHTML = '';
+
+            if (data.success && data.data.length > 0) {
+                data.data.forEach(p => {
+                    const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                        <td class="text-center col-fecha">${formatearFecha(p.fechaevaluacion)}</td>
+                        <td>${p.medico}</td>
+                        <td class="col-tipoestudio">${p.diagnostico}</td>
+                        <td class="col-observaciones">${p.observacionesem || ''}</td>
+                        `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center">No hay evaluaciones médicas registradas.</td></tr>`;
+            }
+        } catch (error) {
+            console.error('Error al cargar evaluaciones:', error);
+        }
+    }
+
     async function cargarTablaMedicamentos(idInternacionRecuperada) {
         try {
             const res = await fetch(`/api/atencionmedica/medicamentos/${idInternacionRecuperada}`);
@@ -554,7 +648,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    
     async function cargarTablaTerapias(idInternacionRecuperada) {
        
         try {
@@ -582,59 +675,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.error('Error al cargar terapias:', error);
         }
     }
-
-    document.getElementById('btnRegistrarEvaluacion').addEventListener('click', async (e) => {
-        e.preventDefault();
-
-        if (!diagnosticoEvaluacion.value) {
-            Swal.fire('Error', 'Debe seleccionar un diagnóstico', 'error');
-            return;
-        }
-
-        if (!observacionesEvaluacion.value.trim()) {
-            Swal.fire('Error', 'Debe ingresar una observación', 'error');
-            return;
-        }
-
-        const confirmacion = await Swal.fire({
-            title: '¿Está seguro?',
-            text: 'Los datos serán incorporados a la historia clínica.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, registrar',
-            cancelButtonText: 'Cancelar'
-        });
-
-        if (confirmacion.isConfirmed) {
-            try {
-                const response = await fetch('/api/evaluaciones', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        idinternacion: idInternacionRecuperada,
-                        fecha: new Date().toISOString().split('T')[0],
-                        idmedico: medicoEvaluacion.value,
-                        iddiagnostico: diagnosticoEvaluacion.value,
-                        observaciones: observacionesEvaluacion.value.trim().toUpperCase()
-                    })
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    Swal.fire('Éxito', 'Evaluación registrada correctamente', 'success');
-                    formEvaluaciones.reset();
-                } else {
-                    Swal.fire('Error', data.message || 'Error al registrar la evaluación', 'error');
-                }
-            } catch (error) {
-                console.error('Error al registrar evaluación:', error);
-                Swal.fire('Error', 'Error al conectar con el servidor', 'error');
-            }
-        }
-    });
 
     function mostrarDatosPaciente(paciente) {
         
@@ -677,41 +717,42 @@ document.addEventListener("DOMContentLoaded", async () => {
     
         idInternacionRecuperada = internacion.idinternacion;
 
-datosInternacion.innerHTML = `
-    <div class="card border shadow-sm mb-3 bg-light-subtle" style="background-color:rgb(149, 196, 223);">
-        <div class="card-body text-center">
-            <div class="row mb-2 justify-content-center">
-                <div class="col">
-                    <p>
-                        <strong>Origen:</strong> ${internacion.origen.denominacion} - 
-                        <strong>Médico:</strong> ${internacion.medico.apellidonombres} - 
-                        <strong>Diagnóstico:</strong> ${internacion.diagnostico.descripcion}
-                    </p>
+        datosInternacion.innerHTML = `
+            <div class="card border shadow-sm mb-3 bg-light-subtle" style="background-color:rgb(149, 196, 223);">
+                <div class="card-body text-center">
+                    <div class="row mb-2 justify-content-center">
+                        <div class="col">
+                            <p>
+                                <strong>Origen:</strong> ${internacion.origen.denominacion} - 
+                                <strong>Médico:</strong> ${internacion.medico.apellidonombres}  -  
+                                <strong>Diagnóstico:</strong> ${internacion.diagnostico.descripcion}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row mb-2 justify-content-center">
+                        <div class="col">
+                            <p>
+                                <strong>Fecha Ingreso:</strong> ${internacion.fechaingreso} - 
+                                <strong>Hora:</strong> ${internacion.horaingreso} / 
+                                <strong>Unidad:</strong> ${camaAsignada.unidad} - 
+                                <strong>Ala:</strong> ${camaAsignada.ala} - 
+                                <strong>Habitación:</strong> ${camaAsignada.habitacion} - 
+                                <strong>Cama:</strong> ${camaAsignada.cama}
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="row mb-2 justify-content-center">
-                <div class="col">
-                    <p>
-                        <strong>Fecha Ingreso:</strong> ${internacion.fechaingreso} - 
-                        <strong>Hora:</strong> ${internacion.horaingreso} / 
-                        <strong>Unidad:</strong> ${camaAsignada.unidad} - 
-                        <strong>Ala:</strong> ${camaAsignada.ala} - 
-                        <strong>Habitación:</strong> ${camaAsignada.habitacion} - 
-                        <strong>Cama:</strong> ${camaAsignada.cama}
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-`;
-
+        `;
 
         document.getElementById('contenedorAtencionMedica').style.display = 'block';
-
+        
+        await cargarTablaEvaluaciones(idInternacionRecuperada);
         await cargarTablaMedicamentos(idInternacionRecuperada);
         await cargarTablaEstudios(idInternacionRecuperada);
         await cargarTablaCirugias(idInternacionRecuperada);
         await cargarTablaTerapias(idInternacionRecuperada);
+        
     }
 
 

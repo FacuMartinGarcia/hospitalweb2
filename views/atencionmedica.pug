@@ -142,22 +142,24 @@ block content
         h3.titulo-seccion Evaluaciones
         .row.mb-2
           .col-md-12
+            label.form-label.text-center.w-100(for="diagnosticoEvaluacion") Diagnóstico:
             select.form-select#diagnosticoEvaluacion
               option(value="") Seleccione diagnóstico
         .row.mb-2
           .col-md-12
-            input.form-control(type="text", placeholder="Observaciones", id="observacionesEvaluacion")
+            label.form-label.text-center.w-100(for="observacionesEvaluacion") Observaciones:
+            input.form-control(type="text", id="observacionesEvaluacion", style="text-transform: uppercase;")
         .text-end.mb-2
-          button.btn.btn-success#btnRegistrarEvaluacion(type="submit") Registrar Evaluación
+          button.btn.btn-success.btn-registrar#btnRegistrarEvaluacion(type="submit") Registrar Evaluación
         table.table.table-bordered.table-sm.tabla
           thead
             tr
-              th Fecha
-              th Médico
+              th(class="text-center col-fecha") Fecha
+              th(class="col-medico") Médico
               th Diagnóstico
-              th Observaciones
-              th Acciones
+              th(class="col-observaciones") Observaciones
           tbody#tablaEvaluaciones
+
 
       // 2. Medicamentos
       form.seccion.seccion-2#medicamentos

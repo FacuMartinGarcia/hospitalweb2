@@ -1,26 +1,43 @@
-const { leerJSON, guardarJSON } = require('../utils/dataUtils');
+const db = require('../models');
+const { Rol } = db;
 
 const rolesController = {
+
   listar: async (req, res) => {
     try {
-      const roles = await leerJSON('roles.json');
+      const roles = await Rol.findAll({
+        attributes: ['idrol', 'nombre', 'descripcion'],
+        order: [['nombre', 'ASC']]
+      });
+
       res.json(roles);
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      console.error('Error al obtener roles:', error);
+      res.status(500).json({ 
+        success: false, 
+        error: 'Error al obtener roles: ' + error.message 
+      });
     }
   },
 
   buscarPorId: async (req, res) => {
     try {
       const { id } = req.params;
-      const roles = await leerJSON('roles.json');
-      const rol = roles.find(m => m.idRol == id);
+      const rol = await Rol.findByPk(id, {
+        attributes: ['idrol', 'nombre', 'descripcion']
+      });
+
       if (!rol) {
-        return res.status(404).json({ error: 'Rol no encontrado' });
+        return res.status(404).json({
+          success: false,
+          error: 'Rol no encontrado'
+        });
       }
-      res.json(rol);
+
+      res.json({ success: true, rol });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      console.error('Error al buscar rol:', error);
+      res.status(500).json({ success: false, error: error.message });
     }
   }
 };

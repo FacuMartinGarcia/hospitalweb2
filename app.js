@@ -18,6 +18,7 @@ const medicosRoutes = require('./src/routes/medicosRoutes');
 const medicamentosRoutes = require('./src/routes/medicamentosRoutes');
 const origenesRoutes = require('./src/routes/origenesRoutes');
 const pacientesRoutes = require('./src/routes/pacientesRoutes');
+const rolesRoutes = require('./src/routes/rolesRoutes');
 const tiposAnestesiasRoutes = require ('./src/routes/tiposAnestesiasRoutes');
 const tiposCirugiasRoutes = require('./src/routes/tiposCirugiasRoutes');
 const tiposTerapiasRoutes = require('./src/routes/tiposTerapiasRoutes');
@@ -53,6 +54,7 @@ app.use('/api/medicos', medicosRoutes);
 app.use('/api/medicamentos', medicamentosRoutes);
 app.use('/api/origenes', origenesRoutes);
 app.use('/api/pacientes', pacientesRoutes);
+app.use('/api/roles', rolesRoutes);
 app.use('/api/tiposanestesias', tiposAnestesiasRoutes)
 app.use('/api/tiposcirugias', tiposCirugiasRoutes);
 app.use('/api/tiposterapias', tiposTerapiasRoutes);
@@ -103,8 +105,13 @@ app.get('/atencionmedica', (req, res) => {
 app.get('/atencionenfermeria', (req, res) => {
   res.render('atencionenfermeria');
 });
+
 app.get('/listarcamasocupadas', (req, res) => {
   res.render('listarcamasocupadas');   
+})
+
+app.get('/usuarios', (req, res) => {
+  res.render('usuarios');   
 })
 
 //  Vista de listado de pacientes

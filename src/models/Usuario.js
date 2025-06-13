@@ -4,36 +4,58 @@ const sequelize = require('../../config/db');
 const Usuario = sequelize.define('Usuario', {
   idusuario: {
     type: DataTypes.INTEGER,
+    primaryKey: true,
     autoIncrement: true,
-    primaryKey: true
+    field: 'idusuario'
   },
-  aliasusuario: {
-    type: DataTypes.STRING(50),
-    allowNull: false
-  },
-  apellidonombres: {
+  nombre: {
     type: DataTypes.STRING(100),
-    allowNull: false
+    allowNull: false,
+    validate: {
+      notEmpty: true
+    }
   },
-  pass: {
+  usuario: {
+    type: DataTypes.STRING(50),
+    allowNull: false,
+    unique: true,
+    validate: {
+      notEmpty: true
+    }
+  },
+  password: {
     type: DataTypes.STRING(255),
-    allowNull: false
+    allowNull: false,
+    validate: {
+      notEmpty: true
+    }
   },
-  createdAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
+  idrol: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'roles',
+      key: 'idrol'
+    }
   },
-  updatedAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
-  },
-  deletedAt: {
-    type: DataTypes.DATE,
+  matricula: {
+    type: DataTypes.STRING(30),
     allowNull: true
+  },
+  activo: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true
   }
 }, {
   tableName: 'usuarios',
-  paranoid: true 
+  timestamps: false
 });
+
+Usuario.associate = (models) => {
+  Usuario.belongsTo(models.Rol, {
+    foreignKey: 'idrol',
+    as: 'rol'
+  });
+};
 
 module.exports = Usuario;
