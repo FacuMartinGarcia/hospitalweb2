@@ -5,47 +5,124 @@ block extraHead
   script(type="module", src="/js/usuarios.js")
 
 block content
-  .card.shadow
+  style.
+    .table th {
+      background-color: rgb(41, 108, 175); 
+      color: #f8f9fa;
+      font-weight: bold;
+      border: 1px solid rgb(41, 108, 175);
+      text-align: center;
+    }
+    .table tbody td {
+      border: 1px solid #dee2e6;
+    }
+    #mensajes {
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+    .col-fecha {
+      width: 10%;
+      text-align: center;
+    }
+
+    .col-medico {
+      width: 25%;
+      text-align: center;
+    }
+
+    .col-cantidad {
+      width: 5%;
+      text-align: center;
+    }
+
+    .col-medicamento {
+      width: 30%;
+    }
+
+    .col-observaciones {
+      width: 30%;
+    }
+
+    textarea.form-control {
+      min-height: 38px;
+      resize: vertical;
+    }
+
+    .form-select {
+      cursor: pointer;
+    }
+
+    .btn-registrar {
+      min-width: 180px;
+      padding: 0.5rem 1.5rem;
+      font-weight: 500;
+    }
+
+    .mb-3 {
+      margin-bottom: 1.2rem !important;
+    }
+
+    .mb-4 {
+      margin-bottom: 1.8rem !important;
+    }
+
+     #mensajes {
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+  // Card del formulario
+  .card.shadow.mb-4
     .card-body
       h2.text-center.h5.mb-4 Administración de Usuarios
-
       form#formUsuario
         input(type="hidden", id="idusuario")
-
         .row.mb-3
           .col-md-4
-            label.form-label(for="nombre") Nombre completo:
-            input.form-control#nombre(type="text", required, autocomplete="off", style="text-transform: uppercase;")
+            label.form-label(for="nombre") Apellido y Nombres del Usuario:
+            input.form-control#nombre(type="text", autocomplete="off", style="text-transform: uppercase;")
 
           .col-md-4
-            label.form-label(for="usuario") Usuario:
-            input.form-control#usuario(type="text", required, autocomplete="off")
+            label.form-label(for="usuario") Nombre de Usuario (alias):
+            input.form-control#usuario(type="text", autocomplete="off")
 
           .col-md-4
             label.form-label(for="password") Contraseña:
-            input.form-control#password(type="password", required)
+            input.form-control#password(type="password")
 
         .row.mb-3
           .col-md-4
             label.form-label(for="idrol") Rol:
-            select.form-select#idrol(name="idrol", required)
+            select.form-select#idrol(name="idrol")
               option(value="") Seleccione un rol
-
           .col-md-4
-            label.form-label(for="matricula") Matrícula:
+            label.form-label(for="activo") Estado
+            select.form-select#activo(name="activo")
+              option(value="true") Activo
+              option(value="false") Inactivo
+          .col-md-4
+            label.form-label(for="matricula") N° Matrícula:
             input.form-control#matricula(type="text", autocomplete="off")
 
-          .col-md-4.d-flex.align-items-end
-            button.btn.btn-primary.w-100(type="submit", id="btnGuardar") Guardar usuario
+        .row.mb-3
+          .col-md-4.offset-md-8.d-flex.align-items-end
+            button.btn.btn-primary.w-100#btnGuardar(type="submit") Guardar usuario
 
-        #mensajes.text-danger.mt-2.text-center
+        #mensajes.text-center
 
-      hr.my-4
-
-      h5.text-center.mt-4 Lista de Usuarios
-
+  // Card de la lista de usuarios
+  .card.shadow
+    .card-body
+      h5.text-center.mb-3 Lista de Usuarios Registrados
+      .row.mb-4
+        .col-12.d-flex.justify-content-center.align-items-center
+          label.form-label.fw-bold.me-2.mb-0(for="inputBusquedaUsuario") Buscar Usuario:
+          input.form-control#inputBusquedaUsuario(type="text", placeholder="Buscar usuario...", style="max-width:250px;")
+      
       table.table.table-bordered.table-sm.text-center
-        thead
+        thead 
           tr
             th ID
             th Nombre
@@ -53,6 +130,7 @@ block content
             th Rol
             th Estado
             th Acciones
+            
         tbody#tablaUsuarios
 
       nav.mt-3.d-flex.justify-content-center

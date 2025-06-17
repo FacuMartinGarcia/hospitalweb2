@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const db = require('../models'); 
 const { Usuario, Rol } = db;
 
@@ -6,7 +7,7 @@ const usuariosController = {
     try {
       const usuarios = await Usuario.findAll({
         include: [{ model: Rol, as: 'rol', attributes: ['nombre'] }],
-        attributes: ['idusuario', 'nombre', 'usuario', 'matricula', 'activo'],
+        attributes: ['idusuario', 'nombre', 'usuario', 'idrol',  'matricula', 'activo'],
         order: [['nombre', 'ASC']]
       });
 
@@ -25,7 +26,7 @@ const usuariosController = {
       const { id } = req.params;
       const usuario = await Usuario.findByPk(id, {
         include: [{ model: Rol, as: 'rol', attributes: ['nombre'] }],
-        attributes: ['idusuario', 'nombre', 'usuario', 'matricula', 'activo']
+        attributes: ['idusuario', 'nombre', 'usuario', 'idrol',  'matricula', 'activo']
       });
 
       if (!usuario) {
@@ -44,7 +45,7 @@ const usuariosController = {
 
   crear: async (req, res) => {
     try {
-      const { nombre, usuario, password, idrol, matricula } = req.body;
+      const { nombre, usuario, password, idrol, matricula, activo } = req.body;
 
       if (!nombre || !usuario || !password || !idrol) {
         return res.status(400).json({
@@ -52,10 +53,21 @@ const usuariosController = {
           error: 'Faltan campos requeridos'
         });
       }
-      console.log("matricula", matricula);
-      console.log("idrol", idrol);
 
-      const nuevoUsuario = await Usuario.create({ nombre, usuario, password, idrol, matricula });
+      const usuarioExistente = await Usuario.findOne({
+        where: {
+          usuario: { [Op.like]: `%${usuario}%` } 
+        }
+      });
+
+      if (usuarioExistente) {
+        return res.status(400).json({
+          success: false,
+          error: 'El alias ingresado, ya existe. Elegí otro.'
+        });
+      }
+
+      const nuevoUsuario = await Usuario.create({ nombre, usuario, password, idrol, matricula, activo });
 
       res.status(201).json({ success: true, usuario: nuevoUsuario });
     } catch (error) {
@@ -74,6 +86,19 @@ const usuariosController = {
         return res.status(404).json({ success: false, error: 'Usuario no encontrado' });
       }
 
+      const usuarioExistente = await Usuario.findOne({
+        where: {
+          usuario: { [Op.like]: `%${usuario}%` } 
+        }
+      });
+
+      if (usuarioExistente) {
+        return res.status(400).json({
+          success: false,
+          error: 'El alias ingresado, ya existe. Elegí otro.'
+        });
+      }
+            
       Object.assign(user, { nombre, usuario, password, idrol, matricula, activo });
       await user.save();
 
@@ -99,6 +124,33 @@ const usuariosController = {
     } catch (error) {
       console.error('Error al eliminar usuario:', error);
       res.status(500).json({ success: false, error: error.message });
+    }
+  },
+
+  verificarAlias: async (req, res) => {
+    const { alias } = req.query;
+
+    if (!alias || alias.trim() === "") {
+      return res.status(400).json({ existe: false, error: "Alias requerido" });
+    }
+
+    try {
+      const usuarioExistente = await Usuario.findOne({
+        where: {
+          usuario: {
+            [Op.like]: `%${alias}%`
+          }
+        }
+      });
+
+      if (usuarioExistente) {
+        return res.json({ existe: true, alias: usuarioExistente.usuario });
+      } else {
+        return res.json({ existe: false });
+      }
+    } catch (error) {
+      console.error("Error al verificar alias:", error);
+      return res.status(500).json({ existe: false, error: "Error interno del servidor" });
     }
   },
 

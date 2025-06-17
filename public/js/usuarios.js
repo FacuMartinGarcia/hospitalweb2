@@ -1,189 +1,254 @@
-const API_URL_USUARIOS = '/api/usuarios';
-const API_URL_ROLES = '/api/roles';
+import { mostrarMensaje} from './utils.js';
 
 const form = document.getElementById("formUsuario");
-const inputUsuario = document.getElementById("usuario");
+//const btnGuardar = document.getElementById("btnGuardar");
+const tablaUsuarios = document.getElementById("tablaUsuarios");
 const selectRol = document.getElementById("idrol");
-const mensaje = document.getElementById("mensajes");
-const btnGuardar = document.getElementById("btnGuardar");
-const btnCancelar = document.getElementById("btnCancelar");
+const selectActivo = document.getElementById("activo");
+//const mensajes = document.getElementById("mensajes");
+const inputBusqueda = document.getElementById("inputBusquedaUsuario");
+
+const paginacion = document.getElementById("paginacionUsuarios");
 
 let modoEdicion = false;
-let idUsuarioEditarEditar = null;
+let idEditar = null;
+let datosRoles = [];
+let todosLosUsuarios = [];
 
-document.addEventListener("DOMContentLoaded", async () => {
-    await cargarRoles();
-    await cargarUsuarios();
+let paginaActual = 1;
+const cantidadPorPagina = 5;
 
-    inputUsuario.addEventListener("input", () => {
-        inputUsuario.value = inputUsuario.value.toLowerCase();
-    });
-
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (!validarCampos()) return;
-
-        const datos = obtenerDatosFormulario();
-
-        const confirmacion = await Swal.fire({
-            title: modoEdicion ? '¿Actualizar usuario?' : '¿Registrar nuevo usuario?',
-            html: `
-                <strong>Nombre:</strong> ${datos.nombre}<br>
-                <strong>Usuario:</strong> ${datos.usuario}<br>
-                <strong>Rol:</strong> ${selectRol.options[selectRol.selectedIndex].text}<br>
-                <strong>Matrícula:</strong> ${datos.matricula || '-'}
-            `,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: modoEdicion ? 'Sí, actualizar' : 'Sí, registrar',
-            cancelButtonText: 'Cancelar'
-        });
-
-        if (!confirmacion.isConfirmed) return;
-
-        try {
-            const url = modoEdicion ? `${API_URL_USUARIOS}/${idusuarioEditar}` : API_URL_USUARIOS;
-            const method = modoEdicion ? 'PUT' : 'POST';
-            const res = await fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(datos)
-            });
-
-            const data = await res.json();
-            if (!res.ok || !data.success) throw new Error(data.error || 'Error al guardar usuario.');
-
-            Swal.fire('Éxito', modoEdicion ? 'Usuario actualizado correctamente.' : 'Usuario registrado correctamente.', 'success');
-            resetearFormulario();
-            await cargarUsuarios();
-        } catch (error) {
-            Swal.fire('Error', error.message, 'error');
-        }
-    });
-    /*
-    btnCancelar.addEventListener("click", () => {
-        resetearFormulario();
-    });
-    */
+document.addEventListener("DOMContentLoaded", () => {
+  cargarRoles();
+  listarUsuariosPaginado();
 });
 
-async function cargarRoles() {
-    try {
-        const res = await fetch(API_URL_ROLES);
-        if (!res.ok) throw new Error("Error al cargar roles.");
-        const roles = await res.json();
+inputBusqueda.addEventListener("input", () => {
+  paginaActual = 1;
+  listarUsuariosPaginado();
+});
 
-        roles.forEach(rol => {
-            const option = document.createElement("option");
-            option.value = rol.idrol;
-            option.textContent = rol.nombre;
-            selectRol.appendChild(option);
-        });
-    } catch (error) {
-        console.error(error);
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const nombre = document.getElementById("nombre").value.trim().toUpperCase();
+  const usuario = document.getElementById("usuario").value.trim();
+  const password = document.getElementById("password").value;
+  const idrol = selectRol.value;
+  const activo = selectActivo.value === "true" ? 1 : 0;
+  const matricula = document.getElementById("matricula").value.trim();
+
+  if (!nombre) {
+    mostrarMensaje('#mensajes', 'Debe especificar el apellido y nombre del usuario', 0);
+    document.getElementById("nombre").focus();
+    return;
+  }
+
+  if (!usuario) {
+    mostrarMensaje('#mensajes', 'Debe especificar un nombre de usuario (alias)', 0);
+    document.getElementById("usuario").focus();
+    return;
+  }
+
+  if (!idrol) {
+    mostrarMensaje('#mensajes', 'Debe especificar un rol para el usuario', 0);
+    document.getElementById("selectRol").focus();
+    return;
+  }
+
+  if (!password) {
+    mostrarMensaje('#mensajes', 'Debe ingresar una contraseña para el usuario', 0);
+    document.getElementById("password").focus();
+    return;
+  }
+
+  const aliasResponse = await fetch(`/api/usuarios/verificar-alias?alias=${encodeURIComponent(usuario)}`);
+  const aliasData = await aliasResponse.json();
+
+  if (aliasData.existe) {
+    if (!modoEdicion || aliasData.idusuario !== idEditar) {
+      mostrarMensaje("#mensajes", 'El alias ya existe. Elegí otro.', 0);
+      form.usuario.focus();
+      return;
     }
-}
+  }
 
-async function cargarUsuarios() {
-    try {
-        const res = await fetch(API_URL_USUARIOS);
-        const usuarios = await res.json();
-        const tbody = document.getElementById('tablaUsuarios');
-        tbody.innerHTML = '';
+  const accion = modoEdicion ? "modificar" : "registrar";
+  const texto = `¿Desea ${accion} al usuario "${nombre}"?`;
+  const confirmButton = modoEdicion ? "Sí, modificar" : "Sí, registrar";
 
-        usuarios.forEach(u => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${u.idusuario}</td>
-                <td>${u.nombre}</td>
-                <td>${u.usuario}</td>
-                <td>${u.rol?.nombre || '-'}</td>
-                <td>${u.activo ? 'Activo' : 'Inactivo'}</td>
-                <td>
-                    <button class="btn btn-sm btn-warning" onclick="editarUsuario(${u.idusuario})">Editar</button>
-                    <button class="btn btn-sm btn-danger" onclick="eliminarUsuario(${u.idusuario})">Eliminar</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-    } catch (error) {
-        console.error("Error al cargar usuarios:", error);
-    }
-}
+  const { isConfirmed } = await Swal.fire({
+    title: `Confirmar ${accion}`,
+    text: texto,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: confirmButton,
+    cancelButtonText: "Cancelar"
+  });
 
-function validarCampos() {
-    const { nombre, usuario, password, idrol } = obtenerDatosFormulario();
-    mensaje.textContent = '';
-    if (!nombre || !usuario || !password || !idrol) {
-        mensaje.textContent = 'Por favor, complete todos los campos obligatorios.';
-        return false;
-    }
-    return true;
-}
+  if (!isConfirmed) return;
 
-function obtenerDatosFormulario() {
-    return {
-        nombre: form.nombre.value.trim(),
-        usuario: form.usuario.value.trim(),
-        password: form.password.value.trim(),
-        idrol: form.idrol.value,
-        matricula: form.matricula.value.trim()
-        
-    };
-}
+  const url = modoEdicion ? `/api/usuarios/${idEditar}` : "/api/usuarios";
+  const metodo = modoEdicion ? "PUT" : "POST";
 
-function resetearFormulario() {
-    form.reset();
-    mensaje.textContent = '';
-    modoEdicion = false;
-    idusuarioEditar = null;
-    btnGuardar.textContent = "Guardar usuario";
-    //btnCancelar.hidden = true;
-}
-
-
-window.editarUsuario = async function (id) {
-    try {
-        const res = await fetch(`${API_URL_USUARIOS}/${id}`);
-        if (!res.ok) throw new Error("No se pudo obtener el usuario.");
-        const usuario = await res.json();
-
-        form.nombre.value = usuario.nombre;
-        form.usuario.value = usuario.usuario;
-        form.password.value = ''; 
-        form.idrol.value = usuario.idrol;
-        form.matricula.value = usuario.matricula || '';
-
-        modoEdicion = true;
-        idusuarioEditar = id;
-
-        btnGuardar.textContent = "Actualizar usuario";
-        //btnCancelar.hidden = false;
-    } catch (error) {
-        console.error("Error al editar usuario:", error);
-        Swal.fire("Error", "No se pudo editar el usuario.", "error");
-    }
-};
-
-window.eliminarUsuario = async function (id) {
-    const confirmacion = await Swal.fire({
-        title: '¿Desactivar usuario?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, desactivar',
-        cancelButtonText: 'Cancelar'
+  try {
+    const res = await fetch(url, {
+      method: metodo,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nombre, usuario, password, idrol, matricula, activo }),
     });
 
-    if (!confirmacion.isConfirmed) return;
+    const data = await res.json();
 
-    try {
-        const res = await fetch(`${API_URL_USUARIOS}/${id}`, { method: "DELETE" });
-        const data = await res.json();
-        if (!res.ok || !data.success) throw new Error(data.error || "Error al desactivar usuario.");
-        Swal.fire("Desactivado", data.message, "success");
-        resetearFormulario();
-        await cargarUsuarios();
-    } catch (error) {
-        Swal.fire("Error", error.message, "error");
+    if (data.success) {
+      Swal.fire('Éxito', 'Usuario registrado correctamente.', 'success');
+      form.reset();
+      modoEdicion = false;
+      idEditar = null;
+      listarUsuariosPaginado();
+    } else {
+      mostrarMensaje("#mensajes", data.error || "Ocurrió un error.", 0);
     }
+  } catch (err) {
+    console.error(err);
+    mostrarMensaje("#mensajes", "Error de conexión.", 0);
+  }
+});
+async function cargarRoles() {
+  try {
+    const res = await fetch("/api/roles");
+    if (!res.ok) throw new Error("Error al cargar roles");
+
+    datosRoles = await res.json();
+    selectRol.innerHTML = `<option value="">Seleccione un rol</option>`;
+    datosRoles.forEach((rol) => {
+      const option = document.createElement("option");
+      option.value = rol.idrol;
+      option.textContent = rol.nombre;
+      selectRol.appendChild(option);
+    });
+  } catch (err) {
+    console.error("Error al cargar roles:", err);
+  }
+}
+
+async function listarUsuariosPaginado() {
+  try {
+    const search = inputBusqueda.value.trim().toLowerCase();
+    const res = await fetch("/api/usuarios");
+    const usuarios = await res.json();
+    todosLosUsuarios = usuarios;
+
+    const filtrados = usuarios.filter((u) =>
+      u.nombre.toLowerCase().includes(search) || u.usuario.toLowerCase().includes(search)
+    );
+
+    const total = filtrados.length;
+    const inicio = (paginaActual - 1) * cantidadPorPagina;
+    const paginados = filtrados.slice(inicio, inicio + cantidadPorPagina);
+
+    tablaUsuarios.innerHTML = "";
+    if (paginados.length === 0) {
+      tablaUsuarios.innerHTML = `<tr><td colspan="6">No se encontraron resultados.</td></tr>`;
+      paginacion.innerHTML = "";
+      return;
+    }
+
+    paginados.forEach((u) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${u.idusuario}</td>
+        <td>${u.nombre}</td>
+        <td>${u.usuario}</td>
+        <td>${u.rol?.nombre || "-"}</td>
+        <td>${u.activo ? "Activo" : "Inactivo"}</td>
+        <td>
+          <button class="btn btn-sm btn-warning me-1" onclick="editarUsuario(${u.idusuario})">✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="eliminarUsuario(${u.idusuario})">🗑️</button>
+        </td>`;
+      tablaUsuarios.appendChild(tr);
+    });
+
+    generarPaginacion(total);
+  } catch (err) {
+    console.error("Error al listar usuarios:", err);
+  }
+}
+
+function generarPaginacion(totalRegistros) {
+  const totalPaginas = Math.ceil(totalRegistros / cantidadPorPagina);
+  paginacion.innerHTML = "";
+
+  for (let i = 1; i <= totalPaginas; i++) {
+    const li = document.createElement("li");
+    li.className = `page-item ${i === paginaActual ? "active" : ""}`;
+    li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+    li.addEventListener("click", (e) => {
+      e.preventDefault();
+      paginaActual = i;
+      listarUsuariosPaginado();
+    });
+    paginacion.appendChild(li);
+  }
+}
+
+window.editarUsuario = async function (id) {
+  try {
+    const res = await fetch(`/api/usuarios/${id}`);
+    const data = await res.json();
+
+    if (data.success && data.usuario) {
+      document.getElementById("nombre").value = data.usuario.nombre;
+      document.getElementById("usuario").value = data.usuario.usuario;
+      document.getElementById("password").value = data.usuario.password;
+      selectRol.value = data.usuario.idrol;
+      selectActivo.value = String(data.usuario.activo);
+      document.getElementById("matricula").value = data.usuario.matricula || "";
+      modoEdicion = true;
+      idEditar = id;
+    }
+  } catch (err) {
+    console.error("Error al editar usuario", err);
+  }
 };
+
+window.eliminarUsuario = function (id) {
+  const usuario = todosLosUsuarios.find(u => u.idusuario === id);
+  const nombre = usuario?.nombre || "Usuario desconocido";
+
+  Swal.fire({
+    title: "¿Está seguro de Eliminar el Usuario?",
+    html: `
+      <div style="color: red; font-weight: bold; margin-bottom: 1rem;">
+        No podrá deshacer esta operación.
+      </div>
+      <div style="margin-bottom: 1rem;">
+        <strong>Usuario:</strong> ${nombre}<br>
+      </div>
+    `,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sí, eliminar',
+    cancelButtonText: 'Cancelar',
+    reverseButtons: true,
+    focusCancel: true
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`/api/usuarios/${id}`, { method: "DELETE" });
+        const data = await res.json();
+
+        if (data.success) {
+          Swal.fire('Éxito', 'Usuario eliminado correctamente.', 'success');
+          listarUsuariosPaginado();
+        } else {
+          mostrarMensaje("#mensajes", data.error || "No se pudo eliminar.", 0);
+        }
+      } catch (err) {
+        console.error("Error al eliminar usuario", err);
+        mostrarMensaje("#mensajes", "Error de conexión.", 0);
+      }
+    }
+  });
+};
+
