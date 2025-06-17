@@ -1,0 +1,52 @@
+extends layout
+
+block extraHead
+  script(src="https://cdn.jsdelivr.net/npm/sweetalert2@11")
+  script(type="module", src="/js/medicamentos.js")
+
+block content
+  .card.shadow
+    .card-body
+      h2.text-center.h5.mb-4 Administración de Medicamentos
+
+      form#formMedicamento
+        input(type="hidden", id="idmedicamento")
+
+        .row.mb-3
+          .col-md-4
+            label.form-label(for="nombremedicamento") Nombre del medicamento:
+            input.form-control#nombremedicamento(type="text", required, autocomplete="off", style="text-transform: uppercase;")
+
+          .col-md-4
+            label.form-label(for="presentacion") Presentación:
+            input.form-control#presentacion(type="text", autocomplete="off", placeholder="Ej: Comprimidos 500mg")
+
+          .col-md-4
+            label.form-label(for="idclasificacionterapeutica") Clasificación terapéutica:
+            select.form-select#idclasificacionterapeutica(name="idclasificacionterapeutica", required)
+              option(value="") Seleccione una clasificación
+
+        .row.mb-3
+          .col-md-4.offset-md-8.d-flex.align-items-end
+            button.btn.btn-primary.w-100(type="submit", id="btnGuardar") Guardar medicamento
+
+        #mensajes.text-danger.mt-2.text-center
+
+      hr.my-4
+
+      h5.text-center.mt-4 Lista de Medicamentos
+        .row.mb-3
+          .col-md-6.offset-md-3
+            input.form-control(type="text", id="busquedaMedicamento", placeholder="Buscar medicamento por nombre")
+      table.table.table-bordered.table-sm.text-center
+        thead
+          tr
+            th ID
+            th Nombre
+            th Presentación
+            th Clasificación
+            th Acciones
+        tbody#tablaMedicamentos
+
+      nav.mt-3.d-flex.justify-content-center
+        ul.pagination#paginacionMedicamentos
