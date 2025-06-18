@@ -79,7 +79,7 @@ const usuariosController = {
   actualizar: async (req, res) => {
     try {
       const { id } = req.params;
-      const { nombre, usuario, password, idrol, matricula, activo } = req.body;
+      const { idusuario, nombre, usuario, password, idrol, matricula, activo } = req.body;
 
       const user = await Usuario.findByPk(id);
       if (!user) {
@@ -92,7 +92,8 @@ const usuariosController = {
         }
       });
 
-      if (usuarioExistente) {
+      if (usuarioExistente && usuarioExistente.idusuario !== id) {
+        console.log('estoy en el backend');
         return res.status(400).json({
           success: false,
           error: 'El alias ingresado, ya existe. Elegí otro.'
@@ -138,7 +139,7 @@ const usuariosController = {
       const usuarioExistente = await Usuario.findOne({
         where: {
           usuario: {
-            [Op.like]: `%${alias}%`
+            usuario: { [Op.like]: `%${usuario}%` } 
           }
         }
       });
@@ -151,6 +152,19 @@ const usuariosController = {
     } catch (error) {
       console.error("Error al verificar alias:", error);
       return res.status(500).json({ existe: false, error: "Error interno del servidor" });
+    }
+  },
+
+  listarPorRol: async (req, res) => {
+    try {
+      const idrol = req.params.idrol;
+      const usuarios = await Usuario.findAll({
+        where: { idrol },
+        include: [{ model: Rol, as: 'rol', attributes: ['nombre'] }]
+      });
+      res.json(usuarios);
+    } catch (error) {
+      res.status(500).json({ success: false, message: "Error interno" });
     }
   },
 

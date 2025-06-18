@@ -20,7 +20,69 @@ const cantidadPorPagina = 5;
 
 document.addEventListener("DOMContentLoaded", () => {
   cargarRoles();
-  listarUsuariosPaginado();
+  
+  const selectRol = document.getElementById("idrol");
+  const camposUsuario = document.getElementById("camposUsuario");
+  const cardTablaUsuarios = document.getElementById("cardTablaUsuarios");
+  
+  
+  selectRol.addEventListener("change", async () => {
+    
+    const idrol = selectRol.value
+    const inputMatricula = document.getElementById("matricula");
+
+    if (idrol) {
+      camposUsuario.style.display = "block";
+      cardTablaUsuarios.style.display = "block";
+      await cargarUsuariosPorRol(idrol); 
+    } else {
+      camposUsuario.style.display = "none";
+      cardTablaUsuarios.style.display = "none";
+      limpiarTablaUsuarios();
+    }
+    ;
+    if (idrol === "3" || idrol === "4") {      // Si es médico o enfermero (podria se mejor manejado desde una tabla)
+      inputMatricula.disabled = false;
+      inputMatricula.value = "";
+      inputMatricula.placeholder = "Ingrese matrícula";
+    } else {
+      inputMatricula.disabled = true;
+      inputMatricula.value = "No aplica";
+      inputMatricula.placeholder = "";
+    }
+  });
+  
+  document.addEventListener("DOMContentLoaded", () => {
+  const selectRol = document.getElementById("idrol");
+  const camposUsuario = document.getElementById("camposUsuario");
+  const cardTablaUsuarios = document.getElementById("cardTablaUsuarios");
+
+  selectRol.addEventListener("change", async () => {
+    const idrol = selectRol.value;
+
+    if (idrol) {
+      camposUsuario.style.display = "block";
+      cardTablaUsuarios.style.display = "block";
+      await cargarUsuariosPorRol(idrol); // función que filtra
+    } else {
+      camposUsuario.style.display = "none";
+      cardTablaUsuarios.style.display = "none";
+      limpiarTablaUsuarios();
+    }
+  });
+});
+
+
+
+
+  
+  //ver cuando usamos la funcion
+  //listarUsuariosPaginado();
+
+
+
+
+
 });
 
 inputBusqueda.addEventListener("input", () => {
@@ -66,6 +128,11 @@ form.addEventListener("submit", async (e) => {
   const aliasData = await aliasResponse.json();
 
   if (aliasData.existe) {
+    console.log(aliasData);
+    console.log(idEditar);
+    console.log(modoEdicion);
+    console.log(aliasData.idusuario);
+    
     if (!modoEdicion || aliasData.idusuario !== idEditar) {
       mostrarMensaje("#mensajes", 'El alias ya existe. Elegí otro.', 0);
       form.usuario.focus();
@@ -131,7 +198,93 @@ async function cargarRoles() {
     console.error("Error al cargar roles:", err);
   }
 }
+/*
+async function cargarUsuariosPorRol(idrol) {
+  try {
+    const response = await fetch(`/api/usuarios/por-rol/${idrol}`);
+    if (!response.ok) throw new Error("Error al obtener usuarios");
+    const usuarios = await response.json();
 
+    const tbody = document.getElementById("tablaUsuarios");
+    tbody.innerHTML = "";
+
+    usuarios.forEach(u => {
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${u.idusuario}</td>
+        <td>${u.nombre}</td>
+        <td>${u.usuario}</td>
+        <td>${u.rol.nombre}</td>
+        <td>${u.activo ? "Activo" : "Inactivo"}</td>
+        <td>
+          <button class="btn btn-sm btn-warning me-1" onclick="editarUsuario(${u.idusuario})">✏️</button>
+          <button class="btn btn-sm btn-danger" onclick="eliminarUsuario(${u.idusuario})">🗑️</button>
+        </td>
+      `;
+      tbody.appendChild(fila);
+    });
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
+*/
+function mostrarUsuariosPaginados() {
+  const search = inputBusqueda.value.trim().toLowerCase();
+
+  const filtrados = todosLosUsuarios.filter(u =>
+    u.nombre.toLowerCase().includes(search) ||
+    u.usuario.toLowerCase().includes(search)
+  );
+
+  const total = filtrados.length;
+  const inicio = (paginaActual - 1) * cantidadPorPagina;
+  const paginados = filtrados.slice(inicio, inicio + cantidadPorPagina);
+
+  tablaUsuarios.innerHTML = "";
+
+  if (paginados.length === 0) {
+    tablaUsuarios.innerHTML = `<tr><td colspan="6">No se encontraron resultados.</td></tr>`;
+    paginacion.innerHTML = "";
+    return;
+  }
+
+  paginados.forEach(u => {
+    const fila = document.createElement("tr");
+    fila.innerHTML = `
+      <td>${u.idusuario}</td>
+      <td>${u.nombre}</td>
+      <td>${u.usuario}</td>
+      <td>${u.rol?.nombre || "-"}</td>
+      <td>${u.activo ? "Activo" : "Inactivo"}</td>
+      <td>
+        <button class="btn btn-sm btn-warning me-1" onclick="editarUsuario(${u.idusuario})">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="eliminarUsuario(${u.idusuario})">🗑️</button>
+      </td>
+    `;
+    tablaUsuarios.appendChild(fila);
+  });
+
+  generarPaginacion(total);
+}
+
+async function cargarUsuariosPorRol(idrol) {
+  try {
+    const response = await fetch(`/api/usuarios/por-rol/${idrol}`);
+    if (!response.ok) throw new Error("Error al obtener usuarios");
+
+    todosLosUsuarios = await response.json();
+    paginaActual = 1; 
+    mostrarUsuariosPaginados();
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
+
+
+function limpiarTablaUsuarios() {
+  const tbody = document.getElementById("tablaUsuarios");
+  tbody.innerHTML = "";
+}
 async function listarUsuariosPaginado() {
   try {
     const search = inputBusqueda.value.trim().toLowerCase();

@@ -78,49 +78,52 @@ block content
     .card-body
       h2.text-center.h5.mb-4 Administración de Usuarios
       form#formUsuario
-        input(type="hidden", id="idusuario")
+        // Rol primero
         .row.mb-3
           .col-md-4
-            label.form-label(for="nombre") Apellido y Nombres del Usuario:
-            input.form-control#nombre(type="text", autocomplete="off", style="text-transform: uppercase;")
-
-          .col-md-4
-            label.form-label(for="usuario") Nombre de Usuario (alias):
-            input.form-control#usuario(type="text", autocomplete="off")
-
-          .col-md-4
-            label.form-label(for="password") Contraseña:
-            input.form-control#password(type="password")
-
-        .row.mb-3
-          .col-md-4
-            label.form-label(for="idrol") Rol:
+            label.form-label(for="idrol") Seleccione un Rol:
             select.form-select#idrol(name="idrol")
               option(value="") Seleccione un rol
-          .col-md-4
-            label.form-label(for="activo") Estado
-            select.form-select#activo(name="activo")
-              option(value="true") Activo
-              option(value="false") Inactivo
-          .col-md-4
-            label.form-label(for="matricula") N° Matrícula:
-            input.form-control#matricula(type="text", autocomplete="off")
 
-        .row.mb-3
-          .col-md-4.offset-md-8.d-flex.align-items-end
-            button.btn.btn-primary.w-100#btnGuardar(type="submit") Guardar usuario
+        // Contenedor de campos de usuario
+        #camposUsuario(style="display:none")
+          input(type="hidden", id="idusuario")
+          .row.mb-3
+            .col-md-4
+              label.form-label(for="nombre") Apellido y Nombres del Usuario:
+              input.form-control#nombre(type="text", autocomplete="off", style="text-transform: uppercase;")
+            .col-md-4
+              label.form-label(for="usuario") Nombre de Usuario (alias):
+              input.form-control#usuario(type="text", autocomplete="off")
+            .col-md-4
+              label.form-label(for="password") Contraseña:
+              input.form-control#password(type="password")
+
+          .row.mb-3
+            .col-md-4
+              label.form-label(for="activo") Estado
+              select.form-select#activo(name="activo")
+                option(value="true") Activo
+                option(value="false") Inactivo
+            .col-md-4
+              label.form-label(for="matricula") N° Matrícula:
+              input.form-control#matricula(type="text", autocomplete="off", disabled=true, value="No aplica")
+
+          .row.mb-3
+            .col-md-4.offset-md-8.d-flex.align-items-end
+              button.btn.btn-primary.w-100#btnGuardar(type="submit") Guardar usuario
 
         #mensajes.text-center
 
   // Card de la lista de usuarios
-  .card.shadow
+  .card.shadow#cardTablaUsuarios(style="display:none")
     .card-body
       h5.text-center.mb-3 Lista de Usuarios Registrados
       .row.mb-4
         .col-12.d-flex.justify-content-center.align-items-center
           label.form-label.fw-bold.me-2.mb-0(for="inputBusquedaUsuario") Buscar Usuario:
           input.form-control#inputBusquedaUsuario(type="text", placeholder="Buscar usuario...", style="max-width:250px;")
-      
+
       table.table.table-bordered.table-sm.text-center
         thead 
           tr
@@ -130,7 +133,6 @@ block content
             th Rol
             th Estado
             th Acciones
-            
         tbody#tablaUsuarios
 
       nav.mt-3.d-flex.justify-content-center

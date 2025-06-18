@@ -4,11 +4,13 @@ const usuariosController = require('../controllers/usuariosController');
 
 
 router.get('/verificar-alias', usuariosController.verificarAlias);
+router.get('/por-rol/:idrol', usuariosController.listarPorRol);
 router.get('/', usuariosController.listar);
 router.get('/:id', usuariosController.buscarPorId);
 router.post('/', usuariosController.crear);
 router.put('/:id', usuariosController.actualizar);
 router.delete('/:id', usuariosController.eliminar);
+
 
 
 
