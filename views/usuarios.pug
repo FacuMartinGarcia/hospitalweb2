@@ -66,8 +66,11 @@ block content
     .mb-4 {
       margin-bottom: 1.8rem !important;
     }
+    .col-matricula {
+      transition: all 0.3s ease;
+    }
 
-     #mensajes {
+    #mensajes {
       border-radius: 6px;
       font-size: 1rem;
       transition: all 0.3s ease;
@@ -79,39 +82,38 @@ block content
       h2.text-center.h5.mb-4 Administración de Usuarios
       form#formUsuario
         // Rol primero
-        .row.mb-3
-          .col-md-4
+        .row.mb-3.justify-content-center
+          .col-md-4.text-center
             label.form-label(for="idrol") Seleccione un Rol:
-            select.form-select#idrol(name="idrol")
+            select.form-select#idrol.form-select(name="idrol")
               option(value="") Seleccione un rol
 
         // Contenedor de campos de usuario
         #camposUsuario(style="display:none")
           input(type="hidden", id="idusuario")
           .row.mb-3
-            .col-md-4
-              label.form-label(for="nombre") Apellido y Nombres del Usuario:
+            .col-md-2
+              label.form-label(for="matricula") N° Matrícula:
+              input.form-control#matricula(type="text", autocomplete="off", disabled=true, value="No aplica", title="Ingresá la matrícula del profesional para buscar")
+            .col-md-3
+              label.form-label(for="nombre") Apellido y Nombres:
               input.form-control#nombre(type="text", autocomplete="off", style="text-transform: uppercase;")
-            .col-md-4
-              label.form-label(for="usuario") Nombre de Usuario (alias):
+            .col-md-3
+              label.form-label(for="usuario") Identificacion (alias):
               input.form-control#usuario(type="text", autocomplete="off")
-            .col-md-4
+            .col-md-2 
               label.form-label(for="password") Contraseña:
               input.form-control#password(type="password")
-
-          .row.mb-3
-            .col-md-4
+            .col-md-2              
               label.form-label(for="activo") Estado
               select.form-select#activo(name="activo")
                 option(value="true") Activo
                 option(value="false") Inactivo
-            .col-md-4
-              label.form-label(for="matricula") N° Matrícula:
-              input.form-control#matricula(type="text", autocomplete="off", disabled=true, value="No aplica")
 
           .row.mb-3
             .col-md-4.offset-md-8.d-flex.align-items-end
               button.btn.btn-primary.w-100#btnGuardar(type="submit") Guardar usuario
+              
 
         #mensajes.text-center
 
@@ -131,8 +133,10 @@ block content
             th Nombre
             th Usuario
             th Rol
+            th.col-matricula Matrícula
             th Estado
             th Acciones
+
         tbody#tablaUsuarios
 
       nav.mt-3.d-flex.justify-content-center

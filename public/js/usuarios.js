@@ -1,94 +1,117 @@
 import { mostrarMensaje} from './utils.js';
 
 const form = document.getElementById("formUsuario");
-//const btnGuardar = document.getElementById("btnGuardar");
+
 const tablaUsuarios = document.getElementById("tablaUsuarios");
 const selectRol = document.getElementById("idrol");
 const selectActivo = document.getElementById("activo");
-//const mensajes = document.getElementById("mensajes");
 const inputBusqueda = document.getElementById("inputBusquedaUsuario");
-
+const inputMatricula = document.getElementById("matricula");
 const paginacion = document.getElementById("paginacionUsuarios");
+const camposUsuario = document.getElementById("camposUsuario");
+const campoPassword = document.getElementById("password");
+const cardTablaUsuarios = document.getElementById("cardTablaUsuarios");
 
 let modoEdicion = false;
 let idEditar = null;
 let datosRoles = [];
 let todosLosUsuarios = [];
-
 let paginaActual = 1;
 const cantidadPorPagina = 5;
 
 document.addEventListener("DOMContentLoaded", () => {
+
   cargarRoles();
-  
-  const selectRol = document.getElementById("idrol");
-  const camposUsuario = document.getElementById("camposUsuario");
-  const cardTablaUsuarios = document.getElementById("cardTablaUsuarios");
-  
-  
+
   selectRol.addEventListener("change", async () => {
     
+    limpiarCampos();
     const idrol = selectRol.value
     const inputMatricula = document.getElementById("matricula");
 
     if (idrol) {
+      actualizarColumnaMatricula();
       camposUsuario.style.display = "block";
       cardTablaUsuarios.style.display = "block";
       await cargarUsuariosPorRol(idrol); 
+
     } else {
       camposUsuario.style.display = "none";
       cardTablaUsuarios.style.display = "none";
       limpiarTablaUsuarios();
     }
     ;
-    if (idrol === "3" || idrol === "4") {      // Si es médico o enfermero (podria se mejor manejado desde una tabla)
+    if (idrol === "3" || idrol === "4") { //Medico o Enfermero, habria que pensarlo tambien de otra forma 
       inputMatricula.disabled = false;
       inputMatricula.value = "";
       inputMatricula.placeholder = "Ingrese matrícula";
+      document.getElementById("nombre").readOnly = true;
+      document.getElementById("nombre").value = "";
     } else {
       inputMatricula.disabled = true;
       inputMatricula.value = "No aplica";
       inputMatricula.placeholder = "";
+      document.getElementById("nombre").readOnly = false;
+      document.getElementById("nombre").value = "";
     }
   });
   
-  document.addEventListener("DOMContentLoaded", () => {
-  const selectRol = document.getElementById("idrol");
-  const camposUsuario = document.getElementById("camposUsuario");
-  const cardTablaUsuarios = document.getElementById("cardTablaUsuarios");
+  inputBusqueda.addEventListener("input", () => {
+    paginaActual = 1;
+    listarUsuariosPaginado();
+  });
 
-  selectRol.addEventListener("change", async () => {
+  inputMatricula.addEventListener("blur", async () => {
+    
+    const matricula = inputMatricula.value.trim();
     const idrol = selectRol.value;
+    const inputNombre = document.getElementById("nombre");
 
-    if (idrol) {
-      camposUsuario.style.display = "block";
-      cardTablaUsuarios.style.display = "block";
-      await cargarUsuariosPorRol(idrol); // función que filtra
-    } else {
-      camposUsuario.style.display = "none";
-      cardTablaUsuarios.style.display = "none";
-      limpiarTablaUsuarios();
+    if (!matricula || (idrol !== "3" && idrol !== "4")) return;
+
+    const url =
+      idrol === "3"
+        ? `/api/medicos/${matricula}`
+        : `/api/enfermeros/${matricula}`;
+
+    try {
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.success && data.medico) {
+        inputNombre.value = data.medico.apellidonombres;
+      } else if (data.success && data.enfermero) {
+        inputNombre.value = data.enfermero.apellidonombres;
+      } else {
+        inputNombre.value = "";
+        Swal.fire({
+          icon: "warning",
+          title: `N° de Matrícula no registrada: <strong>${matricula}</strong>`,
+          html: `Para crear el usuario de un Profesional, primero debe registrarlo con sus datos 
+                personales en el apartado correspondiente (Médico / Enfermero).<br><br>
+                <small>Luego búsquelo desde aquí con su número de matrícula</small>`,
+          showConfirmButton: true,
+        });
+        inputMatricula.value="";
+        nombre.value="";
+        usuario.value="";
+        password.value="";
+        inputMatricula.focus();
+        
+      }
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo buscar la matrícula.",
+      });
     }
   });
-});
-
-
-
-
-  
-  //ver cuando usamos la funcion
-  //listarUsuariosPaginado();
-
-
-
-
 
 });
 
-inputBusqueda.addEventListener("input", () => {
-  paginaActual = 1;
-  listarUsuariosPaginado();
-});
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -99,6 +122,12 @@ form.addEventListener("submit", async (e) => {
   const idrol = selectRol.value;
   const activo = selectActivo.value === "true" ? 1 : 0;
   const matricula = document.getElementById("matricula").value.trim();
+
+  if (!matricula || (idrol !== "3" && idrol !== "4")){
+      mostrarMensaje('#mensajes', 'Ingrese una matricula para el usuario medico/enfermero', 0);
+      document.getElementById("matricula").focus();
+      return;
+  }
 
   if (!nombre) {
     mostrarMensaje('#mensajes', 'Debe especificar el apellido y nombre del usuario', 0);
@@ -124,22 +153,20 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  const aliasResponse = await fetch(`/api/usuarios/verificar-alias?alias=${encodeURIComponent(usuario)}`);
+  
+  const queryString = `/api/usuarios/verificar-alias?alias=${encodeURIComponent(usuario)}${modoEdicion ? `&idusuario=${idEditar}` : ''}`;
+  const aliasResponse = await fetch(queryString);
   const aliasData = await aliasResponse.json();
 
   if (aliasData.existe) {
-    console.log(aliasData);
-    console.log(idEditar);
-    console.log(modoEdicion);
-    console.log(aliasData.idusuario);
-    
     if (!modoEdicion || aliasData.idusuario !== idEditar) {
       mostrarMensaje("#mensajes", 'El alias ya existe. Elegí otro.', 0);
       form.usuario.focus();
       return;
     }
   }
-
+  
+  
   const accion = modoEdicion ? "modificar" : "registrar";
   const texto = `¿Desea ${accion} al usuario "${nombre}"?`;
   const confirmButton = modoEdicion ? "Sí, modificar" : "Sí, registrar";
@@ -169,7 +196,10 @@ form.addEventListener("submit", async (e) => {
 
     if (data.success) {
       Swal.fire('Éxito', 'Usuario registrado correctamente.', 'success');
+      const rolActual = selectRol.value;
       form.reset();
+      selectRol.value = rolActual;
+      selectRol.dispatchEvent(new Event('change'));
       modoEdicion = false;
       idEditar = null;
       listarUsuariosPaginado();
@@ -181,6 +211,7 @@ form.addEventListener("submit", async (e) => {
     mostrarMensaje("#mensajes", "Error de conexión.", 0);
   }
 });
+
 async function cargarRoles() {
   try {
     const res = await fetch("/api/roles");
@@ -198,39 +229,37 @@ async function cargarRoles() {
     console.error("Error al cargar roles:", err);
   }
 }
-/*
+
 async function cargarUsuariosPorRol(idrol) {
   try {
     const response = await fetch(`/api/usuarios/por-rol/${idrol}`);
     if (!response.ok) throw new Error("Error al obtener usuarios");
-    const usuarios = await response.json();
-
-    const tbody = document.getElementById("tablaUsuarios");
-    tbody.innerHTML = "";
-
-    usuarios.forEach(u => {
-      const fila = document.createElement("tr");
-      fila.innerHTML = `
-        <td>${u.idusuario}</td>
-        <td>${u.nombre}</td>
-        <td>${u.usuario}</td>
-        <td>${u.rol.nombre}</td>
-        <td>${u.activo ? "Activo" : "Inactivo"}</td>
-        <td>
-          <button class="btn btn-sm btn-warning me-1" onclick="editarUsuario(${u.idusuario})">✏️</button>
-          <button class="btn btn-sm btn-danger" onclick="eliminarUsuario(${u.idusuario})">🗑️</button>
-        </td>
-      `;
-      tbody.appendChild(fila);
-    });
-  } catch (error) {
+      todosLosUsuarios = await response.json();
+      paginaActual = 1;
+      listarUsuariosPaginado(); 
+    } catch (error) {
     console.error("Error:", error);
   }
 }
-*/
-function mostrarUsuariosPaginados() {
-  const search = inputBusqueda.value.trim().toLowerCase();
 
+function limpiarCampos(){
+  document.getElementById("matricula").value = "";
+  document.getElementById("nombre").value = "";
+  document.getElementById("usuario").value = "";
+  document.getElementById("password").value = "";
+}
+ function limpiarTablaUsuarios() {
+  const tbody = document.getElementById("tablaUsuarios");
+  tbody.innerHTML = "";
+}
+function listarUsuariosPaginado() {
+  if (!selectRol.value) {
+    limpiarTablaUsuarios();
+    paginacion.innerHTML = "";
+    return;
+  }
+
+  const search = inputBusqueda.value.trim().toLowerCase();
   const filtrados = todosLosUsuarios.filter(u =>
     u.nombre.toLowerCase().includes(search) ||
     u.usuario.toLowerCase().includes(search)
@@ -241,7 +270,6 @@ function mostrarUsuariosPaginados() {
   const paginados = filtrados.slice(inicio, inicio + cantidadPorPagina);
 
   tablaUsuarios.innerHTML = "";
-
   if (paginados.length === 0) {
     tablaUsuarios.innerHTML = `<tr><td colspan="6">No se encontraron resultados.</td></tr>`;
     paginacion.innerHTML = "";
@@ -255,6 +283,7 @@ function mostrarUsuariosPaginados() {
       <td>${u.nombre}</td>
       <td>${u.usuario}</td>
       <td>${u.rol?.nombre || "-"}</td>
+      <td class="col-matricula">${u.matricula || "-"}</td>
       <td>${u.activo ? "Activo" : "Inactivo"}</td>
       <td>
         <button class="btn btn-sm btn-warning me-1" onclick="editarUsuario(${u.idusuario})">✏️</button>
@@ -264,69 +293,10 @@ function mostrarUsuariosPaginados() {
     tablaUsuarios.appendChild(fila);
   });
 
+  actualizarColumnaMatricula();
   generarPaginacion(total);
 }
 
-async function cargarUsuariosPorRol(idrol) {
-  try {
-    const response = await fetch(`/api/usuarios/por-rol/${idrol}`);
-    if (!response.ok) throw new Error("Error al obtener usuarios");
-
-    todosLosUsuarios = await response.json();
-    paginaActual = 1; 
-    mostrarUsuariosPaginados();
-  } catch (error) {
-    console.error("Error:", error);
-  }
-}
-
-
-function limpiarTablaUsuarios() {
-  const tbody = document.getElementById("tablaUsuarios");
-  tbody.innerHTML = "";
-}
-async function listarUsuariosPaginado() {
-  try {
-    const search = inputBusqueda.value.trim().toLowerCase();
-    const res = await fetch("/api/usuarios");
-    const usuarios = await res.json();
-    todosLosUsuarios = usuarios;
-
-    const filtrados = usuarios.filter((u) =>
-      u.nombre.toLowerCase().includes(search) || u.usuario.toLowerCase().includes(search)
-    );
-
-    const total = filtrados.length;
-    const inicio = (paginaActual - 1) * cantidadPorPagina;
-    const paginados = filtrados.slice(inicio, inicio + cantidadPorPagina);
-
-    tablaUsuarios.innerHTML = "";
-    if (paginados.length === 0) {
-      tablaUsuarios.innerHTML = `<tr><td colspan="6">No se encontraron resultados.</td></tr>`;
-      paginacion.innerHTML = "";
-      return;
-    }
-
-    paginados.forEach((u) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${u.idusuario}</td>
-        <td>${u.nombre}</td>
-        <td>${u.usuario}</td>
-        <td>${u.rol?.nombre || "-"}</td>
-        <td>${u.activo ? "Activo" : "Inactivo"}</td>
-        <td>
-          <button class="btn btn-sm btn-warning me-1" onclick="editarUsuario(${u.idusuario})">✏️</button>
-          <button class="btn btn-sm btn-danger" onclick="eliminarUsuario(${u.idusuario})">🗑️</button>
-        </td>`;
-      tablaUsuarios.appendChild(tr);
-    });
-
-    generarPaginacion(total);
-  } catch (err) {
-    console.error("Error al listar usuarios:", err);
-  }
-}
 
 function generarPaginacion(totalRegistros) {
   const totalPaginas = Math.ceil(totalRegistros / cantidadPorPagina);
@@ -343,6 +313,15 @@ function generarPaginacion(totalRegistros) {
     });
     paginacion.appendChild(li);
   }
+}
+function actualizarColumnaMatricula() {
+  const valorRol = parseInt(selectRol.value);
+  const mostrar = (valorRol === 3 || valorRol === 4); // Médico o Enfermero
+
+  const columnas = document.querySelectorAll(".col-matricula");
+  columnas.forEach(col => {
+    col.style.display = mostrar ? "" : "none";
+  });
 }
 
 window.editarUsuario = async function (id) {
@@ -388,12 +367,14 @@ window.eliminarUsuario = function (id) {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
+        const rolActual = selectRol.value;
         const res = await fetch(`/api/usuarios/${id}`, { method: "DELETE" });
         const data = await res.json();
 
         if (data.success) {
           Swal.fire('Éxito', 'Usuario eliminado correctamente.', 'success');
-          listarUsuariosPaginado();
+          selectRol.value = rolActual;
+          selectRol.dispatchEvent(new Event('change'));
         } else {
           mostrarMensaje("#mensajes", data.error || "No se pudo eliminar.", 0);
         }

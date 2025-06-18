@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 const db = require('../models'); 
-const { Usuario, Rol } = db;
+const { Usuario, Rol, Medico, Enfermero } = db;
 
 const usuariosController = {
   listar: async (req, res) => {
@@ -54,22 +54,74 @@ const usuariosController = {
         });
       }
 
+      const idRolNum = Number(idrol);
+      const matriculaLimpia = matricula?.trim() || '';
+
       const usuarioExistente = await Usuario.findOne({
-        where: {
-          usuario: { [Op.like]: `%${usuario}%` } 
-        }
+        where: { usuario: { [Op.like]: `%${usuario}%` } }
       });
 
       if (usuarioExistente) {
         return res.status(400).json({
           success: false,
-          error: 'El alias ingresado, ya existe. Elegí otro.'
+          error: 'El alias ingresado ya existe. Elegí otro.'
         });
       }
 
-      const nuevoUsuario = await Usuario.create({ nombre, usuario, password, idrol, matricula, activo });
+      if (idRolNum === 3 || idRolNum === 4) {
+        if (!matriculaLimpia) {
+          return res.status(400).json({
+            success: false,
+            error: 'Debe ingresar matrícula para este rol'
+          });
+        }
+
+        const modelo = idRolNum === 3 ? Medico : Enfermero;
+        const profesional = await modelo.findOne({ where: { matricula: matriculaLimpia } });
+        
+        console.log(matriculaLimpia);
+        console.log(profesional);
+
+        if (!profesional) {
+          return res.status(400).json({
+            success: false,
+            error: `La matrícula no existe en ${idRolNum === 3 ? 'Médicos' : 'Enfermeros'}. Debe registrar primero al profesional.`
+          });
+        }
+
+        if (profesional.apellidonombres.toUpperCase().trim() !== nombre.toUpperCase().trim()) {
+          return res.status(400).json({
+            success: false,
+            error: 'El nombre ingresado no coincide con el del profesional registrado.'
+          });
+        }
+
+        const repetido = await Usuario.findOne({
+          where: {
+            idrol: idRolNum,
+            matricula: matriculaLimpia
+          }
+        });
+
+        if (repetido) {
+          return res.status(400).json({
+            success: false,
+            error: 'Ya existe un usuario registrado con esa matrícula y rol.'
+          });
+        }
+      }
+
+      const nuevoUsuario = await Usuario.create({
+        nombre,
+        usuario,
+        password,
+        idrol: idRolNum,
+        matricula: matriculaLimpia,
+        activo
+      });
 
       res.status(201).json({ success: true, usuario: nuevoUsuario });
+
     } catch (error) {
       console.error('Error al crear usuario:', error);
       res.status(500).json({ success: false, error: error.message });
@@ -79,36 +131,90 @@ const usuariosController = {
   actualizar: async (req, res) => {
     try {
       const { id } = req.params;
-      const { idusuario, nombre, usuario, password, idrol, matricula, activo } = req.body;
+      const { nombre, usuario, password, idrol, matricula, activo } = req.body;
 
       const user = await Usuario.findByPk(id);
       if (!user) {
         return res.status(404).json({ success: false, error: 'Usuario no encontrado' });
       }
 
+      const idRolNum = Number(idrol);
+      const matriculaLimpia = matricula?.trim() || '';
+
       const usuarioExistente = await Usuario.findOne({
         where: {
-          usuario: { [Op.like]: `%${usuario}%` } 
+          usuario: usuario.trim(),
+          idusuario: { [Op.ne]: parseInt(id) }
         }
       });
 
-      if (usuarioExistente && usuarioExistente.idusuario !== id) {
-        console.log('estoy en el backend');
+      if (usuarioExistente) {
         return res.status(400).json({
           success: false,
-          error: 'El alias ingresado, ya existe. Elegí otro.'
+          error: 'El alias ingresado ya existe. Elegí otro.'
         });
       }
-            
-      Object.assign(user, { nombre, usuario, password, idrol, matricula, activo });
+
+      if (idRolNum === 3 || idRolNum === 4) {
+        if (!matriculaLimpia) {
+          return res.status(400).json({
+            success: false,
+            error: 'Debe ingresar matrícula para este rol'
+          });
+        }
+
+        const modelo = idRolNum === 3 ? Medico : Enfermero;
+        const profesional = await modelo.findOne({ where: { matricula: matriculaLimpia } });
+
+        if (!profesional) {
+          return res.status(400).json({
+            success: false,
+            error: `La matrícula no existe en ${idRolNum === 3 ? 'Médicos' : 'Enfermeros'}`
+          });
+        }
+
+        if (profesional.apellidonombres.toUpperCase().trim() !== nombre.toUpperCase().trim()) {
+          return res.status(400).json({
+            success: false,
+            error: 'El nombre ingresado no coincide con el del profesional registrado.'
+          });
+        }
+
+        const repetido = await Usuario.findOne({
+          where: {
+            idrol: idRolNum,
+            matricula: matriculaLimpia,
+            idusuario: { [Op.ne]: parseInt(id) }
+          }
+        });
+
+        if (repetido) {
+          return res.status(400).json({
+            success: false,
+            error: 'Ya existe otro usuario registrado con esa matrícula y rol.'
+          });
+        }
+      }
+
+      Object.assign(user, {
+        nombre,
+        usuario,
+        password,
+        idrol: idRolNum,
+        matricula: matriculaLimpia,
+        activo
+      });
+
       await user.save();
 
       res.json({ success: true, usuario: user });
+
     } catch (error) {
       console.error('Error al actualizar usuario:', error);
       res.status(500).json({ success: false, error: error.message });
     }
   },
+
 
   eliminar: async (req, res) => {
     try {
@@ -129,19 +235,23 @@ const usuariosController = {
   },
 
   verificarAlias: async (req, res) => {
-    const { alias } = req.query;
+    const { alias, idusuario } = req.query;
 
     if (!alias || alias.trim() === "") {
       return res.status(400).json({ existe: false, error: "Alias requerido" });
     }
 
     try {
+      const condiciones = {
+        usuario: alias.trim()
+      };
+
+      if (idusuario) {
+        condiciones.idusuario = { [Op.ne]: parseInt(idusuario) };
+      }
+
       const usuarioExistente = await Usuario.findOne({
-        where: {
-          usuario: {
-            usuario: { [Op.like]: `%${usuario}%` } 
-          }
-        }
+        where: condiciones
       });
 
       if (usuarioExistente) {
